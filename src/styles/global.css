@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./form.css";
 @import "./buttons.css";
+@import "./tables.css";
 
 /* fonts */
 /* Supports weights 100-900 */

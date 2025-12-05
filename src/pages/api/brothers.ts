@@ -59,16 +59,12 @@ export const POST: APIRoute = async ({ request }) => {
     let community_id;
     if (communities.length === 0) {
       // La comunidad no existe, crearla
-      if (!level_paso) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'La comunidad no existe. Debes especificar en qué paso está.'
-        }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-      }
+      // Si no se proporcionó level_paso, usar un valor por defecto
+      const paso = level_paso || 'Sin especificar';
 
       const [result]: any = await db.query(
         'INSERT INTO communities (parish_id, number_community, level_paso) VALUES (?, ?, ?)',
-        [parish_id, community_number, level_paso]
+        [parish_id, community_number, paso]
       );
       community_id = result.insertId;
     } else {

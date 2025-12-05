@@ -130,8 +130,12 @@ const { id, idForm, title } = Astro.props;
   }
 
   .radio-label:has(input[type="radio"]:checked) {
-    border-color: #374151;
-    background-color: #f3f4f6;
+    border-color: var(--color-gray-300);
+    background-color: color-mix(
+      in oklab,
+      var(--color-gray-100),
+      transparent 40%
+    );
   }
 
   .radio-label input[type="radio"]:checked + span {
@@ -270,6 +274,18 @@ const { id, idForm, title } = Astro.props;
   /* Utilidades */
   .hidden {
     display: none;
+  }
+
+  /* Input con contenido */
+  input:not(:placeholder-shown),
+  textarea:not(:placeholder-shown),
+  select:has(option:checked:not([value=""])) {
+    border-color: var(--color-gray-300);
+    background-color: color-mix(
+      in oklab,
+      var(--color-gray-100),
+      transparent 40%
+    );
   }
 
   /* Estilos para select */
