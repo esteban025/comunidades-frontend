@@ -1,8 +1,11 @@
 ---
 import Card from "./CardResume.astro";
 import ChurchIcon from "@/assets/ChurchIcon.astro";
+import { getTotalParishes } from "@/lib/stats";
+
+const totalParishes = await getTotalParishes();
 ---
 
-<Card count={125} title="Parroquias" dataCardName="all-parishes">
+<Card count={totalParishes} title="Parroquias" dataCardName="all-parishes">
   <ChurchIcon class="w-12 aspect-square text-neutral-400" />
 </Card>

@@ -1,0 +1,244 @@
+---
+import SectionContainer from "@/components/SectionContainer.astro";
+import EyeIcon from "@/assets/EyesIcon.astro";
+import PencilIcon from "@/assets/PencilIcon.astro";
+import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
+
+// Fetch en el servidor
+let brothers: any[] = [];
+let hasError = false;
+
+try {
+  const response = await fetch("http://localhost:4321/api/all-brothers");
+  const result = await response.json();
+
+  if (result.success && result.data) {
+    brothers = result.data;
+  }
+} catch (error) {
+  console.error("Error cargando hermanos:", error);
+  hasError = true;
+}
+
+function formatCivilStatus(status: string): string {
+  const statuses: Record<string, string> = {
+    matrimonio: "Matrimonio",
+    soltero: "Soltero",
+    soltera: "Soltera",
+  };
+  return statuses[status] || status;
+}
+
+function formatRole(role: string): string {
+  const roles: Record<string, string> = {
+    responsable: "Responsable",
+    corresponsable: "Corresponsable",
+    didascala: "Didascala",
+    ostiario: "Ostiario",
+  };
+  return roles[role] || role;
+}
+---
+
+<SectionContainer
+  title="Registros de Hermanos"
+  description="Explora y gestiona los registros de hermanos en nuestra plataforma."
+>
+  <div slot="body" class="flex flex-col gap-4">
+    <!-- Aquí puedes agregar contenido relacionado con los registros de hermanos -->
+    <div class="container-table">
+      {
+        brothers.length > 0 ? (
+          <div class="brothers-table">
+            <table class="render-brothers-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Parroquia</th>
+                  <th>Comunidad</th>
+                  <th>Teléfono</th>
+                  <th>Servicio</th>
+                  <th>Estado Civil</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {brothers.map((brother) => (
+                  <tr>
+                    <td class="font-medium">{brother.names}</td>
+                    <td>{brother.parish?.aka || "N/A"}</td>
+                    <td>{brother.community?.number || "N/A"}</td>
+                    <td>
+                      {brother.phone ? (
+                        <div class="phone-display">{brother.phone}</div>
+                      ) : (
+                        <span class="empty-cell">Sin teléfono</span>
+                      )}
+                    </td>
+                    <td>
+                      {brother.roles_in_own_community?.length > 0 ||
+                      brother.catechist_of_communities?.length > 0 ? (
+                        <div class="roles-container flex flex-wrap gap-1 items-center">
+                          {brother.roles_in_own_community?.map(
+                            (role: string) => (
+                              <span data-rol={role} class="role-tag">
+                                {formatRole(role)}
+                              </span>
+                            ),
+                          )}
+                          {brother.catechist_of_communities?.length > 0 && (
+                            <span
+                              data-rol="catequista"
+                              class="role-tag catequista"
+                            >
+                              Catequista (
+                              {brother.catechist_of_communities.length})
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span class="empty-cell">-</span>
+                      )}
+                    </td>
+                    <td>{formatCivilStatus(brother.civil_status)}</td>
+                    <td>
+                      <div class="action-buttons flex justify-center gap-2">
+                        <button
+                          class="action-btn"
+                          title="Ver detalles"
+                          data-action="view"
+                          data-brother-id={brother.id}
+                        >
+                          <EyeIcon class="w-4 h-4" />
+                        </button>
+                        <button
+                          class="action-btn"
+                          title="Editar"
+                          data-action="edit"
+                          data-brother-id={brother.id}
+                        >
+                          <PencilIcon class="w-4 h-4" />
+                        </button>
+                        <button
+                          class="action-btn"
+                          title="Más opciones"
+                          data-action="more"
+                          data-brother-id={brother.id}
+                        >
+                          <DotsVerticalIcon class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div class="text-center py-12">
+            <div class="text-6xl mb-4">👥</div>
+            <h3 class="text-xl font-semibold text-neutral-700 mb-2">
+              No hay hermanos registrados
+            </h3>
+            <p class="text-neutral-600">
+              Usa el botón "Agregar Hermano" para comenzar a registrar hermanos
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </div>
+  <a slot="footer-link" class="hover:underline" href="#">
+    Ver todos los registros de hermanos
+  </a>
+</SectionContainer>
+
+<style>
+  .empty-cell {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* roles */
+  .role-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+  }
+
+  .role-tag[data-rol="responsable"] {
+    background-color: var(--color-blue-100);
+    color: var(--color-blue-600);
+  }
+  .role-tag[data-rol="catequista"] {
+    background-color: var(--color-amber-100);
+    color: var(--color-amber-600);
+  }
+  .role-tag[data-rol="corresponsable"] {
+    background-color: var(--color-red-100);
+    color: var(--color-red-600);
+  }
+  .role-tag[data-rol="ostiario"] {
+    background-color: var(--color-green-100);
+    color: var(--color-green-600);
+  }
+  .role-tag[data-rol="didascala"] {
+    background-color: var(--color-purple-100);
+    color: var(--color-purple-600);
+  }
+
+  /* bottoms */
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e5e5;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #525252;
+  }
+
+  .action-btn:hover {
+    background: #fafafa;
+    border-color: #d4d4d4;
+    color: #171717;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .action-btn[data-action="view"]:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+  }
+
+  .action-btn[data-action="edit"]:hover {
+    border-color: #10b981;
+    color: #10b981;
+  }
+
+  .action-btn[data-action="more"]:hover {
+    border-color: #6b7280;
+    color: #6b7280;
+  }
+</style>
+
+<script>
+  // Función para recargar la página cuando se agregue un hermano
+  (window as any).refreshBrothers = () => {
+    // Dar tiempo para que se muestre la notificación antes de recargar
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
+  };
+</script>

@@ -1,0 +1,31 @@
+---
+import AllBrothersCard from "@/components/AllBrothersCard.astro";
+import AllCatechistsCard from "@/components/AllCatechistsCard.astro";
+import AllCommunitiesCard from "@/components/AllCommunitiesCard.astro";
+import AllParishesCard from "@/components/AllParishesCard.astro";
+import SectionContainer from "@/components/SectionContainer.astro";
+---
+
+<SectionContainer
+  title="Resumen"
+  description="Vista rápida de las estadísticas principales de la plataforma"
+>
+  <div
+    slot="body"
+    class="grid gap-3 justify-center items-center"
+    style="grid-template-columns: repeat(auto-fit,minmax(min(100%,200px), 1fr));"
+  >
+    <AllBrothersCard />
+    <AllParishesCard />
+    <AllCommunitiesCard />
+    <AllCatechistsCard />
+  </div>
+
+  <a slot="footer-link" class="hover:underline" href="#">
+    Ver todos los detalles
+  </a>
+</SectionContainer>
+
+<script>
+  // Aquí puedes agregar cualquier lógica adicional si es necesario
+</script>

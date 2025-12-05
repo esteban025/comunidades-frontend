@@ -1,8 +1,11 @@
 ---
 import Card from "./CardResume.astro";
 import CatechistIcon from "@/assets/CatechistIcon.astro";
+import { getTotalCatechists } from "@/lib/stats";
+
+const totalCatechists = await getTotalCatechists();
 ---
 
-<Card count={125} title="Catequistas" dataCardName="all-catechists">
+<Card count={totalCatechists} title="Catequistas" dataCardName="all-catechists">
   <CatechistIcon class="w-12 aspect-square text-neutral-400" />
 </Card>
