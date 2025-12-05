@@ -1,0 +1,23 @@
+---
+interface Props {
+  title: string;
+  count: number;
+  dataCardName: string;
+}
+const { title, count, dataCardName } = Astro.props;
+---
+
+<article
+  class="rounded-lg bg-white shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-[1.02]"
+  data-card-name={dataCardName}
+>
+  <div class="flex justify-center gap-4 p-8 items-center">
+    <div class="icon">
+      <slot />
+    </div>
+    <header class="flex flex-col gap-2">
+      <h3 class="leading-none text-gray-500 text-sm">{title}</h3>
+      <p class="text-3xl font-bold leading-none text-gray-800">{count}</p>
+    </header>
+  </div>
+</article>
