@@ -9,7 +9,6 @@ import Card from "./Card.astro";
   </header>
   <div class="content-form">
     <form id="parish-form" action="" method="post">
-      <div id="form-message" class="hidden"></div>
       <div class="name content-input">
         <label for="parish-name">Nombre Parroquia</label>
         <input
@@ -49,9 +48,9 @@ import Card from "./Card.astro";
 
 <script>
   import { registerParish } from "@/scripts/registerParish";
+  import { showNotification } from "@/scripts/notification";
 
   const form = document.getElementById("parish-form") as HTMLFormElement;
-  const messageDiv = document.getElementById("form-message") as HTMLDivElement;
 
   if (form) {
     form.addEventListener("submit", async (e) => {
@@ -69,32 +68,28 @@ import Card from "./Card.astro";
       const result = await registerParish(formData);
 
       if (result.success) {
-        messageDiv.textContent = "¡Parroquia registrada exitosamente!";
-        messageDiv.className =
-          "bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm text-center mb-4";
-        messageDiv.classList.remove("hidden");
+        showNotification(
+          "¡Parroquia registrada exitosamente!",
+          "success",
+          3000,
+        );
         form.reset();
 
-        // Recargar la página después de 1.5 segundos para actualizar la lista
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        // Actualizar la lista sin recargar la página
+        if (typeof (window as any).refreshParishes === "function") {
+          await (window as any).refreshParishes();
+        }
       } else {
-        messageDiv.textContent =
-          result.error || "Error al registrar la parroquia";
-        messageDiv.className =
-          "bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm text-center mb-4 border-2 border-gray-400";
-        messageDiv.classList.remove("hidden");
+        showNotification(
+          result.error || "Error al registrar la parroquia",
+          "error",
+          5000,
+        );
       }
 
       // Rehabilitar botón
       submitButton.disabled = false;
       submitButton.textContent = "Registrar";
-
-      // Ocultar mensaje después de 5 segundos
-      setTimeout(() => {
-        messageDiv.classList.add("hidden");
-      }, 5000);
     });
   }
 </script>
