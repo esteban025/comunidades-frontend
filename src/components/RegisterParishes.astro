@@ -8,7 +8,8 @@ import Card from "./Card.astro";
     <p class="text-sm text-gray-500">Completa todos los campos*</p>
   </header>
   <div class="content-form">
-    <form action="" method="post">
+    <form id="parish-form" action="" method="post">
+      <div id="form-message" class="hidden"></div>
       <div class="name content-input">
         <label for="parish-name">Nombre Parroquia</label>
         <input
@@ -16,6 +17,7 @@ import Card from "./Card.astro";
           name="parish-name"
           id="parish-name"
           placeholder="San Luis de Gongaza"
+          required
         />
       </div>
       <div class="tag content-input">
@@ -25,6 +27,7 @@ import Card from "./Card.astro";
           name="parish-tag"
           id="parish-tag"
           placeholder="SLG"
+          required
         />
       </div>
       <div class="aka content-input">
@@ -34,6 +37,7 @@ import Card from "./Card.astro";
           name="parish-aka"
           id="parish-aka"
           placeholder="Quinta Chica"
+          required
         />
       </div>
       <div class="btns content-input">
@@ -42,3 +46,55 @@ import Card from "./Card.astro";
     </form>
   </div>
 </Card>
+
+<script>
+  import { registerParish } from "@/scripts/registerParish";
+
+  const form = document.getElementById("parish-form") as HTMLFormElement;
+  const messageDiv = document.getElementById("form-message") as HTMLDivElement;
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const submitButton = form.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement;
+
+      // Deshabilitar botón mientras se procesa
+      submitButton.disabled = true;
+      submitButton.textContent = "Registrando...";
+
+      const result = await registerParish(formData);
+
+      if (result.success) {
+        messageDiv.textContent = "¡Parroquia registrada exitosamente!";
+        messageDiv.className =
+          "bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm text-center mb-4";
+        messageDiv.classList.remove("hidden");
+        form.reset();
+
+        // Recargar la página después de 1.5 segundos para actualizar la lista
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        messageDiv.textContent =
+          result.error || "Error al registrar la parroquia";
+        messageDiv.className =
+          "bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm text-center mb-4 border-2 border-gray-400";
+        messageDiv.classList.remove("hidden");
+      }
+
+      // Rehabilitar botón
+      submitButton.disabled = false;
+      submitButton.textContent = "Registrar";
+
+      // Ocultar mensaje después de 5 segundos
+      setTimeout(() => {
+        messageDiv.classList.add("hidden");
+      }, 5000);
+    });
+  }
+</script>

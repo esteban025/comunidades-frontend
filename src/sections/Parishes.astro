@@ -13,7 +13,7 @@ let parishes: Parish[] = [];
 let error = false;
 
 try {
-  const response = await fetch("http://localhost:3000/api/parishes");
+  const response = await fetch("http://localhost:4321/api/parishes");
   const result: ParishesResponse = await response.json();
 
   if (result.success && result.data) {
