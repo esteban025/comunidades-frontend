@@ -227,14 +227,157 @@ function formatRole(role: string): string {
     border-color: #6b7280;
     color: #6b7280;
   }
+
+  /* Menú de más opciones */
+  .more-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.25rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    z-index: 50;
+    min-width: 160px;
+  }
+
+  .more-menu.hidden {
+    display: none;
+  }
+
+  .more-menu-item {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    text-align: left;
+    background: white;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .more-menu-item:hover {
+    background: #f3f4f6;
+  }
+
+  .more-menu-item.delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+  }
 </style>
 
 <script>
+  import { showNotification } from "@/scripts/notification";
+
   // Función para recargar la página cuando se agregue un hermano
   (window as any).refreshBrothers = () => {
-    // Dar tiempo para que se muestre la notificación antes de recargar
     setTimeout(() => {
       window.location.reload();
-    }, 2000);
+    }, 500);
   };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const actionButtons = document.querySelectorAll(".action-btn");
+
+    actionButtons.forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const action = (button as HTMLElement).dataset.action;
+        const brotherId = (button as HTMLElement).dataset.brotherId;
+
+        if (!brotherId) return;
+
+        if (action === "view") {
+          // Abrir modal de ver detalles
+          if (typeof (window as any).openViewBrotherModal === "function") {
+            (window as any).openViewBrotherModal(brotherId);
+          }
+        } else if (action === "edit") {
+          // TODO: Abrir modal de edición
+          showNotification("Función de edición en desarrollo", "info", 3000);
+        } else if (action === "more") {
+          // Toggle menú de más opciones
+          toggleMoreMenu(button as HTMLElement, brotherId);
+        }
+      });
+    });
+
+    function toggleMoreMenu(button: HTMLElement, brotherId: string) {
+      const existingMenu = button.parentElement?.querySelector(".more-menu");
+
+      if (existingMenu) {
+        existingMenu.remove();
+        return;
+      }
+
+      // Cerrar otros menús abiertos
+      document.querySelectorAll(".more-menu").forEach((menu) => menu.remove());
+
+      // Crear menú
+      const menu = document.createElement("div");
+      menu.className = "more-menu";
+      menu.innerHTML = `
+        <button class="more-menu-item delete" data-brother-id="${brotherId}">
+          🗑️ Eliminar hermano
+        </button>
+      `;
+
+      button.parentElement?.style.setProperty("position", "relative");
+      button.parentElement?.appendChild(menu);
+
+      // Event listener para eliminar
+      menu.querySelector(".delete")?.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        menu.remove();
+
+        const confirmed = confirm(
+          "¿Estás seguro de eliminar este hermano?\n\nEsta acción no se puede deshacer.",
+        );
+
+        if (confirmed) {
+          try {
+            const response = await fetch(`/api/brothers/${brotherId}`, {
+              method: "DELETE",
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              showNotification(
+                "¡Hermano eliminado exitosamente!",
+                "success",
+                3000,
+              );
+              setTimeout(() => {
+                window.location.reload();
+              }, 500);
+            } else {
+              showNotification(
+                result.error || "Error al eliminar el hermano",
+                "error",
+                5000,
+              );
+            }
+          } catch (error) {
+            console.error("Error eliminando hermano:", error);
+            showNotification(
+              "Error de conexión al eliminar el hermano",
+              "error",
+              5000,
+            );
+          }
+        }
+      });
+    }
+
+    // Cerrar menús al hacer click fuera
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".more-menu").forEach((menu) => menu.remove());
+    });
+  });
 </script>

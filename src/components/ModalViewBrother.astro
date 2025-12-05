@@ -1,0 +1,105 @@
+---
+// Modal para ver detalles del hermano
+import ModalDesign from "./ModalDesign.astro";
+---
+
+<ModalDesign id="modal-view-brother" title="Detalles del Hermano" idForm="">
+  <div class="flex flex-col gap-6 p-6" slot="body" id="brother-details-content">
+    <div class="flex items-center justify-center">
+      <div class="loading-spinner">Cargando...</div>
+    </div>
+  </div>
+  <button
+    type="button"
+    class="btn btn-secondary flex-1"
+    data-close="modal-view-brother"
+    slot="footer"
+  >
+    Cerrar
+  </button>
+</ModalDesign>
+
+<style>
+  .loading-spinner {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .error-message {
+    text-align: center;
+    color: #dc2626;
+    padding: 2rem;
+  }
+</style>
+
+<script>
+  import { showNotification } from "@/scripts/notification";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("modal-view-brother");
+    const closeButtons = document.querySelectorAll(
+      '[data-close="modal-view-brother"]',
+    );
+    const contentDiv = document.getElementById("brother-details-content");
+
+    function closeViewModal() {
+      modal?.classList.add("hidden");
+      document.body.style.overflow = "";
+      if (contentDiv) {
+        contentDiv.innerHTML =
+          '<div class="flex items-center justify-center"><div class="loading-spinner">Cargando...</div></div>';
+      }
+    }
+
+    async function openViewBrotherModal(brotherId: string) {
+      console.log("Abriendo modal para hermano:", brotherId);
+      modal?.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+
+      try {
+        // Cargar el HTML pre-renderizado del servidor
+        const response = await fetch(`/view-brother/${brotherId}`);
+
+        if (response.ok) {
+          const html = await response.text();
+          if (contentDiv) {
+            contentDiv.innerHTML = html;
+          }
+        } else {
+          const result = await response.json();
+          if (contentDiv) {
+            contentDiv.innerHTML = `<div class="error-message">Error: ${result.error || "Error al cargar los detalles"}</div>`;
+          }
+          showNotification(
+            result.error || "Error al cargar los detalles",
+            "error",
+            5000,
+          );
+        }
+      } catch (error) {
+        console.error("Error cargando detalles del hermano:", error);
+        if (contentDiv) {
+          contentDiv.innerHTML =
+            '<div class="error-message">Error de conexión con el servidor</div>';
+        }
+        showNotification("Error de conexión con el servidor", "error", 5000);
+      }
+    }
+
+    closeButtons.forEach((button) => {
+      button.addEventListener("click", closeViewModal);
+    });
+
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) closeViewModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal?.classList.contains("hidden")) {
+        closeViewModal();
+      }
+    });
+
+    (window as any).openViewBrotherModal = openViewBrotherModal;
+  });
+</script>

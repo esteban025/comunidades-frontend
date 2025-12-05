@@ -1,0 +1,100 @@
+---
+import { db } from "@/lib/db";
+import BrotherDetailsContent from "@/components/BrotherDetailsContent.astro";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+if (!id) {
+  return new Response(JSON.stringify({ error: "ID no proporcionado" }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+let brother = null;
+let error = null;
+
+try {
+  // Query principal
+  const brotherQuery = `
+    SELECT 
+      b.id, b.names, b.civil_status, b.phone, b.community_id,
+      c.number_community, c.level_paso,
+      p.id as parish_id, p.name as parish_name,
+      p.tag as parish_tag, p.aka as parish_aka
+    FROM brothers b
+    LEFT JOIN communities c ON b.community_id = c.id
+    LEFT JOIN parishes p ON c.parish_id = p.id
+    WHERE b.id = ?
+  `;
+
+  const [brotherRows]: any = await db.query(brotherQuery, [id]);
+
+  if (!brotherRows || brotherRows.length === 0) {
+    error = "Hermano no encontrado";
+  } else {
+    const brotherData = brotherRows[0];
+
+    // Obtener roles
+    const rolesQuery = `
+      SELECT br.role, br.community_id, c.number_community, p.aka as parish_aka
+      FROM brother_roles br
+      LEFT JOIN communities c ON br.community_id = c.id
+      LEFT JOIN parishes p ON c.parish_id = p.id
+      WHERE br.brother_id = ?
+    `;
+
+    const [rolesRows]: any = await db.query(rolesQuery, [id]);
+
+    const rolesInOwnCommunity: string[] = [];
+    const catechistOfCommunities: any[] = [];
+
+    rolesRows.forEach((roleRow: any) => {
+      if (roleRow.community_id === brotherData.community_id) {
+        if (roleRow.role !== "catequista") {
+          rolesInOwnCommunity.push(roleRow.role);
+        }
+      } else if (roleRow.role === "catequista") {
+        catechistOfCommunities.push({
+          community_id: roleRow.community_id,
+          community_number: roleRow.number_community,
+          parish_aka: roleRow.parish_aka,
+        });
+      }
+    });
+
+    brother = {
+      id: brotherData.id,
+      names: brotherData.names,
+      civil_status: brotherData.civil_status,
+      phone: brotherData.phone,
+      community: {
+        id: brotherData.community_id,
+        number: brotherData.number_community,
+        level_paso: brotherData.level_paso,
+      },
+      parish: {
+        id: brotherData.parish_id,
+        name: brotherData.parish_name,
+        aka: brotherData.parish_aka,
+        tag: brotherData.parish_tag,
+      },
+      roles_in_own_community: rolesInOwnCommunity,
+      catechist_of_communities: catechistOfCommunities,
+    };
+  }
+} catch (e) {
+  console.error("Error en /view-brother/[id]:", e);
+  error = "Error al cargar los datos";
+}
+---
+
+{
+  error ? (
+    <div class="error-message">{error}</div>
+  ) : brother ? (
+    <BrotherDetailsContent brother={brother} />
+  ) : null
+}
