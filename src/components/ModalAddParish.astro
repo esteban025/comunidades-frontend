@@ -9,6 +9,8 @@ import ModalDesign from "./ModalDesign.astro";
   idForm="modal-parish-form"
 >
   <div class="flex flex-col gap-5 p-6" slot="body">
+    <input type="hidden" name="parish-id" id="modal-parish-id" />
+
     <div class="content-input">
       <label for="modal-parish-name">Nombre Parroquia</label>
       <input
@@ -50,7 +52,12 @@ import ModalDesign from "./ModalDesign.astro";
   >
     Cancelar
   </button>
-  <button type="submit" class="btn btn-primary flex-1" slot="footer">
+  <button
+    type="submit"
+    class="btn btn-primary flex-1"
+    id="modal-parish-submit"
+    slot="footer"
+  >
     Registrar
   </button>
 </ModalDesign>
@@ -60,16 +67,43 @@ import ModalDesign from "./ModalDesign.astro";
   import { showNotification } from "@/scripts/notification";
 
   document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("modal-parish");
-    const form = document.getElementById(
-      "modal-parish-form",
-    ) as HTMLFormElement;
-    const closeButtons = document.querySelectorAll(
-      '[data-close="modal-parish"]',
-    );
+    const $id = (selector: string) => document.getElementById(selector);
+    const $ = (selector: string) => document.querySelector(selector);
+    const $$ = (selector: string) => document.querySelectorAll(selector);
 
-    // Función para abrir el modal
+    const modal = $id("modal-parish");
+    const form = $id("modal-parish-form") as HTMLFormElement;
+    const closeButtons = $$('[data-close="modal-parish"]');
+    const modalTitle = modal?.querySelector("h2");
+    const submitButton = $id("modal-parish-submit") as HTMLButtonElement;
+    const parishIdInput = $id("modal-parish-id") as HTMLInputElement;
+    const parishNameInput = $id("modal-parish-name") as HTMLInputElement;
+    const parishTagInput = $id("modal-parish-tag") as HTMLInputElement;
+    const parishAkaInput = $id("modal-parish-aka") as HTMLInputElement;
+
+    let isEditMode = false;
+
+    // Función para abrir el modal (crear)
     function openParishModal() {
+      isEditMode = false;
+      if (modalTitle) modalTitle.textContent = "Registrar Parroquia";
+      if (submitButton) submitButton.textContent = "Registrar";
+      modal?.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    // Función para abrir el modal en modo edición
+    function openEditParishModal(parishData: any) {
+      isEditMode = true;
+      if (modalTitle) modalTitle.textContent = "Editar Parroquia";
+      if (submitButton) submitButton.textContent = "Actualizar";
+
+      // Pre-llenar los campos
+      if (parishIdInput) parishIdInput.value = parishData.id;
+      if (parishNameInput) parishNameInput.value = parishData.name;
+      if (parishTagInput) parishTagInput.value = parishData.tag;
+      if (parishAkaInput) parishAkaInput.value = parishData.aka;
+
       modal?.classList.remove("hidden");
       document.body.style.overflow = "hidden";
     }
@@ -107,22 +141,27 @@ import ModalDesign from "./ModalDesign.astro";
         e.stopPropagation();
 
         const formData = new FormData(form);
-        const submitButton = form.querySelector(
+        const submitBtn = form.querySelector(
           'button[type="submit"]',
         ) as HTMLButtonElement;
 
         // Deshabilitar botón mientras se procesa
-        submitButton.disabled = true;
-        submitButton.textContent = "Registrando...";
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = isEditMode
+          ? "Actualizando..."
+          : "Registrando...";
 
-        const result = await registerParish(formData);
+        const result = await registerParish(formData, isEditMode);
 
         // Cerrar el modal siempre (éxito o error)
         closeParishModal();
 
         if (result.success) {
           showNotification(
-            "¡Parroquia registrada exitosamente!",
+            isEditMode
+              ? "¡Parroquia actualizada exitosamente!"
+              : "¡Parroquia registrada exitosamente!",
             "success",
             3000,
           );
@@ -133,19 +172,23 @@ import ModalDesign from "./ModalDesign.astro";
           }
         } else {
           showNotification(
-            result.error || "Error al registrar la parroquia",
+            result.error ||
+              (isEditMode
+                ? "Error al actualizar la parroquia"
+                : "Error al registrar la parroquia"),
             "error",
             5000,
           );
         }
 
         // Rehabilitar botón
-        submitButton.disabled = false;
-        submitButton.textContent = "Registrar";
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText || "Registrar";
       });
     }
 
-    // Hacer la función disponible globalmente
+    // Hacer las funciones disponibles globalmente
     (window as any).openParishModal = openParishModal;
+    (window as any).openEditParishModal = openEditParishModal;
   });
 </script>

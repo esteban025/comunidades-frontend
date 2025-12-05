@@ -1,4 +1,5 @@
-export async function registerParish(formData: FormData) {
+export async function registerParish(formData: FormData, isEditMode = false) {
+  const parishId = formData.get('parish-id') as string;
   const parishData = {
     name: formData.get('parish-name') as string,
     tag: formData.get('parish-tag') as string,
@@ -6,8 +7,11 @@ export async function registerParish(formData: FormData) {
   };
 
   try {
-    const response = await fetch('/api/parishes', {
-      method: 'POST',
+    const url = isEditMode ? `/api/parishes/${parishId}` : '/api/parishes';
+    const method = isEditMode ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -19,7 +23,7 @@ export async function registerParish(formData: FormData) {
     if (response.ok && result.success) {
       return { success: true, data: result.data };
     } else {
-      return { success: false, error: result.error || 'Error al registrar la parroquia' };
+      return { success: false, error: result.error || 'Error al procesar la solicitud' };
     }
   } catch (error) {
     console.error('Error en el registro:', error);
