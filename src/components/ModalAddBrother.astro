@@ -1,6 +1,18 @@
 ---
 // Modal para agregar hermano
 import ModalDesign from "./ModalDesign.astro";
+import { db } from "@/lib/db";
+
+// Fetch de parroquias en el servidor
+let parishes: any[] = [];
+try {
+  const [rows]: any = await db.query(
+    "SELECT id, name, aka, tag FROM parishes ORDER BY name",
+  );
+  parishes = rows;
+} catch (error) {
+  console.error("Error cargando parroquias:", error);
+}
 ---
 
 <ModalDesign
@@ -83,13 +95,20 @@ import ModalDesign from "./ModalDesign.astro";
         required
         class="select-input space-y-1"
       >
-        <option class="options-select" value="" disabled selected
-          >Selecciona una parroquia</option
-        >
+        <option class="options-select" value="" disabled selected>
+          Selecciona una parroquia
+        </option>
+        {
+          parishes.map((parish) => (
+            <option class="options-select" value={parish.id}>
+              {parish.aka} ({parish.tag})
+            </option>
+          ))
+        }
       </select>
-      <span class="text-xs text-neutral-600"
-        >Si tu parroquia no aparece, registrala primero antes de registrarte*</span
-      >
+      <span class="text-xs text-neutral-600">
+        Si tu parroquia no aparece, registrala primero antes de registrarte*
+      </span>
     </div>
 
     <div class="content-input">
@@ -188,63 +207,33 @@ import ModalDesign from "./ModalDesign.astro";
   import { showNotification } from "@/scripts/notification";
 
   document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("modal-brother");
-    const form = document.getElementById(
-      "modal-brother-form",
-    ) as HTMLFormElement;
-    const closeButtons = document.querySelectorAll(
-      '[data-close="modal-brother"]',
-    );
+    const $id = (selector: string) => document.getElementById(selector);
+    const $ = (selector: string) => document.querySelector(selector);
+    const $$ = (selector: string) => document.querySelectorAll(selector);
+
+    const modal = $id("modal-brother");
+    const form = $id("modal-brother-form") as HTMLFormElement;
+    const closeButtons = $$('[data-close="modal-brother"]');
 
     // Elementos del formulario
-    const civilStatusRadios = document.querySelectorAll(
-      'input[name="civil_status"]',
-    );
-    const matrimonioFields = document.getElementById("matrimonio-fields");
-    const singleField = document.getElementById("single-field");
-    const parishSelect = document.getElementById(
-      "parish_id",
-    ) as HTMLSelectElement;
-    const communityNumber = document.getElementById(
-      "community_number",
-    ) as HTMLInputElement;
-    const communityStatus = document.getElementById("community-status");
-    const levelPasoField = document.getElementById("level-paso-field");
-    const isCatechistCheckbox = document.getElementById(
-      "is_catechist",
-    ) as HTMLInputElement;
-    const catechistSection = document.getElementById("catechist-section");
-    const addCatechistBtn = document.getElementById("add-catechist-community");
-    const catechistList = document.getElementById("catechist-communities-list");
+    const civilStatusRadios = $$('input[name="civil_status"]');
+    const matrimonioFields = $id("matrimonio-fields");
+    const singleField = $id("single-field");
+    const parishSelect = $id("parish_id") as HTMLSelectElement;
+    const communityNumber = $id("community_number") as HTMLInputElement;
+    const communityStatus = $id("community-status");
+    const levelPasoField = $id("level-paso-field");
+    const isCatechistCheckbox = $id("is_catechist") as HTMLInputElement;
+    const catechistSection = $id("catechist-section");
+    const addCatechistBtn = $id("add-catechist-community");
+    const catechistList = $id("catechist-communities-list");
 
     let catechistCount = 0;
-
-    // Cargar parroquias
-    async function loadParishes() {
-      try {
-        const response = await fetch("/api/parishes");
-        const result = await response.json();
-        if (result.success && result.data) {
-          parishSelect.innerHTML =
-            '<option class="options-select" value="" disabled selected>Selecciona una parroquia</option>';
-          result.data.forEach((parish: any) => {
-            const option = document.createElement("option");
-            option.value = parish.id;
-            option.classList.add("options-select");
-            option.textContent = `${parish.aka} (${parish.tag})`;
-            parishSelect.appendChild(option);
-          });
-        }
-      } catch (error) {
-        console.error("Error cargando parroquias:", error);
-      }
-    }
 
     // Función para abrir el modal
     function openBrotherModal() {
       modal?.classList.remove("hidden");
       document.body.style.overflow = "hidden";
-      loadParishes();
     }
 
     // Función para cerrar el modal
@@ -316,7 +305,7 @@ import ModalDesign from "./ModalDesign.astro";
           } else {
             // La comunidad existe PERO NO tiene paso definido - mostrar campo level_paso
             communityStatus!.textContent =
-              "⚠ La comunidad existe pero no tiene paso definido. Ingresa el paso para completar la información.";
+              "⚠ La comunidad existe pero no se ha definido el paso. Ingresa el paso para completar la información.";
             communityStatus?.classList.remove("hidden", "success");
             communityStatus?.classList.add("warning");
             levelPasoField?.classList.remove("hidden");
@@ -362,13 +351,13 @@ import ModalDesign from "./ModalDesign.astro";
       item.className = "catechist-item";
       item.innerHTML = `
         <div class="catechist-item-fields">
-          <select name="catechist_parish_${catechistCount}" class="catechist-parish" required style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 9999px;">
-            <option value="">Selecciona parroquia</option>
+          <select name="catechist_parish_${catechistCount}" class="catechist-parish select-input" required>
+            <option class="options-select" value="">Selecciona parroquia</option>
             ${Array.from(parishSelect.options)
               .slice(1)
               .map(
                 (opt) =>
-                  `<option value="${opt.value}">${opt.textContent}</option>`,
+                  `<option class="options-select" value="${opt.value}">${opt.textContent}</option>`,
               )
               .join("")}
           </select>
