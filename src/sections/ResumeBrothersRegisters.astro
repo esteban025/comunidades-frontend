@@ -49,91 +49,87 @@ function formatRole(role: string): string {
     <div class="container-table">
       {
         brothers.length > 0 ? (
-          <div class="brothers-table">
-            <table class="render-brothers-table">
-              <thead>
+          <table class="render-brothers-table brothres-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Parroquia</th>
+                <th>Comunidad</th>
+                <th>Teléfono</th>
+                <th>Servicio</th>
+                <th>Estado Civil</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {brothers.map((brother) => (
                 <tr>
-                  <th>Nombre</th>
-                  <th>Parroquia</th>
-                  <th>Comunidad</th>
-                  <th>Teléfono</th>
-                  <th>Servicio</th>
-                  <th>Estado Civil</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {brothers.map((brother) => (
-                  <tr>
-                    <td class="font-medium">{brother.names}</td>
-                    <td>{brother.parish?.aka || "N/A"}</td>
-                    <td>{brother.community?.number || "N/A"}</td>
-                    <td>
-                      {brother.phone ? (
-                        <div class="phone-display">{brother.phone}</div>
-                      ) : (
-                        <span class="empty-cell">Sin teléfono</span>
-                      )}
-                    </td>
-                    <td>
-                      {brother.roles_in_own_community?.length > 0 ||
-                      brother.catechist_of_communities?.length > 0 ? (
-                        <div class="roles-container flex flex-wrap gap-1 items-center">
-                          {brother.roles_in_own_community?.map(
-                            (role: string) => (
-                              <span data-rol={role} class="role-tag">
-                                {formatRole(role)}
-                              </span>
-                            ),
-                          )}
-                          {brother.catechist_of_communities?.length > 0 && (
-                            <span
-                              data-rol="catequista"
-                              class="role-tag catequista"
-                            >
-                              Catequista (
-                              {brother.catechist_of_communities.length})
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span class="empty-cell">-</span>
-                      )}
-                    </td>
-                    <td>{formatCivilStatus(brother.civil_status)}</td>
-                    <td>
-                      <div class="action-buttons flex justify-center gap-2">
-                        <button
-                          class="action-btn"
-                          title="Ver detalles"
-                          data-action="view"
-                          data-brother-id={brother.id}
-                        >
-                          <EyeIcon class="w-4 h-4" />
-                        </button>
-                        <button
-                          class="action-btn"
-                          title="Editar"
-                          data-action="edit"
-                          data-brother-id={brother.id}
-                        >
-                          <PencilIcon class="w-4 h-4" />
-                        </button>
-                        <button
-                          class="action-btn"
-                          title="Más opciones"
-                          data-action="more"
-                          data-brother-id={brother.id}
-                        >
-                          <DotsVerticalIcon class="w-4 h-4" />
-                        </button>
+                  <td class="font-medium">{brother.names}</td>
+                  <td>{brother.parish?.aka || "N/A"}</td>
+                  <td>{brother.community?.number || "N/A"}</td>
+                  <td>
+                    {brother.phone ? (
+                      <div class="phone-display">{brother.phone}</div>
+                    ) : (
+                      <span class="empty-cell">Sin teléfono</span>
+                    )}
+                  </td>
+                  <td>
+                    {brother.roles_in_own_community?.length > 0 ||
+                    brother.catechist_of_communities?.length > 0 ? (
+                      <div class="roles-container flex flex-wrap gap-1 items-center">
+                        {brother.roles_in_own_community?.map((role: string) => (
+                          <span data-rol={role} class="role-tag">
+                            {formatRole(role)}
+                          </span>
+                        ))}
+                        {brother.catechist_of_communities?.length > 0 && (
+                          <span
+                            data-rol="catequista"
+                            class="role-tag catequista"
+                          >
+                            Catequista (
+                            {brother.catechist_of_communities.length})
+                          </span>
+                        )}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    ) : (
+                      <span class="empty-cell">-</span>
+                    )}
+                  </td>
+                  <td>{formatCivilStatus(brother.civil_status)}</td>
+                  <td>
+                    <div class="action-buttons flex justify-center gap-2">
+                      <button
+                        class="action-btn"
+                        title="Ver detalles"
+                        data-action="view"
+                        data-brother-id={brother.id}
+                      >
+                        <EyeIcon class="w-4 h-4" />
+                      </button>
+                      <button
+                        class="action-btn"
+                        title="Editar"
+                        data-action="edit"
+                        data-brother-id={brother.id}
+                      >
+                        <PencilIcon class="w-4 h-4" />
+                      </button>
+                      <button
+                        class="action-btn"
+                        title="Más opciones"
+                        data-action="more"
+                        data-brother-id={brother.id}
+                      >
+                        <DotsVerticalIcon class="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
           <div class="text-center py-12">
             <div class="text-6xl mb-4">👥</div>

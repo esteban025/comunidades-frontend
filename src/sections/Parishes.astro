@@ -1,4 +1,5 @@
 ---
+import SectionContainer from "@/components/SectionContainer.astro";
 interface Parish {
   name: string;
   aka: string;
@@ -26,20 +27,25 @@ try {
 }
 ---
 
-<section class="w-full max-w-4xl mx-auto">
-  <h2 class="text-3xl font-semibold text-center mb-8 text-gray-800">
-    Parroquias
-  </h2>
-
-  <div id="parishes-container">
+<SectionContainer
+  title="Parroquias"
+  description="Explora las parroquias registradas en nuestra plataforma."
+>
+  <div id="parishes-container" slot="body">
     {
       error ? (
         <div class="bg-gray-100 border border-gray-300 rounded-full px-6 py-4 text-center text-gray-600">
           Error al cargar las parroquias
         </div>
       ) : parishes.length === 0 ? (
-        <div class="bg-gray-100 border border-gray-300 rounded-full px-6 py-4 text-center text-gray-600">
-          No hay parroquias registradas
+        <div class="text-center py-12 bg-white rounded-2xl overflow-hidden border border-gray-300 shadow-lg">
+          <div class="text-6xl mb-4">📭</div>
+          <h3 class="text-xl font-semibold text-neutral-700 mb-2">
+            No hay parroquias registradas aún
+          </h3>
+          <p class="text-neutral-600">
+            Agrega nuevas parroquias para comenzar a gestionar las comunidades.
+          </p>
         </div>
       ) : (
         <div
@@ -63,7 +69,7 @@ try {
       )
     }
   </div>
-</section>
+</SectionContainer>
 
 <script>
   // Función para recargar la página cuando se agregue una parroquia

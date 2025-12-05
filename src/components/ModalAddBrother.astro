@@ -106,8 +106,8 @@ import ModalDesign from "./ModalDesign.astro";
 
     <div id="community-status" class="info-message hidden"></div>
 
-    <div id="level-paso-field" class="content-input">
-      <label for="level_paso">¿En qué paso está la comunidad? (Opcional)</label>
+    <div id="level-paso-field" class="content-input hidden">
+      <label for="level_paso">¿En qué paso está la comunidad?</label>
       <input
         type="text"
         name="level_paso"
@@ -115,7 +115,7 @@ import ModalDesign from "./ModalDesign.astro";
         placeholder="Ej: Paso 2, Primeros Escrutinios, Shema, etc."
       />
       <span class="text-xs text-neutral-600"
-        >Si la comunidad no existe, se creará automáticamente</span
+        >La comunidad no existe. Ingresa el paso para crearla</span
       >
     </div>
   </div>
@@ -258,6 +258,7 @@ import ModalDesign from "./ModalDesign.astro";
       singleField?.classList.add("hidden");
       catechistSection?.classList.add("hidden");
       communityStatus?.classList.add("hidden");
+      levelPasoField?.classList.add("hidden");
     }
 
     // Cambio de estado civil
@@ -282,6 +283,7 @@ import ModalDesign from "./ModalDesign.astro";
 
       if (!parishId || !commNumber) {
         communityStatus?.classList.add("hidden");
+        levelPasoField?.classList.add("hidden");
         return;
       }
 
@@ -292,17 +294,30 @@ import ModalDesign from "./ModalDesign.astro";
         const result = await response.json();
 
         if (result.exists) {
+          // La comunidad existe - ocultar campo level_paso
           communityStatus!.textContent = `✓ Comunidad encontrada: ${result.data.level_paso || "Sin paso definido"}`;
           communityStatus?.classList.remove("hidden", "warning");
           communityStatus?.classList.add("success");
+          levelPasoField?.classList.add("hidden");
+
+          // Limpiar el campo level_paso si existía algo
+          const levelPasoInput = document.getElementById(
+            "level_paso",
+          ) as HTMLInputElement;
+          if (levelPasoInput) {
+            levelPasoInput.value = "";
+          }
         } else {
+          // La comunidad NO existe - mostrar campo level_paso
           communityStatus!.textContent =
-            "⚠ Esta comunidad no existe. Se creará automáticamente.";
+            "⚠ Esta comunidad aun no es registrada. Ingresa el paso para crearla.";
           communityStatus?.classList.remove("hidden", "success");
           communityStatus?.classList.add("warning");
+          levelPasoField?.classList.remove("hidden");
         }
       } catch (error) {
         console.error("Error verificando comunidad:", error);
+        levelPasoField?.classList.add("hidden");
       }
     }
 
