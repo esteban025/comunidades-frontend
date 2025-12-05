@@ -1,0 +1,418 @@
+---
+// Modal para agregar hermano
+import ModalDesign from "./ModalDesign.astro";
+---
+
+<ModalDesign
+  id="modal-brother"
+  title="Registrar Hermano"
+  idForm="modal-brother-form"
+>
+  <!-- Sección 1: Datos Personales -->
+  <div class="form-section flex flex-col gap-5" slot="body">
+    <h3 class="section-title">Datos Personales</h3>
+
+    <div class="content-input">
+      <label>Estado Civil</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="civil_status" value="matrimonio" required />
+          <span>Matrimonio</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="civil_status" value="soltero" />
+          <span>Soltero</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="civil_status" value="soltera" />
+          <span>Soltera</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Campos para matrimonio -->
+    <div id="matrimonio-fields" class="hidden">
+      <div class="content-input">
+        <label for="husband_name">Nombre del Esposo</label>
+        <input
+          type="text"
+          name="husband_name"
+          id="husband_name"
+          placeholder="Ej: Juan Pérez"
+        />
+      </div>
+      <div class="content-input">
+        <label for="wife_name">Nombre de la Esposa</label>
+        <input
+          type="text"
+          name="wife_name"
+          id="wife_name"
+          placeholder="Ej: María López"
+        />
+      </div>
+    </div>
+
+    <!-- Campo para soltero/soltera -->
+    <div id="single-field" class="hidden">
+      <div class="content-input">
+        <label for="full_name">Nombre Completo</label>
+        <input
+          type="text"
+          name="full_name"
+          id="full_name"
+          placeholder="Ej: Pedro García"
+        />
+      </div>
+    </div>
+
+    <div class="content-input">
+      <label for="phone">Teléfono (Opcional)</label>
+      <input type="tel" name="phone" id="phone" placeholder="Ej: 0999123456" />
+    </div>
+  </div>
+
+  <!-- Sección 2: Comunidad -->
+  <div class="form-section flex flex-col gap-5" slot="body">
+    <h3 class="section-title">Mi Comunidad</h3>
+
+    <div class="content-input">
+      <label for="parish_id">Parroquia</label>
+      <select
+        name="parish_id"
+        id="parish_id"
+        required
+        class="select-input space-y-1"
+      >
+        <option class="options-select" value="" disabled selected
+          >Selecciona una parroquia</option
+        >
+      </select>
+      <span class="text-xs text-neutral-600"
+        >Si tu parroquia no aparece, registrala primero antes de registrarte*</span
+      >
+    </div>
+
+    <div class="content-input">
+      <label for="community_number">Número de Comunidad</label>
+      <input
+        type="number"
+        name="community_number"
+        id="community_number"
+        placeholder="Ej: 3"
+        min="1"
+        required
+      />
+    </div>
+
+    <div id="community-status" class="info-message hidden"></div>
+
+    <div id="level-paso-field" class="content-input hidden">
+      <label for="level_paso">¿En qué paso está la comunidad?</label>
+      <input
+        type="text"
+        name="level_paso"
+        id="level_paso"
+        placeholder="Ej: Paso 2, Redditio, etc."
+      />
+    </div>
+  </div>
+
+  <!-- Sección 3: Roles -->
+  <div class="form-section flex flex-col gap-5" slot="body">
+    <h3 class="section-title">Roles (Opcional)</h3>
+
+    <div class="checkbox-group">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          name="roles_in_own_community"
+          value="responsable"
+        />
+        <span>Soy responsable de mi comunidad</span>
+      </label>
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          name="roles_in_own_community"
+          value="corresponsable"
+        />
+        <span>Soy corresponsable de mi comunidad</span>
+      </label>
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          name="roles_in_own_community"
+          value="didascala"
+        />
+        <span>Soy didascala de mi comunidad</span>
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="roles_in_own_community" value="ostiario" />
+        <span>Soy ostiario de mi comunidad</span>
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="is_catechist" />
+        <span>Soy catequista de otras comunidades</span>
+      </label>
+    </div>
+
+    <!-- Comunidades donde es catequista -->
+    <div id="catechist-section" class="hidden mt-4">
+      <div class="flex justify-between items-center mb-2">
+        <label class="font-semibold text-sm">Comunidades que sirvo:</label>
+        <button type="button" id="add-catechist-community" class="btn-add">
+          + Agregar
+        </button>
+      </div>
+      <div id="catechist-communities-list"></div>
+    </div>
+  </div>
+  <button
+    type="button"
+    class="btn btn-secondary flex-1"
+    data-close="modal-brother"
+    slot="footer"
+  >
+    Cancelar
+  </button>
+  <button type="submit" class="btn btn-primary flex-1" slot="footer">
+    Registrar Hermano
+  </button>
+</ModalDesign>
+
+<script>
+  import { registerBrother } from "@/scripts/registerBrother";
+  import { showNotification } from "@/scripts/notification";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("modal-brother");
+    const form = document.getElementById(
+      "modal-brother-form",
+    ) as HTMLFormElement;
+    const closeButtons = document.querySelectorAll(
+      '[data-close="modal-brother"]',
+    );
+
+    // Elementos del formulario
+    const civilStatusRadios = document.querySelectorAll(
+      'input[name="civil_status"]',
+    );
+    const matrimonioFields = document.getElementById("matrimonio-fields");
+    const singleField = document.getElementById("single-field");
+    const parishSelect = document.getElementById(
+      "parish_id",
+    ) as HTMLSelectElement;
+    const communityNumber = document.getElementById(
+      "community_number",
+    ) as HTMLInputElement;
+    const communityStatus = document.getElementById("community-status");
+    const levelPasoField = document.getElementById("level-paso-field");
+    const isCatechistCheckbox = document.getElementById(
+      "is_catechist",
+    ) as HTMLInputElement;
+    const catechistSection = document.getElementById("catechist-section");
+    const addCatechistBtn = document.getElementById("add-catechist-community");
+    const catechistList = document.getElementById("catechist-communities-list");
+
+    let catechistCount = 0;
+
+    // Cargar parroquias
+    async function loadParishes() {
+      try {
+        const response = await fetch("/api/parishes");
+        const result = await response.json();
+        if (result.success && result.data) {
+          parishSelect.innerHTML =
+            '<option class="options-select" value="" disabled selected>Selecciona una parroquia</option>';
+          result.data.forEach((parish: any) => {
+            const option = document.createElement("option");
+            option.value = parish.id;
+            option.classList.add("options-select");
+            option.textContent = `${parish.aka} (${parish.tag})`;
+            parishSelect.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error("Error cargando parroquias:", error);
+      }
+    }
+
+    // Función para abrir el modal
+    function openBrotherModal() {
+      modal?.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      loadParishes();
+    }
+
+    // Función para cerrar el modal
+    function closeBrotherModal() {
+      modal?.classList.add("hidden");
+      document.body.style.overflow = "";
+      form?.reset();
+      catechistCount = 0;
+      if (catechistList) catechistList.innerHTML = "";
+      matrimonioFields?.classList.add("hidden");
+      singleField?.classList.add("hidden");
+      catechistSection?.classList.add("hidden");
+      levelPasoField?.classList.add("hidden");
+      communityStatus?.classList.add("hidden");
+    }
+
+    // Cambio de estado civil
+    civilStatusRadios.forEach((radio) => {
+      radio.addEventListener("change", (e) => {
+        const value = (e.target as HTMLInputElement).value;
+        if (value === "matrimonio") {
+          matrimonioFields?.classList.remove("hidden");
+          singleField?.classList.add("hidden");
+        } else {
+          matrimonioFields?.classList.add("hidden");
+          singleField?.classList.remove("hidden");
+        }
+      });
+    });
+
+    // Verificar comunidad
+    let checkTimeout: any;
+    async function checkCommunity() {
+      const parishId = parishSelect.value;
+      const commNumber = communityNumber.value;
+
+      if (!parishId || !commNumber) {
+        communityStatus?.classList.add("hidden");
+        levelPasoField?.classList.add("hidden");
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/parishes/${parishId}/communities/${commNumber}`,
+        );
+        const result = await response.json();
+
+        if (result.exists) {
+          communityStatus!.textContent = `✓ Comunidad encontrada: ${result.data.level_paso || "Sin paso definido"}`;
+          communityStatus?.classList.remove("hidden", "warning");
+          communityStatus?.classList.add("success");
+          levelPasoField?.classList.add("hidden");
+        } else {
+          communityStatus!.textContent =
+            "⚠ Esta comunidad no existe. Se creará automáticamente.";
+          communityStatus?.classList.remove("hidden", "success");
+          communityStatus?.classList.add("warning");
+          levelPasoField?.classList.remove("hidden");
+        }
+      } catch (error) {
+        console.error("Error verificando comunidad:", error);
+      }
+    }
+
+    parishSelect.addEventListener("change", () => {
+      clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(checkCommunity, 500);
+    });
+
+    communityNumber.addEventListener("input", () => {
+      clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(checkCommunity, 500);
+    });
+
+    // Checkbox de catequista
+    isCatechistCheckbox?.addEventListener("change", (e) => {
+      if ((e.target as HTMLInputElement).checked) {
+        catechistSection?.classList.remove("hidden");
+      } else {
+        catechistSection?.classList.add("hidden");
+        if (catechistList) catechistList.innerHTML = "";
+        catechistCount = 0;
+      }
+    });
+
+    // Agregar comunidad de catequista
+    addCatechistBtn?.addEventListener("click", () => {
+      const item = document.createElement("div");
+      item.className = "catechist-item";
+      item.innerHTML = `
+        <div class="catechist-item-fields">
+          <select name="catechist_parish_${catechistCount}" class="catechist-parish" required style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 9999px;">
+            <option value="">Selecciona parroquia</option>
+            ${Array.from(parishSelect.options)
+              .slice(1)
+              .map(
+                (opt) =>
+                  `<option value="${opt.value}">${opt.textContent}</option>`,
+              )
+              .join("")}
+          </select>
+          <input 
+            type="number" 
+            name="catechist_community_${catechistCount}" 
+            placeholder="Número de comunidad"
+            min="1"
+            required
+            style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 9999px;"
+          />
+        </div>
+        <button type="button" class="btn-remove" onclick="this.parentElement.remove()">✕</button>
+      `;
+      catechistList?.appendChild(item);
+      catechistCount++;
+    });
+
+    // Cerrar modal
+    closeButtons.forEach((button) => {
+      button.addEventListener("click", closeBrotherModal);
+    });
+
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) closeBrotherModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal?.classList.contains("hidden")) {
+        closeBrotherModal();
+      }
+    });
+
+    // Submit del formulario
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const formData = new FormData(form);
+        formData.append("catechist_count", catechistCount.toString());
+
+        const submitButton = form.querySelector(
+          'button[type="submit"]',
+        ) as HTMLButtonElement;
+        submitButton.disabled = true;
+        submitButton.textContent = "Registrando...";
+
+        const result = await registerBrother(formData);
+
+        closeBrotherModal();
+
+        if (result.success) {
+          showNotification(
+            result.message || "¡Hermano registrado exitosamente!",
+            "success",
+            3000,
+          );
+        } else {
+          showNotification(
+            result.error || "Error al registrar el hermano",
+            "error",
+            5000,
+          );
+        }
+
+        submitButton.disabled = false;
+        submitButton.textContent = "Registrar Hermano";
+      });
+    }
+
+    // Hacer disponible globalmente
+    (window as any).openBrotherModal = openBrotherModal;
+  });
+</script>

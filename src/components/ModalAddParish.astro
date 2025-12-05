@@ -1,179 +1,59 @@
 ---
 // Modal para agregar parroquia
+import ModalDesign from "./ModalDesign.astro";
 ---
 
-<div id="modal-parish" class="modal-overlay hidden">
-  <div class="modal-container">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Registrar Parroquia</h2>
-        <button class="modal-close" data-close="modal-parish">
-          <span class="modal-close-icon">✕</span>
-        </button>
-      </div>
+<ModalDesign
+  id="modal-parish"
+  title="Registrar Parroquia"
+  idForm="modal-parish-form"
+>
+  <div class="flex flex-col gap-5 p-6" slot="body">
+    <div class="content-input">
+      <label for="modal-parish-name">Nombre Parroquia</label>
+      <input
+        type="text"
+        name="parish-name"
+        id="modal-parish-name"
+        placeholder="San Luis de Gonzaga"
+        required
+      />
+    </div>
 
-      <div class="modal-body">
-        <form id="modal-parish-form">
-          <div class="content-input">
-            <label for="modal-parish-name">Nombre Parroquia</label>
-            <input
-              type="text"
-              name="parish-name"
-              id="modal-parish-name"
-              placeholder="San Luis de Gonzaga"
-              required
-            />
-          </div>
+    <div class="content-input">
+      <label for="modal-parish-tag">Etiqueta Parroquia</label>
+      <input
+        type="text"
+        name="parish-tag"
+        id="modal-parish-tag"
+        placeholder="SLG"
+        required
+      />
+    </div>
 
-          <div class="content-input">
-            <label for="modal-parish-tag">Etiqueta Parroquia</label>
-            <input
-              type="text"
-              name="parish-tag"
-              id="modal-parish-tag"
-              placeholder="SLG"
-              required
-            />
-          </div>
-
-          <div class="content-input">
-            <label for="modal-parish-aka">Alias Parroquia</label>
-            <input
-              type="text"
-              name="parish-aka"
-              id="modal-parish-aka"
-              placeholder="Quinta Chica"
-              required
-            />
-          </div>
-
-          <div class="modal-actions">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-close="modal-parish"
-            >
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary"> Registrar </button>
-          </div>
-        </form>
-      </div>
+    <div class="content-input">
+      <label for="modal-parish-aka">Alias Parroquia</label>
+      <input
+        type="text"
+        name="parish-aka"
+        id="modal-parish-aka"
+        placeholder="Quinta Chica"
+        required
+      />
     </div>
   </div>
-</div>
-
-<style>
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-    padding: 1rem;
-    backdrop-filter: blur(10px);
-  }
-
-  .modal-overlay.hidden {
-    display: none;
-  }
-
-  .modal-container {
-    width: 100%;
-    max-width: 500px;
-    animation: modalSlideIn 0.3s ease-out;
-  }
-
-  .modal-content {
-    background-color: #ffffff;
-    border-radius: 1.5rem;
-    box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    overflow: hidden;
-  }
-
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 2px solid #e5e7eb;
-  }
-
-  .modal-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0;
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9999px;
-    transition: all 0.2s ease;
-  }
-
-  .modal-close:hover {
-    background-color: #f3f4f6;
-  }
-
-  .modal-close-icon {
-    font-size: 1.5rem;
-    color: #6b7280;
-    line-height: 1;
-  }
-
-  .modal-body {
-    padding: 1.5rem;
-  }
-
-  .modal-body form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .modal-actions {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 0.5rem;
-  }
-
-  .modal-actions button {
-    flex: 1;
-  }
-
-  @keyframes modalSlideIn {
-    from {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  /* Responsive */
-  @media (max-width: 640px) {
-    .modal-container {
-      max-width: 100%;
-    }
-
-    .modal-content {
-      border-radius: 1rem;
-    }
-  }
-</style>
+  <button
+    type="button"
+    class="btn btn-secondary flex-1"
+    data-close="modal-parish"
+    slot="footer"
+  >
+    Cancelar
+  </button>
+  <button type="submit" class="btn btn-primary flex-1" slot="footer">
+    Registrar
+  </button>
+</ModalDesign>
 
 <script>
   import { registerParish } from "@/scripts/registerParish";

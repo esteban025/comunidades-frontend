@@ -44,7 +44,7 @@ try {
       ) : (
         <div
           id="parishes-grid"
-          class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]"
+          class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]"
         >
           {parishes.map((parish) => (
             <article class="parish-card bg-white border-2 border-gray-200 rounded-3xl p-4 hover:border-gray-400 transition-all duration-200 hover:shadow-md">
@@ -67,6 +67,7 @@ try {
 
 <script>
   interface Parish {
+    name: string;
     aka: string;
     tag: string;
   }
@@ -92,7 +93,7 @@ try {
           const grid = document.createElement("div");
           grid.id = "parishes-grid";
           grid.className =
-            "grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]";
+            "grid gap-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]";
 
           parishes.forEach((parish) => {
             const article = document.createElement("article");
@@ -101,7 +102,7 @@ try {
             article.innerHTML = `
               <div class="flex flex-col gap-2">
                 <h3 class="text-xl font-semibold text-gray-800">${parish.aka}</h3>
-                <span class="text-xs mb-4 text-neutral-600">{parish.name}</span>
+                <span class="text-xs mb-4 text-neutral-600">${parish.name}</span>
                 <span class="inline-block bg-gray-600 text-white text-sm font-medium px-4 py-1.5 rounded-full w-fit">
                   ${parish.tag}
                 </span>

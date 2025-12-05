@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Notification from "@/components/Notification.astro";
 import ModalAddParish from "@/components/ModalAddParish.astro";
+import ModalAddBrother from "@/components/ModalAddBrother.astro";
 ---
 
 <!doctype html>
@@ -16,9 +17,10 @@ import ModalAddParish from "@/components/ModalAddParish.astro";
 			content="Plataforma para el registro y gestión de hermanos para organizacion en convivencias."
 		/>
 	</head>
-	<body class="relative">
+	<body class="relative text-neutral-950 bg-white">
 		<Notification />
 		<ModalAddParish />
+		<ModalAddBrother />
 		<slot />
 	</body>
 </html>
