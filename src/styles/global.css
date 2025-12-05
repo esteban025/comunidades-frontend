@@ -1,1 +1,17 @@
 @import "tailwindcss";
+@import "./form.css";
+@import "./buttons.css";
+
+/* fonts */
+/* Supports weights 100-900 */
+@import '@fontsource-variable/inter';
+
+body {
+  font-family: 'InterVariable Variable', sans-serif;
+}
+
+@media print {
+  .no-print {
+    display: none;
+  }
+}

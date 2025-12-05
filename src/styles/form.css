@@ -1,0 +1,51 @@
+/* Estilos del formulario */
+
+.content-form {
+  width: 100%;
+  padding-top: 1.5rem;
+}
+
+.content-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.content-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.content-input label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.1rem;
+}
+
+.content-input input {
+  width: 100%;
+  padding: 0.5rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-size: 1rem;
+  border-radius: 9999px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.content-input input:focus {
+  border-color: #6b7280;
+  background-color: #f9fafb;
+}
+
+.content-input input:hover {
+  border-color: #9ca3af;
+}
+
+.content-input input::placeholder {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}

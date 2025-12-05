@@ -1,0 +1,57 @@
+---
+interface Parish {
+  aka: string;
+  tag: string;
+}
+
+interface ParishesResponse {
+  success: boolean;
+  data: Parish[];
+}
+
+let parishes: Parish[] = [];
+let error = false;
+
+try {
+  const response = await fetch("http://localhost:3000/api/parishes");
+  const result: ParishesResponse = await response.json();
+
+  if (result.success && result.data) {
+    parishes = result.data;
+  }
+} catch (e) {
+  error = true;
+  console.error("Error fetching parishes:", e);
+}
+---
+
+<section class="w-full max-w-4xl mx-auto">
+  <h2 class="text-3xl font-semibold text-center mb-8 text-gray-800">
+    Parroquias
+  </h2>
+
+  {
+    error ? (
+      <div class="bg-gray-100 border border-gray-300 rounded-full px-6 py-4 text-center text-gray-600">
+        Error al cargar las parroquias
+      </div>
+    ) : parishes.length === 0 ? (
+      <div class="bg-gray-100 border border-gray-300 rounded-full px-6 py-4 text-center text-gray-600">
+        No hay parroquias registradas
+      </div>
+    ) : (
+      <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+        {parishes.map((parish) => (
+          <article class="bg-white border-2 border-gray-200 rounded-3xl p-4 hover:border-gray-400 transition-all duration-200 hover:shadow-md">
+            <div class="flex flex-col gap-2">
+              <h3 class="text-xl font-semibold text-gray-800">{parish.aka}</h3>
+              <span class="inline-block bg-gray-800 text-white text-sm font-medium px-4 py-1.5 rounded-full w-fit">
+                {parish.tag}
+              </span>
+            </div>
+          </article>
+        ))}
+      </div>
+    )
+  }
+</section>

@@ -1,5 +1,14 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from "@/layouts/Layout.astro";
+import HeaderPage from "@/sections/HeaderPage.astro";
+import Registers from "@/sections/Registers.astro";
+import Parishes from "@/sections/Parishes.astro";
 ---
 
-<Layout />
+<Layout>
+	<div class="flex flex-col gap-4">
+		<HeaderPage />
+		<!-- <Registers /> -->
+		<Parishes />
+	</div>
+</Layout>

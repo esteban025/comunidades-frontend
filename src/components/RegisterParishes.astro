@@ -1,0 +1,44 @@
+---
+import Card from "./Card.astro";
+---
+
+<Card>
+  <header>
+    <h2 class="font-semibold text-lg">Registrar una parroquia</h2>
+    <p class="text-sm text-gray-500">Completa todos los campos*</p>
+  </header>
+  <div class="content-form">
+    <form action="" method="post">
+      <div class="name content-input">
+        <label for="parish-name">Nombre Parroquia</label>
+        <input
+          type="text"
+          name="parish-name"
+          id="parish-name"
+          placeholder="San Luis de Gongaza"
+        />
+      </div>
+      <div class="tag content-input">
+        <label for="parish-tag">Etiqueta Parroquia</label>
+        <input
+          type="text"
+          name="parish-tag"
+          id="parish-tag"
+          placeholder="SLG"
+        />
+      </div>
+      <div class="aka content-input">
+        <label for="parish-aka">Alias Parroquia</label>
+        <input
+          type="text"
+          name="parish-aka"
+          id="parish-aka"
+          placeholder="Quinta Chica"
+        />
+      </div>
+      <div class="btns content-input">
+        <button class="btn btn-primary" type="submit">Registrar</button>
+      </div>
+    </form>
+  </div>
+</Card>
