@@ -294,18 +294,32 @@ import ModalDesign from "./ModalDesign.astro";
         const result = await response.json();
 
         if (result.exists) {
-          // La comunidad existe - ocultar campo level_paso
-          communityStatus!.textContent = `✓ Comunidad encontrada: ${result.data.level_paso || "Sin paso definido"}`;
-          communityStatus?.classList.remove("hidden", "warning");
-          communityStatus?.classList.add("success");
-          levelPasoField?.classList.add("hidden");
+          const hasLevelPaso =
+            result.data.level_paso &&
+            result.data.level_paso.trim() !== "" &&
+            result.data.level_paso !== "Sin especificar";
 
-          // Limpiar el campo level_paso si existía algo
-          const levelPasoInput = document.getElementById(
-            "level_paso",
-          ) as HTMLInputElement;
-          if (levelPasoInput) {
-            levelPasoInput.value = "";
+          if (hasLevelPaso) {
+            // La comunidad existe Y tiene paso definido - ocultar campo level_paso
+            communityStatus!.textContent = `✓ Comunidad encontrada: ${result.data.level_paso}`;
+            communityStatus?.classList.remove("hidden", "warning");
+            communityStatus?.classList.add("success");
+            levelPasoField?.classList.add("hidden");
+
+            // Limpiar el campo level_paso si existía algo
+            const levelPasoInput = document.getElementById(
+              "level_paso",
+            ) as HTMLInputElement;
+            if (levelPasoInput) {
+              levelPasoInput.value = "";
+            }
+          } else {
+            // La comunidad existe PERO NO tiene paso definido - mostrar campo level_paso
+            communityStatus!.textContent =
+              "⚠ La comunidad existe pero no tiene paso definido. Ingresa el paso para completar la información.";
+            communityStatus?.classList.remove("hidden", "success");
+            communityStatus?.classList.add("warning");
+            levelPasoField?.classList.remove("hidden");
           }
         } else {
           // La comunidad NO existe - mostrar campo level_paso

@@ -69,6 +69,17 @@ export const POST: APIRoute = async ({ request }) => {
       community_id = result.insertId;
     } else {
       community_id = communities[0].id;
+
+      // Si la comunidad existe pero no tiene paso definido y se proporcionó uno, actualizarlo
+      const currentPaso = communities[0].level_paso;
+      const needsUpdate = (!currentPaso || currentPaso.trim() === '' || currentPaso === 'Sin especificar');
+
+      if (needsUpdate && level_paso && level_paso.trim() !== '') {
+        await db.query(
+          'UPDATE communities SET level_paso = ? WHERE id = ?',
+          [level_paso, community_id]
+        );
+      }
     }
 
     // 4. Verificar que no exista duplicado en la misma comunidad
