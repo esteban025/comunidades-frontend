@@ -1,8 +1,6 @@
 import type { APIRoute } from "astro";
 import { db } from "@/lib/db";
 
-export const prerender = false;
-
 /**
  * GET /api/parishes/[parishId]/communities/[communityNumber]
  * Verifica si una comunidad específica existe en una parroquia

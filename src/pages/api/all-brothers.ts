@@ -1,8 +1,6 @@
 import type { APIRoute } from "astro";
 import { db } from "@/lib/db";
 
-export const prerender = false;
-
 // GET - Obtener todos los hermanos con sus comunidades y roles
 export const GET: APIRoute = async () => {
   try {

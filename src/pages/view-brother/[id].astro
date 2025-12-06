@@ -2,8 +2,6 @@
 import { db } from "@/lib/db";
 import BrotherDetailsContent from "@/components/BrotherDetailsContent.astro";
 
-export const prerender = false;
-
 const { id } = Astro.params;
 
 if (!id) {

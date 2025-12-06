@@ -1,0 +1,120 @@
+---
+import SectionContainer from "../SectionContainer.astro";
+import { db } from "@/lib/db";
+
+// Obtener información de la parroquia SJPII
+let parishData: any = null;
+let communities: any[] = [];
+let error = false;
+
+try {
+  // 1. Obtener datos de la parroquia por tag
+  const parishQuery = `
+    SELECT id, name, tag, aka 
+    FROM parishes 
+    WHERE tag = 'SJPII'
+  `;
+
+  const [parishRows]: any = await db.query(parishQuery);
+
+  if (parishRows && parishRows.length > 0) {
+    parishData = parishRows[0];
+
+    // 2. Obtener comunidades de esta parroquia con conteo de hermanos
+    const communitiesQuery = `
+      SELECT 
+        c.id,
+        c.number_community,
+        c.level_paso,
+        COUNT(b.id) as brothers_count
+      FROM communities c
+      LEFT JOIN brothers b ON c.id = b.community_id
+      WHERE c.parish_id = ?
+      GROUP BY c.id, c.number_community, c.level_paso
+      ORDER BY c.number_community ASC
+    `;
+
+    const [commRows]: any = await db.query(communitiesQuery, [parishData.id]);
+    communities = commRows || [];
+  }
+} catch (e) {
+  console.error("Error obteniendo datos de parroquia SJPII:", e);
+  error = true;
+}
+
+const description = parishData
+  ? `Tag: ${parishData.tag} • ${communities.length} comunidad${communities.length !== 1 ? "es" : ""}`
+  : "Cargando...";
+---
+
+<SectionContainer
+  title={parishData?.name || "San Juan Pablo II"}
+  description={description}
+>
+  <div slot="body" class="container-table">
+    {
+      error ? (
+        <div class="text-center text-red-600 py-4">
+          Error al cargar los datos de la parroquia
+        </div>
+      ) : communities.length > 0 ? (
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Paso</th>
+              <th>Hermanos (total)</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {communities.map((community) => (
+              <tr>
+                <td class="cell-main">{community.number_community}</td>
+                <td>{community.level_paso || "Sin especificar"}</td>
+                <td class="cell-value">{community.brothers_count}</td>
+                <td>
+                  <button
+                    class="action-btn"
+                    data-community-id={community.id}
+                    data-community-number={community.number_community}
+                  >
+                    Ver detalles
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div class="text-center text-gray-500 py-8">
+          No hay comunidades registradas en esta parroquia
+        </div>
+      )
+    }
+  </div>
+</SectionContainer>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const actionButtons = document.querySelectorAll(
+      ".action-btn[data-community-id]",
+    );
+
+    actionButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const communityId = (button as HTMLElement).dataset.communityId;
+        const communityNumber = (button as HTMLElement).dataset.communityNumber;
+
+        console.log(
+          `Ver detalles de comunidad ${communityNumber}, ID: ${communityId}`,
+        );
+
+        // TODO: Implementar modal o navegación a detalles de comunidad
+        alert(
+          `Funcionalidad en desarrollo\nComunidad: ${communityNumber}\nID: ${communityId}`,
+        );
+      });
+    });
+  });
+</script>

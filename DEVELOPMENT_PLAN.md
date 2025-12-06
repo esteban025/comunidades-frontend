@@ -308,3 +308,6 @@ Si marca "Soy catequista":
 3. Crear la API completa
 
 O prefieres que haga todo de una vez?
+
+
+' las cards de resumens tienen que enlazarse con algo, la primera card debe tener un href #section-register-brothers, la segunda debe llevarme a #section-parishes, comunidades debe llevar a una nueva ventana osea /communities y ahi vamos a mostrar el mismo header de la pagina actual, la enlista con un subtitlo el nombre de la parroquia y las comunidades que tiene, te parece hacer algo asi o que seria mejor hacer, crea el codigo sin logica de db todavia

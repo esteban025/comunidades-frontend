@@ -6,6 +6,11 @@ import { getTotalBrothers } from "@/lib/stats";
 const totalBrothers = await getTotalBrothers();
 ---
 
-<Card count={totalBrothers} title="Hermanos" dataCardName="all-brothers">
+<Card
+  count={totalBrothers}
+  title="Hermanos"
+  dataCardName="all-brothers"
+  href="#section-register-brothers"
+>
   <UserIcon class="w-12 aspect-square text-neutral-400" />
 </Card>

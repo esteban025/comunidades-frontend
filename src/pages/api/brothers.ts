@@ -1,8 +1,6 @@
 import type { APIRoute } from "astro";
 import { db } from "@/lib/db";
 
-export const prerender = false;
-
 // POST - Registrar un nuevo hermano
 export const POST: APIRoute = async ({ request }) => {
   try {

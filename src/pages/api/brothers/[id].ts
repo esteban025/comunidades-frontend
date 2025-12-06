@@ -1,8 +1,6 @@
 import type { APIRoute } from "astro";
 import { db } from "@/lib/db";
 
-export const prerender = false;
-
 // GET - Obtener un hermano específico por ID con todos sus detalles
 export const GET: APIRoute = async ({ params }) => {
   try {

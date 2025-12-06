@@ -1,0 +1,159 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import HeaderPage from "@/sections/HeaderPage.astro";
+import { db } from "@/lib/db";
+
+const { tag } = Astro.params;
+
+// Obtener información de la parroquia por tag
+let parishData: any = null;
+let communities: any[] = [];
+let error = false;
+
+if (!tag) {
+  error = true;
+} else {
+  try {
+    // 1. Obtener datos de la parroquia
+    const parishQuery = `
+      SELECT id, name, tag, aka 
+      FROM parishes 
+      WHERE tag = ?
+    `;
+
+    const [parishRows]: any = await db.query(parishQuery, [tag]);
+
+    if (parishRows && parishRows.length > 0) {
+      parishData = parishRows[0];
+
+      // 2. Obtener comunidades con conteo de hermanos
+      const communitiesQuery = `
+        SELECT 
+          c.id,
+          c.number_community,
+          c.level_paso,
+          COUNT(b.id) as brothers_count
+        FROM communities c
+        LEFT JOIN brothers b ON c.id = b.community_id
+        WHERE c.parish_id = ?
+        GROUP BY c.id, c.number_community, c.level_paso
+        ORDER BY c.number_community ASC
+      `;
+
+      const [commRows]: any = await db.query(communitiesQuery, [parishData.id]);
+      communities = commRows || [];
+    } else {
+      error = true;
+    }
+  } catch (e) {
+    console.error("Error obteniendo datos de parroquia:", e);
+    error = true;
+  }
+}
+---
+
+<Layout>
+  <div class="flex flex-col gap-10">
+    <HeaderPage />
+
+    {
+      error ? (
+        <section class="w-full max-w-6xl mx-auto bg-white rounded-xl shadow-md p-8 text-center">
+          <h2 class="text-2xl font-bold text-red-600 mb-4">
+            Parroquia no encontrada
+          </h2>
+          <p class="text-gray-600 mb-6">
+            No se encontró una parroquia con el tag: <strong>{tag}</strong>
+          </p>
+          <a href="/communities" class="text-blue-600 hover:underline">
+            ← Volver a comunidades
+          </a>
+        </section>
+      ) : (
+        <section class="w-full max-w-6xl mx-auto bg-gray-50 rounded-xl shadow-md overflow-hidden">
+          <header class="p-6 pb-0">
+            <h1 class="text-3xl font-bold mb-1">{parishData.name}</h1>
+            <p class="text-sm text-gray-500">
+              {parishData.aka} • Tag: {parishData.tag} • {communities.length}{" "}
+              comunidad{communities.length !== 1 ? "es" : ""}
+            </p>
+          </header>
+
+          <div class="my-8 px-6">
+            <div class="container-table">
+              {communities.length > 0 ? (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Número</th>
+                      <th>Paso</th>
+                      <th>Hermanos (total)</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {communities.map((community) => (
+                      <tr>
+                        <td class="cell-main">{community.number_community}</td>
+                        <td>{community.level_paso || "Sin especificar"}</td>
+                        <td class="cell-value">{community.brothers_count}</td>
+                        <td>
+                          <button
+                            class="action-btn"
+                            data-community-id={community.id}
+                            data-community-number={community.number_community}
+                          >
+                            Ver detalles
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div class="text-center text-gray-500 py-8">
+                  No hay comunidades registradas en esta parroquia
+                </div>
+              )}
+            </div>
+          </div>
+
+          <footer class="p-6 border-t-2 border-gray-200 bg-white/70">
+            <div class="flex justify-between items-center text-gray-500 text-sm">
+              <span>
+                Última actualización: {new Date().toLocaleDateString()}
+              </span>
+              <a href="/communities" class="text-blue-600 hover:underline">
+                ← Volver a comunidades
+              </a>
+            </div>
+          </footer>
+        </section>
+      )
+    }
+  </div>
+</Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const actionButtons = document.querySelectorAll(
+      ".action-btn[data-community-id]",
+    );
+
+    actionButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const communityId = (button as HTMLElement).dataset.communityId;
+        const communityNumber = (button as HTMLElement).dataset.communityNumber;
+
+        console.log(
+          `Ver detalles de comunidad ${communityNumber}, ID: ${communityId}`,
+        );
+
+        // TODO: Implementar modal o navegación a detalles de comunidad
+        alert(
+          `Funcionalidad en desarrollo\nComunidad: ${communityNumber}\nID: ${communityId}`,
+        );
+      });
+    });
+  });
+</script>

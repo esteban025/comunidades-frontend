@@ -2,12 +2,14 @@
 interface Props {
   title: string;
   description?: string;
+  id?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, id } = Astro.props;
 ---
 
 <section
+  id={id}
   class="w-full max-w-6xl mx-auto bg-gray-50 rounded-xl shadow-md overflow-hidden relative"
 >
   <header class="p-6 pb-0">

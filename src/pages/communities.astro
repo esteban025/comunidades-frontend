@@ -1,0 +1,119 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import HeaderPage from "@/sections/HeaderPage.astro";
+import { db } from "@/lib/db";
+import HomeIcon from "@/assets/HomeIcon.astro";
+
+// Obtener todas las parroquias con sus comunidades
+let parishes: any[] = [];
+let error = false;
+
+try {
+  // Query para obtener parroquias con conteo de comunidades
+  const parishesQuery = `
+    SELECT 
+      p.id,
+      p.name,
+      p.tag,
+      p.aka,
+      COUNT(DISTINCT c.id) as communities_count
+    FROM parishes p
+    LEFT JOIN communities c ON p.id = c.parish_id
+    GROUP BY p.id, p.name, p.tag, p.aka
+    ORDER BY p.name ASC
+  `;
+
+  const [rows]: any = await db.query(parishesQuery);
+  parishes = rows || [];
+} catch (e) {
+  console.error("Error obteniendo parroquias:", e);
+  error = true;
+}
+---
+
+<Layout>
+  <div class="flex flex-col gap-10">
+    <HeaderPage />
+
+    <section
+      class="w-full max-w-6xl mx-auto bg-gray-50 rounded-xl shadow-md overflow-hidden"
+    >
+      <header class="p-6 pb-0">
+        <div class="flex items-center gap-3 mb-3">
+          <HomeIcon class="w-8 h-8 text-gray-600" />
+          <h1 class="text-3xl font-bold">Comunidades por Parroquia</h1>
+        </div>
+        <p class="text-sm text-gray-500">
+          Selecciona una parroquia para ver sus comunidades
+        </p>
+      </header>
+
+      <div class="p-6">
+        {
+          error ? (
+            <div class="text-center text-red-600 py-8">
+              Error al cargar las parroquias
+            </div>
+          ) : parishes.length > 0 ? (
+            <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {parishes.map((parish) => (
+                <a
+                  href={`/parishes/${parish.tag}`}
+                  class="parish-card block bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-all hover:scale-[1.02] no-underline"
+                >
+                  <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                    {parish.name}
+                  </h3>
+                  <p class="text-sm text-gray-600 mb-3">{parish.aka}</p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500 font-medium">
+                      Tag: {parish.tag}
+                    </span>
+                    <span class="text-sm text-blue-600 font-medium">
+                      {parish.communities_count} comunidad
+                      {parish.communities_count !== 1 ? "es" : ""}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div class="text-center py-12">
+              <HomeIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 class="text-xl font-semibold text-gray-600 mb-2">
+                No hay parroquias registradas
+              </h3>
+              <p class="text-gray-500">
+                Las parroquias aparecerán aquí cuando se registren
+              </p>
+            </div>
+          )
+        }
+      </div>
+
+      <footer class="p-6 border-t-2 border-gray-200 bg-white/70">
+        <div class="flex justify-between items-center text-gray-500 text-sm">
+          <span>
+            Total: {parishes.length} parroquia{parishes.length !== 1 ? "s" : ""}
+          </span>
+          <a
+            href="/"
+            class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+          >
+            ← Volver al inicio
+          </a>
+        </div>
+      </footer>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .parish-card {
+    border: 2px solid transparent;
+  }
+
+  .parish-card:hover {
+    border-color: #3b82f6;
+  }
+</style>

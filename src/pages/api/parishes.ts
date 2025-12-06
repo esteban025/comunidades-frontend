@@ -1,8 +1,6 @@
 import type { APIRoute } from "astro";
 import { db } from "@/lib/db";
 
-export const prerender = false;
-
 // GET - Obtener todas las parroquias
 export const GET: APIRoute = async () => {
   try {

@@ -1,8 +1,6 @@
 import type { APIRoute } from "astro";
 import { getGeneralStats } from "@/lib/stats";
 
-export const prerender = false;
-
 /**
  * GET /api/stats
  * Obtiene todas las estadísticas generales del sistema

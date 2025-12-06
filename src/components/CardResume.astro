@@ -3,12 +3,16 @@ interface Props {
   title: string;
   count: number;
   dataCardName: string;
+  href?: string;
 }
-const { title, count, dataCardName } = Astro.props;
+const { title, count, dataCardName, href } = Astro.props;
+
+const Element = href ? "a" : "article";
 ---
 
-<article
-  class="rounded-lg bg-white shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-[1.02]"
+<Element
+  href={href}
+  class="rounded-lg bg-white shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-[1.02] block no-underline"
   data-card-name={dataCardName}
 >
   <div class="flex justify-center gap-4 p-8 items-center">
@@ -20,4 +24,4 @@ const { title, count, dataCardName } = Astro.props;
       <p class="text-3xl font-bold leading-none text-gray-800">{count}</p>
     </header>
   </div>
-</article>
+</Element>

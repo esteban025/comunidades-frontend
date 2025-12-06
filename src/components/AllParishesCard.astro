@@ -6,6 +6,11 @@ import { getTotalParishes } from "@/lib/stats";
 const totalParishes = await getTotalParishes();
 ---
 
-<Card count={totalParishes} title="Parroquias" dataCardName="all-parishes">
+<Card
+  count={totalParishes}
+  title="Parroquias"
+  dataCardName="all-parishes"
+  href="#section-parishes"
+>
   <ChurchIcon class="w-12 aspect-square text-neutral-400" />
 </Card>
