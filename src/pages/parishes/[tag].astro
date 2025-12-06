@@ -1,6 +1,10 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import HeaderPage from "@/sections/HeaderPage.astro";
+import EyeIcon from "@/assets/EyesIcon.astro";
+import PencilIcon from "@/assets/PencilIcon.astro";
+import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
+import ModalViewCommunity from "@/components/ModalViewCommunity.astro";
 import { db } from "@/lib/db";
 
 const { tag } = Astro.params;
@@ -137,13 +141,35 @@ if (!tag) {
                         <td>{community.level_paso || "Sin especificar"}</td>
                         <td class="cell-value">{community.brothers_count}</td>
                         <td>
-                          <button
-                            class="action-btn"
-                            data-community-id={community.id}
-                            data-community-number={community.number_community}
-                          >
-                            Ver detalles
-                          </button>
+                          <div class="action-buttons flex justify-center gap-2">
+                            <button
+                              class="action-btn"
+                              title="Ver detalles"
+                              data-action="view"
+                              data-community-id={community.id}
+                              data-community-number={community.number_community}
+                            >
+                              <EyeIcon class="w-4 h-4" />
+                            </button>
+                            <button
+                              class="action-btn"
+                              title="Editar"
+                              data-action="edit"
+                              data-community-id={community.id}
+                              data-community-number={community.number_community}
+                            >
+                              <PencilIcon class="w-4 h-4" />
+                            </button>
+                            <button
+                              class="action-btn"
+                              title="Más opciones"
+                              data-action="more"
+                              data-community-id={community.id}
+                              data-community-number={community.number_community}
+                            >
+                              <DotsVerticalIcon class="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -171,27 +197,56 @@ if (!tag) {
       )
     }
   </div>
+
+  <!-- Modal para ver detalles de comunidad -->
+  <ModalViewCommunity />
 </Layout>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const actionButtons = document.querySelectorAll(
-      ".action-btn[data-community-id]",
-    );
+    const actionButtons = document.querySelectorAll(".action-btn[data-action]");
+
+    // Obtener nombre de la parroquia del header
+    const parishNameEl = document.querySelector("header h1");
+    const parishName = parishNameEl?.textContent || "Parroquia";
 
     actionButtons.forEach((button) => {
       button.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const action = (button as HTMLElement).dataset.action;
         const communityId = (button as HTMLElement).dataset.communityId;
         const communityNumber = (button as HTMLElement).dataset.communityNumber;
 
-        console.log(
-          `Ver detalles de comunidad ${communityNumber}, ID: ${communityId}`,
-        );
+        switch (action) {
+          case "view":
+            // Abrir modal de detalles
+            if (typeof (window as any).openViewCommunityModal === "function") {
+              (window as any).openViewCommunityModal(
+                communityId,
+                parishName,
+                communityNumber,
+              );
+            }
+            break;
 
-        // TODO: Implementar modal o navegación a detalles de comunidad
-        alert(
-          `Funcionalidad en desarrollo\nComunidad: ${communityNumber}\nID: ${communityId}`,
-        );
+          case "edit":
+            console.log(
+              `Editar comunidad ${communityNumber}, ID: ${communityId}`,
+            );
+            alert(`Editar\nComunidad: ${communityNumber}\nID: ${communityId}`);
+            // TODO: Abrir modal de edición
+            break;
+
+          case "more":
+            console.log(
+              `Más opciones para comunidad ${communityNumber}, ID: ${communityId}`,
+            );
+            alert(
+              `Más opciones\nComunidad: ${communityNumber}\nID: ${communityId}`,
+            );
+            // TODO: Mostrar menú con opción de eliminar, etc.
+            break;
+        }
       });
     });
   });

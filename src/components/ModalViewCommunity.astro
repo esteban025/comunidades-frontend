@@ -1,0 +1,333 @@
+---
+// Modal para ver detalles de una comunidad
+---
+
+<div
+  id="modal-view-community"
+  class="modal-overlay hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4"
+>
+  <div
+    class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
+  >
+    <!-- Header -->
+    <div class="modal-header p-6 border-b border-gray-200">
+      <div class="flex justify-between items-start">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800" id="community-title">
+            Detalles de la Comunidad
+          </h2>
+          <p class="text-sm text-gray-500 mt-1" id="community-subtitle">
+            Cargando...
+          </p>
+        </div>
+        <button
+          id="close-modal-community"
+          class="text-gray-400 hover:text-gray-600 transition-colors"
+          title="Cerrar"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body p-6 overflow-y-auto flex-1">
+      <div id="community-details-content">
+        <div class="flex justify-center items-center py-8">
+          <div
+            class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+          >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer p-6 border-t border-gray-200 bg-gray-50">
+      <div class="flex justify-end gap-3">
+        <button
+          id="close-modal-community-btn"
+          class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal-overlay {
+    display: flex;
+  }
+  .modal-overlay.hidden {
+    display: none;
+  }
+
+  .modal-overlay {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .modal-content {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  import { showNotification } from "@/scripts/notification";
+
+  const modal = document.getElementById("modal-view-community");
+  const closeBtn = document.getElementById("close-modal-community");
+  const closeBtnFooter = document.getElementById("close-modal-community-btn");
+  const contentDiv = document.getElementById("community-details-content");
+  const titleEl = document.getElementById("community-title");
+  const subtitleEl = document.getElementById("community-subtitle");
+
+  function closeModal() {
+    modal?.classList.add("hidden");
+  }
+
+  closeBtn?.addEventListener("click", closeModal);
+  closeBtnFooter?.addEventListener("click", closeModal);
+
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Función global para abrir el modal
+  (window as any).openViewCommunityModal = async (
+    communityId: string,
+    parishName: string,
+    communityNumber: string,
+  ) => {
+    modal?.classList.remove("hidden");
+
+    // Actualizar título
+    if (titleEl) titleEl.textContent = `Comunidad ${communityNumber}`;
+    if (subtitleEl) subtitleEl.textContent = parishName;
+
+    // Mostrar loading
+    if (contentDiv) {
+      contentDiv.innerHTML = `
+        <div class="flex justify-center items-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      `;
+    }
+
+    try {
+      // Obtener datos de la comunidad
+      const response = await fetch(`/api/communities/${communityId}`);
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Error al cargar los datos");
+      }
+
+      const community = result.data;
+
+      // Renderizar contenido
+      if (contentDiv) {
+        contentDiv.innerHTML = `
+          <div class="space-y-6">
+            <!-- Información básica -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3">Información General</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-sm text-gray-500">Parroquia</p>
+                  <p class="font-medium text-gray-800">${community.parish_name}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Número de Comunidad</p>
+                  <p class="font-medium text-gray-800">${community.number_community}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Paso</p>
+                  <p class="font-medium text-gray-800">${community.level_paso || "Sin especificar"}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Total de Hermanos</p>
+                  <p class="font-medium text-gray-800">${community.total_brothers}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Responsables -->
+            ${
+              community.responsables && community.responsables.length > 0
+                ? `
+              <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Responsables</h3>
+                <div class="space-y-2">
+                  ${community.responsables
+                    .map(
+                      (r: any) => `
+                    <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <div class="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-semibold">
+                        ${r.names.charAt(0)}
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-800">${r.names}</p>
+                        <p class="text-sm text-gray-500">${r.phone || "Sin teléfono"}</p>
+                      </div>
+                    </div>
+                  `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `
+                : '<p class="text-gray-500 text-sm">No hay responsables registrados</p>'
+            }
+
+            <!-- Corresponsables -->
+            ${
+              community.corresponsables && community.corresponsables.length > 0
+                ? `
+              <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Corresponsables</h3>
+                <div class="space-y-2">
+                  ${community.corresponsables
+                    .map(
+                      (c: any) => `
+                    <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-lg">
+                      <div class="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center text-amber-700 font-semibold">
+                        ${c.names.charAt(0)}
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-800">${c.names}</p>
+                        <p class="text-sm text-gray-500">${c.phone || "Sin teléfono"}</p>
+                      </div>
+                    </div>
+                  `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `
+                : ""
+            }
+
+            <!-- Catequistas -->
+            ${
+              community.catequistas && community.catequistas.length > 0
+                ? `
+              <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Catequistas</h3>
+                <div class="space-y-2">
+                  ${community.catequistas
+                    .map(
+                      (cat: any) => `
+                    <div class="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                      <div class="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center text-purple-700 font-semibold">
+                        ${cat.names.charAt(0)}
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-800">${cat.names}</p>
+                        <p class="text-sm text-gray-500">${cat.phone || "Sin teléfono"}</p>
+                      </div>
+                    </div>
+                  `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `
+                : ""
+            }
+
+            <!-- Otros hermanos con roles -->
+            ${
+              community.other_brothers && community.other_brothers.length > 0
+                ? `
+              <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Otros Hermanos con Roles</h3>
+                <div class="space-y-2">
+                  ${community.other_brothers
+                    .map(
+                      (b: any) => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-700 font-semibold">
+                          ${b.names.charAt(0)}
+                        </div>
+                        <div>
+                          <p class="font-medium text-gray-800">${b.names}</p>
+                          <p class="text-sm text-gray-500">${b.phone || "Sin teléfono"}</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-1">
+                        ${b.roles
+                          .map(
+                            (role: string) => `
+                          <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
+                            ${role}
+                          </span>
+                        `,
+                          )
+                          .join("")}
+                      </div>
+                    </div>
+                  `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error("Error cargando detalles de comunidad:", error);
+      showNotification(
+        "Error al cargar los detalles de la comunidad",
+        "error",
+        3000,
+      );
+      if (contentDiv) {
+        contentDiv.innerHTML = `
+          <div class="text-center py-8 text-red-600">
+            <p class="font-semibold">Error al cargar los datos</p>
+            <p class="text-sm mt-2">Por favor, intenta nuevamente</p>
+          </div>
+        `;
+      }
+    }
+  };
+</script>
