@@ -32,7 +32,7 @@ if (!tag) {
           c.id,
           c.number_community,
           c.level_paso,
-          COUNT(b.id) as brothers_count
+          COUNT(DISTINCT b.id) as brothers_count
         FROM communities c
         LEFT JOIN brothers b ON c.id = b.community_id
         WHERE c.parish_id = ?
@@ -41,7 +41,42 @@ if (!tag) {
       `;
 
       const [commRows]: any = await db.query(communitiesQuery, [parishData.id]);
-      communities = commRows || [];
+
+      // 3. Obtener responsables de cada comunidad
+      if (commRows && commRows.length > 0) {
+        const communityIds = commRows.map((c: any) => c.id);
+        const responsablesQuery = `
+          SELECT 
+            br.community_id,
+            b.names as responsable_name
+          FROM brother_roles br
+          INNER JOIN brothers b ON br.brother_id = b.id
+          WHERE br.role = 'Responsable'
+            AND br.community_id IN (${communityIds.map(() => "?").join(",")})
+        `;
+
+        const [responsablesRows]: any = await db.query(
+          responsablesQuery,
+          communityIds,
+        );
+
+        const responsablesMap = new Map();
+        responsablesRows?.forEach((r: any) => {
+          if (!responsablesMap.has(r.community_id)) {
+            responsablesMap.set(r.community_id, []);
+          }
+          responsablesMap.get(r.community_id).push(r.responsable_name);
+        });
+
+        communities = commRows.map((comm: any) => ({
+          ...comm,
+          responsable: responsablesMap.has(comm.id)
+            ? responsablesMap.get(comm.id).join(", ")
+            : null,
+        }));
+      } else {
+        communities = [];
+      }
     } else {
       error = true;
     }
@@ -65,7 +100,7 @@ if (!tag) {
           <p class="text-gray-600 mb-6">
             No se encontró una parroquia con el tag: <strong>{tag}</strong>
           </p>
-          <a href="/communities" class="text-blue-600 hover:underline">
+          <a href="/" class="text-blue-600 hover:underline">
             ← Volver a comunidades
           </a>
         </section>
@@ -86,8 +121,9 @@ if (!tag) {
                   <thead>
                     <tr>
                       <th>Número</th>
+                      <th>Responsable</th>
                       <th>Paso</th>
-                      <th>Hermanos (total)</th>
+                      <th>Total</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -95,6 +131,9 @@ if (!tag) {
                     {communities.map((community) => (
                       <tr>
                         <td class="cell-main">{community.number_community}</td>
+                        <td>
+                          {community.responsable || "Responsable no registrado"}
+                        </td>
                         <td>{community.level_paso || "Sin especificar"}</td>
                         <td class="cell-value">{community.brothers_count}</td>
                         <td>
