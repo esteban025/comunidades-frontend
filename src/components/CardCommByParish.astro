@@ -1,0 +1,38 @@
+---
+interface Props {
+  parish: {
+    name: string;
+    aka: string;
+    tag: string;
+    communities_count: number;
+  };
+}
+const { parish } = Astro.props;
+const { name, aka, tag, communities_count } = parish;
+---
+
+<div class="relative">
+  <div class="absolute top-3 right-3 z-10">
+    <slot name="btn-actions" />
+  </div>
+  <a
+    href={`/parishes/${tag}`}
+    class="parish-card block bg-white shadow-sm border-2 border-gray-200 rounded-2xl p-4 hover:border-gray-300 transition-all duration-200 hover:shadow-md hover:scale-[1.01] no-underline"
+  >
+    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+      {name}
+    </h3>
+    <p class="text-sm text-gray-600 mb-3">{aka}</p>
+    <div class="flex items-center justify-between">
+      <span
+        class="inline-block bg-gray-600 text-white text-sm font-medium px-4 py-1.5 rounded-full w-fit"
+      >
+        {tag}
+      </span>
+      <span class="text-sm text-blue-600 font-medium">
+        {communities_count} comunidad
+        {communities_count !== 1 ? "es" : ""}
+      </span>
+    </div>
+  </a>
+</div>

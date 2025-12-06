@@ -8,10 +8,17 @@ const { aka, tag, name } = Astro.props;
 ---
 
 <article
-  class="bg-white border-2 border-gray-200 rounded-3xl p-4 hover:border-gray-300 transition-all duration-200 hover:shadow-md relative"
+  class="bg-white border-2 border-gray-200 rounded-2xl p-4 hover:border-gray-300 transition-all duration-200 hover:shadow-md relative group overflow-hidden"
 >
-  <div class="absolute top-3 right-3">
-    <slot />
+  <div
+    class="absolute top-3 right-3 translate-x-12 -translate-y-8 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0"
+  >
+    <slot name="btn-edit" />
+  </div>
+  <div
+    class="absolute bottom-3 right-3 translate-x-10 translate-y-10 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0"
+  >
+    <slot name="btn-href" />
   </div>
   <div class="flex flex-col gap-1">
     <h3 class="text-2xl font-semibold text-gray-800">

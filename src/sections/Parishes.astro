@@ -2,6 +2,8 @@
 import SectionContainer from "@/components/SectionContainer.astro";
 import ParishCard from "@/components/ParishCard.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
+import ArrowIcon from "@/assets/ArrowIcon.astro";
+
 interface Parish {
   id: number;
   name: string;
@@ -58,7 +60,7 @@ try {
         >
           {parishes.map((parish) => (
             <ParishCard name={parish.name} aka={parish.aka} tag={parish.tag}>
-              <div class="parish-actions-wrapper relative">
+              <div class="parish-actions-wrapper relative" slot="btn-edit">
                 <button
                   class="parish-action-btn flex items-center justify-center w-8.5 aspect-square rounded-lg border border-gray-200 bg-white cursor-pointer transition-all duration-200 ease-in-out text-gray-500 hover:border-gray-300 hover:shadow-md"
                   title="Opciones"
@@ -80,6 +82,15 @@ try {
                     Eliminar
                   </button>
                 </div>
+              </div>
+              <div class="relative" slot="btn-href">
+                <a
+                  href={`/parishes/${parish.tag}`}
+                  class="parish-action-btn flex items-center justify-center w-8.5 aspect-square rounded-lg border border-gray-200 bg-white cursor-pointer transition-all duration-200 ease-in-out text-gray-500 hover:border-gray-300 hover:shadow-md"
+                  title="Ver Parroquia"
+                >
+                  <ArrowIcon class="w-5 h-5" />
+                </a>
               </div>
             </ParishCard>
           ))}
