@@ -164,37 +164,8 @@ function formatRole(role: string): string {
 
 <style>
   .empty-cell {
-    color: #9ca3af;
+    color: var(--color-text-muted);
     font-style: italic;
-  }
-
-  /* roles */
-  .role-tag {
-    display: inline-block;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-  }
-
-  .role-tag[data-rol="responsable"] {
-    background-color: var(--color-blue-100);
-    color: var(--color-blue-600);
-  }
-  .role-tag[data-rol="catequista"] {
-    background-color: var(--color-amber-100);
-    color: var(--color-amber-600);
-  }
-  .role-tag[data-rol="corresponsable"] {
-    background-color: var(--color-red-100);
-    color: var(--color-red-600);
-  }
-  .role-tag[data-rol="ostiario"] {
-    background-color: var(--color-green-100);
-    color: var(--color-green-600);
-  }
-  .role-tag[data-rol="didascala"] {
-    background-color: var(--color-purple-100);
-    color: var(--color-purple-600);
   }
 
   /* bottoms */
@@ -226,7 +197,7 @@ function formatRole(role: string): string {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
-  .action-btn[data-action="view"]:hover {
+  /* .action-btn[data-action="view"]:hover {
     border-color: #3b82f6;
     color: #3b82f6;
   }
@@ -239,7 +210,7 @@ function formatRole(role: string): string {
   .action-btn[data-action="more"]:hover {
     border-color: #6b7280;
     color: #6b7280;
-  }
+  } */
 
   /* Menú de más opciones */
   .more-menu {
