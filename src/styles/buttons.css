@@ -13,12 +13,12 @@
 
 .btn-primary {
   /* primario */
-  background-color: #1f2937;
-  color: #ffffff;
+  background-color: var(--color-gray-800);
+  color: white;
 }
 
 .btn-primary:hover {
-  background-color: #374151;
+  background-color: var(--color-gray-600);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
@@ -34,14 +34,14 @@
 
 .btn-secondary {
   /* secundario */
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 2px solid #e5e7eb;
+  background-color: var(--color-gray-50);
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border-light);
 }
 
 .btn-secondary:hover {
-  background-color: #e5e7eb;
-  border-color: #d1d5db;
+  background-color: var(--color-gray-100);
+  border-color: var(--color-border-medium);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
@@ -56,124 +56,124 @@
 }
 
 .empty-cell {
-    color: #9ca3af;
-    font-style: italic;
-  }
+  color: var(--color-text-muted);
+  font-style: italic;
+}
 
-  /* roles */
-  .role-tag {
-    display: inline-block;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    /* color: white; */
-    border: 1px solid;
-    font-weight: 500;
-  }
+/* roles */
+.role-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  /* color: white; */
+  border: 1px solid;
+  font-weight: 500;
+}
 
-  .role-tag[data-rol="responsable"], .tag-secondary {
-    border-color: var(--color-gray-700);
-    color: var(--color-gray-700);
-  }
-  .role-tag[data-rol="catequista"], .tag-primary {
-    border-color: var(--color-gray-900);
-    color: var(--color-gray-900);
-  }
-  .role-tag[data-rol="corresponsable"], .tag-tertiary {
-    border-color: var(--color-gray-500);
-    color: var(--color-gray-600);
-  }
-  .role-tag[data-rol="ostiario"], .tag-others {
-    border-color: var(--color-gray-400);
-    color: var(--color-gray-500);
-  }
-  .role-tag[data-rol="didascala"], .tag-others {
-    border-color: var(--color-gray-400);
-    color: var(--color-gray-500);
-  }
+.role-tag[data-rol="responsable"], .tag-secondary {
+  border-color: var(--color-gray-700);
+  color: var(--color-gray-700);
+}
+.role-tag[data-rol="catequista"], .tag-primary {
+  border-color: var(--color-gray-900);
+  color: var(--color-gray-900);
+}
+.role-tag[data-rol="corresponsable"], .tag-tertiary {
+  border-color: var(--color-gray-500);
+  color: var(--color-gray-600);
+}
+.role-tag[data-rol="ostiario"], .tag-others {
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-500);
+}
+.role-tag[data-rol="didascala"], .tag-others {
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-500);
+}
 
-  /* bottoms */
+/* bottoms */
 
-  .action-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 0.375rem;
-    border: 1px solid #e5e5e5;
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #525252;
-  }
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e5e5;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #525252;
+}
 
-  .action-btn:hover {
-    background: #fafafa;
-    border-color: #d4d4d4;
-    color: #171717;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
+.action-btn:hover {
+  background: #fafafa;
+  border-color: #d4d4d4;
+  color: #171717;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
-  .action-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  }
+.action-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
 
-  /* .action-btn[data-action="view"]:hover {
-    border-color: #3b82f6;
-    color: #3b82f6;
-  }
+/* .action-btn[data-action="view"]:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
 
-  .action-btn[data-action="edit"]:hover {
-    border-color: #10b981;
-    color: #10b981;
-  }
+.action-btn[data-action="edit"]:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
 
-  .action-btn[data-action="more"]:hover {
-    border-color: #6b7280;
-    color: #6b7280;
-  } */
+.action-btn[data-action="more"]:hover {
+  border-color: #6b7280;
+  color: #6b7280;
+} */
 
-  /* Menú de más opciones */
-  .more-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 0.25rem;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    z-index: 50;
-    min-width: 160px;
-  }
+/* Menú de más opciones */
+.more-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 50;
+  min-width: 160px;
+}
 
-  .more-menu.hidden {
-    display: none;
-  }
+.more-menu.hidden {
+  display: none;
+}
 
-  .more-menu-item {
-    width: 100%;
-    padding: 0.625rem 1rem;
-    text-align: left;
-    background: white;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s ease;
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+.more-menu-item {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  text-align: left;
+  background: white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-  .more-menu-item:hover {
-    background: #f3f4f6;
-  }
+.more-menu-item:hover {
+  background: #f3f4f6;
+}
 
-  .more-menu-item.delete:hover {
-    background: #fee2e2;
-    color: #dc2626;
-  }
+.more-menu-item.delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}

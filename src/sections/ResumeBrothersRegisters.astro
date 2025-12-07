@@ -1,21 +1,37 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
+import PaginationBrothers from "@/components/PaginationBrothers.astro";
 import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
 import ArrowIcon from "@/assets/ArrowIcon.astro";
 import UserIcon from "@/assets/UserIcon.astro";
 
-// Fetch en el servidor
+// Obtener parámetros de paginación
+const url = Astro.url;
+const page = parseInt(url.searchParams.get("page") || "1");
+const limit = 10; // 10 hermanos por página
+
+// Fetch en el servidor con paginación
 let brothers: any[] = [];
+let pagination: any = {
+  currentPage: 1,
+  totalPages: 1,
+  totalItems: 0,
+  hasNextPage: false,
+  hasPrevPage: false,
+};
 let hasError = false;
 
 try {
-  const response = await fetch("http://localhost:4321/api/all-brothers");
+  const response = await fetch(
+    `http://localhost:4321/api/all-brothers?page=${page}&limit=${limit}`,
+  );
   const result = await response.json();
 
   if (result.success && result.data) {
     brothers = result.data;
+    pagination = result.pagination;
   }
 } catch (error) {
   console.error("Error cargando hermanos:", error);
@@ -149,6 +165,23 @@ function formatRole(role: string): string {
         )
       }
     </div>
+
+    <!-- Controles de paginación -->
+    {
+      brothers.length > 0 && (
+        <PaginationBrothers
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          from={pagination.from}
+          to={pagination.to}
+          hasNextPage={pagination.hasNextPage}
+          hasPrevPage={pagination.hasPrevPage}
+          baseUrl="/"
+          anchor="section-register-brothers"
+        />
+      )
+    }
   </div>
   <a
     slot="footer-link"
@@ -163,13 +196,7 @@ function formatRole(role: string): string {
 </SectionContainer>
 
 <style>
-  .empty-cell {
-    color: var(--color-text-muted);
-    font-style: italic;
-  }
-
   /* bottoms */
-
   .action-btn {
     width: 32px;
     height: 32px;

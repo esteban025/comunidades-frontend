@@ -1,32 +1,20 @@
 ---
 interface Props {
-  aka: string;
-  tag: string;
-  name: string;
+  href?: string;
 }
-const { aka, tag, name } = Astro.props;
+const { href } = Astro.props;
+const Element = href ? "a" : "article";
 ---
 
 <article
-  class="rounded-xl bg-white border border-border-light shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md block no-underline p-6 group relative overflow-hidden parish-card"
+  class="rounded-xl bg-white border border-border-light shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md relative overflow-hidden parish-card"
 >
   <div
     class="absolute top-3 right-3 translate-x-12 -translate-y-8 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0"
   >
     <slot name="btn-edit" />
   </div>
-  <div
-    class="absolute bottom-3 right-3 translate-x-10 translate-y-10 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0"
-  >
-    <slot name="btn-href" />
-  </div>
-  <div class="flex flex-col gap-1">
-    <h3 class="text-2xl font-semibold text-text-primary">
-      {aka}
-    </h3>
-    <span class="text-sm mb-4 text-text-muted">{name}</span>
-    <span class="tag-others role-tag text-sm w-max">
-      {tag}
-    </span>
-  </div>
+  <Element href={href} class="block no-underline p-6">
+    <slot />
+  </Element>
 </article>

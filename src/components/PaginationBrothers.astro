@@ -1,0 +1,231 @@
+---
+import ArrowShortIcon from "@/assets/ArrowShortIcon.astro";
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  from: number;
+  to: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  baseUrl?: string;
+  anchor?: string;
+}
+
+const {
+  currentPage,
+  totalPages,
+  totalItems,
+  from,
+  to,
+  hasNextPage,
+  hasPrevPage,
+  baseUrl = "/",
+  anchor = "",
+} = Astro.props;
+
+// Generar array de páginas para mostrar
+function getPageNumbers() {
+  const pages: (number | string)[] = [];
+  const maxVisible = 3; // Máximo de números de página visibles
+
+  if (totalPages <= maxVisible) {
+    // Si hay pocas páginas, mostrarlas todas
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Lógica para páginas con puntos suspensivos
+    if (currentPage <= 3) {
+      // Inicio: 1 2 3 4 ... 10
+      for (let i = 1; i <= 4; i++) {
+        pages.push(i);
+      }
+      pages.push("...");
+      pages.push(totalPages);
+    } else if (currentPage >= totalPages - 2) {
+      // Final: 1 ... 7 8 9 10
+      pages.push(1);
+      pages.push("...");
+      for (let i = totalPages - 3; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Medio: 1 ... 4 5 6 ... 10
+      pages.push(1);
+      pages.push("...");
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+        pages.push(i);
+      }
+      pages.push("...");
+      pages.push(totalPages);
+    }
+  }
+
+  return pages;
+}
+
+const pageNumbers = getPageNumbers();
+const anchorHash = anchor ? `#${anchor}` : "";
+---
+
+<div
+  class="pagination-container flex items-center justify-between flex-wrap gap-4"
+>
+  <!-- Info de resultados -->
+  <div class="pagination-info shrink-0">
+    <p class="text-sm text-gray-600">
+      Mostrando <span class="font-semibold text-gray-900">{from}</span> - <span
+        class="font-semibold text-gray-900">{to}</span
+      > de <span class="font-semibold text-gray-900">{totalItems}</span> hermanos
+    </p>
+  </div>
+
+  <!-- Controles de navegación -->
+  <div class="pagination-controls flex items-center gap-6 flex-wrap">
+    <!-- Botón Anterior -->
+    <a
+      href={hasPrevPage
+        ? `${baseUrl}?page=${currentPage - 1}${anchorHash}`
+        : "#"}
+      class:list={[
+        "pagination-btn group shadow-sm hover:shadow-md",
+        !hasPrevPage && "pagination-btn-disabled",
+      ]}
+      aria-disabled={!hasPrevPage}
+      tabindex={!hasPrevPage ? -1 : 0}
+    >
+      <ArrowShortIcon class="w-5 aspect-square block" />
+    </a>
+
+    <!-- Números de página -->
+    <div class="pagination-numbers">
+      {
+        pageNumbers.map((page) =>
+          page === "..." ? (
+            <span class="pagination-ellipsis inline-flex items-center justify-center min-w-10 aspect-square text-text-primary font-medium">
+              ...
+            </span>
+          ) : (
+            <a
+              href={`${baseUrl}?page=${page}${anchorHash}`}
+              class:list={[
+                "pagination-number shadow-sm hover:shadow-md",
+                page === currentPage && "pagination-number-active",
+              ]}
+              aria-current={page === currentPage ? "page" : undefined}
+            >
+              {page}
+            </a>
+          ),
+        )
+      }
+    </div>
+
+    <!-- Botón Siguiente -->
+    <a
+      href={hasNextPage
+        ? `${baseUrl}?page=${currentPage + 1}${anchorHash}`
+        : "#"}
+      class:list={[
+        "pagination-btn group shadow-sm hover:shadow-md",
+        !hasNextPage && "pagination-btn-disabled",
+      ]}
+      aria-disabled={!hasNextPage}
+      tabindex={!hasNextPage ? -1 : 0}
+    >
+      <ArrowShortIcon
+        class="w-5 aspect-square block rotate-180 group-hover:text-text-secondary transition-all duration-200"
+      />
+    </a>
+  </div>
+</div>
+
+<style>
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem;
+    color: var(--color-text-muted);
+    background-color: white;
+    border: 1px solid var(--color-border-light);
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .pagination-btn:hover:not(.pagination-btn-disabled) {
+    border-color: var(--color-border-medium);
+  }
+
+  .pagination-btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .pagination-btn-text {
+    display: none;
+  }
+
+  .pagination-numbers {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .pagination-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    aspect-ratio: 1 / 1;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    background-color: white;
+    border: 1px solid var(--color-border-medium);
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .pagination-number:hover {
+    /* background-color: #f3f4f6; */
+    border-color: var(--color-border-dark);
+  }
+
+  .pagination-number-active {
+    color: white;
+    background-color: var(--color-gray-950);
+    border-color: var(--color-gray-950);
+  }
+
+  .pagination-number-active:hover {
+    background-color: var(--color-gray-700);
+    border-color: var(--color-gray-700);
+  }
+
+  /* Responsive */
+  @media (min-width: 640px) {
+    .pagination-btn-text {
+      display: inline;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .pagination-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .pagination-info {
+      text-align: center;
+    }
+
+    .pagination-controls {
+      justify-content: center;
+    }
+  }
+</style>

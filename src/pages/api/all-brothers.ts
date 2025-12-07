@@ -1,10 +1,22 @@
 import type { APIRoute } from "astro";
 import { db } from "@/lib/db";
 
-// GET - Obtener todos los hermanos con sus comunidades y roles
-export const GET: APIRoute = async () => {
+// GET - Obtener todos los hermanos con sus comunidades y roles (con paginación)
+export const GET: APIRoute = async ({ url }) => {
+  // Obtener parámetros de paginación
+  const page = parseInt(url.searchParams.get('page') || '1');
+  const limit = parseInt(url.searchParams.get('limit') || '10');
+  const offset = (page - 1) * limit;
+
   try {
-    // Query para obtener hermanos con información de comunidad y parroquia
+    // 1. Contar total de hermanos
+    const [countResult]: any = await db.query(
+      'SELECT COUNT(*) as total FROM brothers'
+    );
+    const totalItems = countResult[0].total;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    // 2. Query para obtener hermanos con información de comunidad y parroquia (paginado)
     const query = `
       SELECT 
         b.id,
@@ -26,9 +38,10 @@ export const GET: APIRoute = async () => {
       GROUP BY b.id, b.names, b.civil_status, b.phone, b.community_id, 
                c.number_community, c.level_paso, p.id, p.name, p.tag, p.aka
       ORDER BY p.name, c.number_community, b.names
+      LIMIT ? OFFSET ?
     `;
 
-    const [rows]: any = await db.query(query);
+    const [rows]: any = await db.query(query, [limit, offset]);
 
     // Procesar los roles para estructurarlos mejor
     const brothers = rows.map((row: any) => {
@@ -75,7 +88,16 @@ export const GET: APIRoute = async () => {
     return new Response(JSON.stringify({
       success: true,
       data: brothers,
-      total: brothers.length
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalItems,
+        itemsPerPage: limit,
+        from: totalItems > 0 ? offset + 1 : 0,
+        to: Math.min(offset + limit, totalItems),
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     }), {
       status: 200,
       headers: {

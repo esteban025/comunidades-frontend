@@ -10,18 +10,17 @@ const { title, count, dataCardName, href } = Astro.props;
 const Element = href ? "a" : "article";
 ---
 
-<Element
-  href={href}
-  class="rounded-xl bg-white border border-border-light shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md block no-underline"
-  data-card-name={dataCardName}
->
-  <div class="flex justify-center gap-4 p-8 items-center">
-    <div class="icon">
-      <slot />
+<div class="relative">
+  <Element
+    href={href}
+    class="rounded-xl bg-white border border-border-light shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md block no-underline"
+    data-card-name={dataCardName}
+  >
+    <div class="flex justify-center gap-4 p-8 items-center">
+      <header class="flex flex-col gap-2">
+        <h3 class="leading-none text-gray-500 text-sm">{title}</h3>
+        <p class="text-3xl font-bold leading-none text-gray-800">{count}</p>
+      </header>
     </div>
-    <header class="flex flex-col gap-2">
-      <h3 class="leading-none text-gray-500 text-sm">{title}</h3>
-      <p class="text-3xl font-bold leading-none text-gray-800">{count}</p>
-    </header>
-  </div>
-</Element>
+  </Element>
+</div>
