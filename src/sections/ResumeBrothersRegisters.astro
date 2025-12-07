@@ -4,6 +4,7 @@ import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
 import ArrowIcon from "@/assets/ArrowIcon.astro";
+import UserIcon from "@/assets/UserIcon.astro";
 
 // Fetch en el servidor
 let brothers: any[] = [];
@@ -46,6 +47,9 @@ function formatRole(role: string): string {
   description="Explora y gestiona los registros de hermanos en nuestra plataforma."
   id="section-register-brothers"
 >
+  <div class="block" slot="icon-title">
+    <UserIcon class="w-7 aspect-square block text-gray-500" />
+  </div>
   <div slot="body" class="flex flex-col gap-4">
     <!-- Aquí puedes agregar contenido relacionado con los registros de hermanos -->
     <div class="container-table">

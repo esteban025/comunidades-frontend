@@ -3,6 +3,7 @@ import SectionContainer from "@/components/SectionContainer.astro";
 import ParishCard from "@/components/ParishCard.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import ArrowIcon from "@/assets/ArrowIcon.astro";
+import ChurchIcon from "@/assets/ChurchIcon.astro";
 
 interface Parish {
   id: number;
@@ -37,6 +38,9 @@ try {
   description="Explora las parroquias registradas en nuestra plataforma."
   id="section-parishes"
 >
+  <div class="icon-title block" slot="icon-title">
+    <ChurchIcon class="w-8 aspect-square block text-gray-500" />
+  </div>
   <div id="parishes-container" slot="body">
     {
       error ? (

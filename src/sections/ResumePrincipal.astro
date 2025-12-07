@@ -1,10 +1,35 @@
 ---
-import AllBrothersCard from "@/components/AllBrothersCard.astro";
-import AllCatechistsCard from "@/components/AllCatechistsCard.astro";
-import AllCommunitiesCard from "@/components/AllCommunitiesCard.astro";
-import AllParishesCard from "@/components/AllParishesCard.astro";
 import SectionContainer from "@/components/SectionContainer.astro";
 import ArrowIcon from "@/assets/ArrowIcon.astro";
+import {
+  getTotalBrothers,
+  getTotalCatechists,
+  getTotalCommunities,
+  getTotalParishes,
+} from "@/lib/stats";
+
+const info = [
+  {
+    name: "Hermanos",
+    count: await getTotalBrothers(),
+    href: "#section-register-brothers",
+  },
+  {
+    name: "Parroquias",
+    count: await getTotalParishes(),
+    href: "#section-parishes",
+  },
+  {
+    name: "Comunidades",
+    count: await getTotalCommunities(),
+    href: "/communities",
+  },
+  {
+    name: "Catequistas",
+    count: await getTotalCatechists(),
+    href: "#",
+  },
+];
 ---
 
 <SectionContainer
@@ -13,13 +38,26 @@ import ArrowIcon from "@/assets/ArrowIcon.astro";
 >
   <div
     slot="body"
-    class="grid gap-4 justify-center items-center"
-    style="grid-template-columns: repeat(auto-fit,minmax(min(100%,200px), 1fr));"
+    class="bg-gray-100 rounded-full border border-border-light shadow-sm relative"
   >
-    <AllBrothersCard />
-    <AllParishesCard />
-    <AllCommunitiesCard />
-    <AllCatechistsCard />
+    {
+      info.map((item, index) => (
+        <div class="w-1/4 inline-flex items-center justify-center gap-2 text-center py-3 relative z-10 h-full">
+          <a
+            href={item.href}
+            class="resume-btn flex items-center justify-center gap-2 w-full h-full"
+            data-index={index}
+          >
+            <p class="text-xl font-semibold text-primary">{item.count}</p>
+            <p class="text-sm text-neutral-600">{item.name}</p>
+          </a>
+        </div>
+      ))
+    }
+    <div
+      class="absolute bg-bg-primary rounded-full border border-border-light inset-0 w-1/4 h-full shadow-md transition-all duration-300 pointer-events-none resume-indicator"
+    >
+    </div>
   </div>
 
   <a
@@ -35,5 +73,21 @@ import ArrowIcon from "@/assets/ArrowIcon.astro";
 </SectionContainer>
 
 <script>
-  // Aquí puedes agregar cualquier lógica adicional si es necesario
+  document.addEventListener("DOMContentLoaded", () => {
+    const resumeButtons = document.querySelectorAll(".resume-btn");
+    const resumeIndicator = document.querySelector(
+      ".resume-indicator",
+    ) as HTMLElement;
+
+    resumeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = parseInt((button as HTMLElement).dataset.index || "0");
+        const translateValue = index * 100; // 0%, 100%, 200%, 300%
+
+        if (resumeIndicator) {
+          resumeIndicator.style.transform = `translateX(${translateValue}%)`;
+        }
+      });
+    });
+  });
 </script>

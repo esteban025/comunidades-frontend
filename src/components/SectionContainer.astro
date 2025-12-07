@@ -13,7 +13,12 @@ const { title, description, id } = Astro.props;
   class="w-full max-w-6xl mx-auto bg-gray-50 rounded-xl shadow- overflow-hidden relative border border-border-light shadow-md hover:shadow-lg transition-all duration-300"
 >
   <header class="p-6 pb-0">
-    <h3 class="text-2xl font-bold mb-1 text-text-primary">{title}</h3>
+    <h3
+      class="text-2xl font-bold text-text-primary flex items-center gap-2 mb-2"
+    >
+      <slot name="icon-title" />
+      <span>{title}</span>
+    </h3>
     {description && <p class="text-sm text-text-secondary">{description}</p>}
   </header>
 
