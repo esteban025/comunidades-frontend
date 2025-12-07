@@ -3,6 +3,7 @@ import SectionContainer from "@/components/SectionContainer.astro";
 import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
+import ArrowIcon from "@/assets/ArrowIcon.astro";
 
 // Fetch en el servidor
 let brothers: any[] = [];
@@ -145,8 +146,15 @@ function formatRole(role: string): string {
       }
     </div>
   </div>
-  <a slot="footer-link" class="hover:underline" href="#">
-    Ver todos los registros de hermanos
+  <a
+    slot="footer-link"
+    class="hover:underline flex items-center gap-1 group"
+    href="#"
+  >
+    <span>Ver todos los registros</span>
+    <ArrowIcon
+      class="inline-block w-4 h-4 group-hover:ml-1 transition-all duration-300"
+    />
   </a>
 </SectionContainer>
 

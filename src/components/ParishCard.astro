@@ -8,7 +8,7 @@ const { aka, tag, name } = Astro.props;
 ---
 
 <article
-  class="bg-white border-2 border-gray-200 rounded-2xl p-4 hover:border-gray-300 transition-all duration-200 hover:shadow-md relative group overflow-hidden"
+  class="rounded-xl bg-white border border-border-light shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md block no-underline p-6 group relative overflow-hidden parish-card"
 >
   <div
     class="absolute top-3 right-3 translate-x-12 -translate-y-8 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0"
@@ -21,12 +21,12 @@ const { aka, tag, name } = Astro.props;
     <slot name="btn-href" />
   </div>
   <div class="flex flex-col gap-1">
-    <h3 class="text-2xl font-semibold text-gray-800">
+    <h3 class="text-2xl font-semibold text-text-primary">
       {aka}
     </h3>
-    <span class="text-xs mb-4 text-neutral-600">{name}</span>
+    <span class="text-sm mb-4 text-text-muted">{name}</span>
     <span
-      class="inline-block bg-gray-600 text-white text-sm font-medium px-4 py-1.5 rounded-full w-fit"
+      class="px-4 py-2 border border-gray-500 text-gray-500 text-sm font-semibold rounded-full shadow-sm inline-block w-fit"
     >
       {tag}
     </span>

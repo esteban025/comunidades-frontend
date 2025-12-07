@@ -4,6 +4,7 @@ import AllCatechistsCard from "@/components/AllCatechistsCard.astro";
 import AllCommunitiesCard from "@/components/AllCommunitiesCard.astro";
 import AllParishesCard from "@/components/AllParishesCard.astro";
 import SectionContainer from "@/components/SectionContainer.astro";
+import ArrowIcon from "@/assets/ArrowIcon.astro";
 ---
 
 <SectionContainer
@@ -12,7 +13,7 @@ import SectionContainer from "@/components/SectionContainer.astro";
 >
   <div
     slot="body"
-    class="grid gap-3 justify-center items-center"
+    class="grid gap-4 justify-center items-center"
     style="grid-template-columns: repeat(auto-fit,minmax(min(100%,200px), 1fr));"
   >
     <AllBrothersCard />
@@ -21,8 +22,15 @@ import SectionContainer from "@/components/SectionContainer.astro";
     <AllCatechistsCard />
   </div>
 
-  <a slot="footer-link" class="hover:underline" href="#">
-    Ver todos los detalles
+  <a
+    slot="footer-link"
+    class="hover:underline flex items-center gap-1 group"
+    href="#"
+  >
+    <span>Ver todos los detalles</span>
+    <ArrowIcon
+      class="inline-block w-4 h-4 group-hover:ml-1 transition-all duration-300"
+    />
   </a>
 </SectionContainer>
 

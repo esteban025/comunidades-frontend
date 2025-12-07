@@ -166,6 +166,21 @@ try {
       });
     });
 
+    // Cerrar menú al salir del card (mouseleave)
+    document.querySelectorAll(".parish-card").forEach((card) => {
+      card.addEventListener("mouseleave", () => {
+        const parishId = card
+          .querySelector(".parish-action-btn")
+          ?.getAttribute("data-parish-id");
+        if (parishId) {
+          const menu = document.querySelector(
+            `[data-menu-for="${parishId}"]`,
+          ) as HTMLElement;
+          menu?.classList.add("hidden");
+        }
+      });
+    });
+
     // Cerrar menús al hacer click fuera
     document.addEventListener("click", () => {
       document.querySelectorAll(".parish-menu").forEach((menu) => {

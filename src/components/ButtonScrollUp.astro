@@ -1,0 +1,39 @@
+---
+import ArrowIcon from "@/assets/ArrowIcon.astro";
+---
+
+<div class="btn-scroll-up-container">
+  <button
+    id="btn-scroll-up"
+    class="p-2 bg-bg-tertiary rounded-full border border-border-medium cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 animate-bounce fixed bottom-6 right-6 z-50"
+  >
+    <ArrowIcon class="w-6 h-6 transform -rotate-90 text-gray-500" />
+  </button>
+</div>
+
+<style>
+  .btn-scroll-up-container {
+    animation: btn-scroll 0.3s ease-out both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 200px;
+  }
+
+  @keyframes btn-scroll {
+    0% {
+      opacity: 0;
+      visibility: hidden;
+    }
+    100% {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+</style>
+
+<script>
+  const btnScrollUp = document.getElementById("btn-scroll-up");
+
+  btnScrollUp?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+</script>
