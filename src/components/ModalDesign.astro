@@ -1,11 +1,12 @@
 ---
 interface Props {
   id: string;
-  idForm: string;
+  idForm?: string;
   title: string;
+  isForm?: boolean;
 }
 
-const { id, idForm, title } = Astro.props;
+const { id, idForm, title, isForm = false } = Astro.props;
 ---
 
 <div
@@ -30,18 +31,29 @@ const { id, idForm, title } = Astro.props;
         </button>
       </header>
 
-      <div class="modal-body">
-        <form id={idForm}>
-          <div class="p-6 flex flex-col gap-5">
-            <slot name="body" />
+      {
+        isForm ? (
+          <div class="modal-body">
+            <form id={idForm}>
+              <div class="p-6 flex flex-col gap-5">
+                <slot name="body" />
+              </div>
+              <footer class="modal-footer flex gap-3 mt-2 border-t-2 border-neutral-300 p-6">
+                <slot name="footer" />
+              </footer>
+            </form>
           </div>
-          <footer
-            class="modal-footer flex gap-3 mt-2 border-t-2 border-neutral-300 p-6"
-          >
-            <slot name="footer" />
-          </footer>
-        </form>
-      </div>
+        ) : (
+          <div class="modal-body">
+            <div class="ss">
+              <slot name="body" />
+            </div>
+            <footer class="modal-footer flex gap-3 border-t-2 border-neutral-300 p-6">
+              <slot name="footer" />
+            </footer>
+          </div>
+        )
+      }
     </div>
   </div>
 </div>

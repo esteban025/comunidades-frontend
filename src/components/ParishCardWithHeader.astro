@@ -1,0 +1,27 @@
+---
+import ParishCard from "./ParishCard.astro";
+
+interface Props {
+  title: string;
+  icon?: any;
+  iconClass?: string;
+}
+
+const {
+  title,
+  icon: Icon,
+  iconClass = "block w-5 aspect-square text-text-primary",
+} = Astro.props;
+---
+
+<ParishCard>
+  <header class="flex items-center p-4 gap-4 bg-gray-100">
+    {Icon && <Icon class={iconClass} />}
+    <h3 class="uppercase font-semibold text-md text-text-primary">
+      {title}
+    </h3>
+  </header>
+  <div class="p-4">
+    <slot />
+  </div>
+</ParishCard>

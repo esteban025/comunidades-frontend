@@ -64,7 +64,7 @@ try {
         >
           {parishes.map((parish) => (
             <ParishCard href={`/parishes/${parish.tag}`}>
-              <div class="parish-actions-wrapper relative" slot="btn-edit">
+              <div class="relative" slot="btn-edit">
                 <button
                   class="parish-action-btn flex items-center justify-center w-8.5 aspect-square rounded-lg border border-gray-200 bg-white cursor-pointer transition-all duration-200 ease-in-out text-gray-500 hover:border-gray-300 hover:shadow-md"
                   title="Opciones"
@@ -87,7 +87,7 @@ try {
                   </button>
                 </div>
               </div>
-              <div class="flex flex-col gap-1">
+              <div class="flex flex-col gap-1 p-6">
                 <h3 class="text-2xl font-semibold text-text-primary">
                   {parish.aka}
                 </h3>

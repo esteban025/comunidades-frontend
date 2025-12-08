@@ -19,176 +19,194 @@ try {
   id="modal-brother"
   title="Registrar Hermano"
   idForm="modal-brother-form"
+  isForm={true}
 >
-  <!-- Sección 1: Datos Personales -->
-  <div class="form-section flex flex-col gap-5" slot="body">
-    <h3 class="section-title">Datos Personales</h3>
+  <div class="p-6" slot="body">
+    <!-- Sección 1: Datos Personales -->
+    <div class="form-section flex flex-col gap-5">
+      <h3 class="section-title">Datos Personales</h3>
 
-    <div class="content-input">
-      <label>Estado Civil</label>
-      <div class="radio-group">
-        <label class="radio-label">
-          <input type="radio" name="civil_status" value="matrimonio" required />
-          <span>Matrimonio</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" name="civil_status" value="soltero" />
-          <span>Soltero</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" name="civil_status" value="soltera" />
-          <span>Soltera</span>
-        </label>
+      <div class="content-input">
+        <label>Estado Civil</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input
+              type="radio"
+              name="civil_status"
+              value="matrimonio"
+              required
+            />
+            <span>Matrimonio</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="civil_status" value="soltero" />
+            <span>Soltero</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="civil_status" value="soltera" />
+            <span>Soltera</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Campos para matrimonio -->
+      <div id="matrimonio-fields" class="hidden">
+        <div class="content-input">
+          <label for="husband_name">Nombre del Esposo</label>
+          <input
+            type="text"
+            name="husband_name"
+            id="husband_name"
+            placeholder="Ej: Juan Pérez"
+          />
+        </div>
+        <div class="content-input">
+          <label for="wife_name">Nombre de la Esposa</label>
+          <input
+            type="text"
+            name="wife_name"
+            id="wife_name"
+            placeholder="Ej: María López"
+          />
+        </div>
+      </div>
+
+      <!-- Campo para soltero/soltera -->
+      <div id="single-field" class="hidden">
+        <div class="content-input">
+          <label for="full_name">Nombre Completo</label>
+          <input
+            type="text"
+            name="full_name"
+            id="full_name"
+            placeholder="Ej: Pedro García"
+          />
+        </div>
+      </div>
+
+      <div class="content-input">
+        <label for="phone">Teléfono (Opcional)</label>
+        <input
+          type="tel"
+          name="phone"
+          id="phone"
+          placeholder="Ej: 0999123456"
+        />
       </div>
     </div>
 
-    <!-- Campos para matrimonio -->
-    <div id="matrimonio-fields" class="hidden">
+    <!-- Sección 2: Comunidad -->
+    <div class="form-section flex flex-col gap-5">
+      <h3 class="section-title">Mi Comunidad</h3>
+
       <div class="content-input">
-        <label for="husband_name">Nombre del Esposo</label>
+        <label for="parish_id">Parroquia</label>
+        <select
+          name="parish_id"
+          id="parish_id"
+          required
+          class="select-input space-y-1"
+        >
+          <option class="options-select" value="" disabled selected>
+            Selecciona una parroquia
+          </option>
+          {
+            parishes.map((parish) => (
+              <option class="options-select" value={parish.id}>
+                {parish.aka} ({parish.tag})
+              </option>
+            ))
+          }
+        </select>
+        <span class="text-xs text-neutral-600">
+          Si tu parroquia no aparece, registrala primero antes de registrarte*
+        </span>
+      </div>
+
+      <div class="content-input">
+        <label for="community_number">Número de Comunidad</label>
         <input
-          type="text"
-          name="husband_name"
-          id="husband_name"
-          placeholder="Ej: Juan Pérez"
+          type="number"
+          name="community_number"
+          id="community_number"
+          placeholder="Ej: 3"
+          min="1"
+          required
         />
       </div>
-      <div class="content-input">
-        <label for="wife_name">Nombre de la Esposa</label>
+
+      <div id="community-status" class="info-message hidden"></div>
+
+      <div id="level-paso-field" class="content-input hidden">
+        <label for="level_paso">¿En qué paso está la comunidad?</label>
         <input
           type="text"
-          name="wife_name"
-          id="wife_name"
-          placeholder="Ej: María López"
+          name="level_paso"
+          id="level_paso"
+          placeholder="Ej: Paso 2, Primeros Escrutinios, Shema, etc."
         />
+        <span class="text-xs text-neutral-600"
+          >La comunidad no existe. Ingresa el paso para crearla</span
+        >
       </div>
     </div>
 
-    <!-- Campo para soltero/soltera -->
-    <div id="single-field" class="hidden">
-      <div class="content-input">
-        <label for="full_name">Nombre Completo</label>
-        <input
-          type="text"
-          name="full_name"
-          id="full_name"
-          placeholder="Ej: Pedro García"
-        />
-      </div>
-    </div>
+    <!-- Sección 3: Roles -->
+    <div class="form-section flex flex-col gap-5">
+      <h3 class="section-title">Roles (Opcional)</h3>
 
-    <div class="content-input">
-      <label for="phone">Teléfono (Opcional)</label>
-      <input type="tel" name="phone" id="phone" placeholder="Ej: 0999123456" />
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="roles_in_own_community"
+            value="responsable"
+          />
+          <span>Soy responsable de mi comunidad</span>
+        </label>
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="roles_in_own_community"
+            value="corresponsable"
+          />
+          <span>Soy corresponsable de mi comunidad</span>
+        </label>
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="roles_in_own_community"
+            value="didascala"
+          />
+          <span>Soy didascala de mi comunidad</span>
+        </label>
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="roles_in_own_community"
+            value="ostiario"
+          />
+          <span>Soy ostiario de mi comunidad</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="is_catechist" />
+          <span>Soy catequista de otras comunidades</span>
+        </label>
+      </div>
+
+      <!-- Comunidades donde es catequista -->
+      <div id="catechist-section" class="hidden mt-4">
+        <div class="flex justify-between items-center mb-2">
+          <label class="font-semibold text-sm">Comunidades que sirvo:</label>
+          <button type="button" id="add-catechist-community" class="btn-add">
+            + Agregar
+          </button>
+        </div>
+        <div id="catechist-communities-list"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Sección 2: Comunidad -->
-  <div class="form-section flex flex-col gap-5" slot="body">
-    <h3 class="section-title">Mi Comunidad</h3>
-
-    <div class="content-input">
-      <label for="parish_id">Parroquia</label>
-      <select
-        name="parish_id"
-        id="parish_id"
-        required
-        class="select-input space-y-1"
-      >
-        <option class="options-select" value="" disabled selected>
-          Selecciona una parroquia
-        </option>
-        {
-          parishes.map((parish) => (
-            <option class="options-select" value={parish.id}>
-              {parish.aka} ({parish.tag})
-            </option>
-          ))
-        }
-      </select>
-      <span class="text-xs text-neutral-600">
-        Si tu parroquia no aparece, registrala primero antes de registrarte*
-      </span>
-    </div>
-
-    <div class="content-input">
-      <label for="community_number">Número de Comunidad</label>
-      <input
-        type="number"
-        name="community_number"
-        id="community_number"
-        placeholder="Ej: 3"
-        min="1"
-        required
-      />
-    </div>
-
-    <div id="community-status" class="info-message hidden"></div>
-
-    <div id="level-paso-field" class="content-input hidden">
-      <label for="level_paso">¿En qué paso está la comunidad?</label>
-      <input
-        type="text"
-        name="level_paso"
-        id="level_paso"
-        placeholder="Ej: Paso 2, Primeros Escrutinios, Shema, etc."
-      />
-      <span class="text-xs text-neutral-600"
-        >La comunidad no existe. Ingresa el paso para crearla</span
-      >
-    </div>
-  </div>
-
-  <!-- Sección 3: Roles -->
-  <div class="form-section flex flex-col gap-5" slot="body">
-    <h3 class="section-title">Roles (Opcional)</h3>
-
-    <div class="checkbox-group">
-      <label class="checkbox-label">
-        <input
-          type="checkbox"
-          name="roles_in_own_community"
-          value="responsable"
-        />
-        <span>Soy responsable de mi comunidad</span>
-      </label>
-      <label class="checkbox-label">
-        <input
-          type="checkbox"
-          name="roles_in_own_community"
-          value="corresponsable"
-        />
-        <span>Soy corresponsable de mi comunidad</span>
-      </label>
-      <label class="checkbox-label">
-        <input
-          type="checkbox"
-          name="roles_in_own_community"
-          value="didascala"
-        />
-        <span>Soy didascala de mi comunidad</span>
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" name="roles_in_own_community" value="ostiario" />
-        <span>Soy ostiario de mi comunidad</span>
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" id="is_catechist" />
-        <span>Soy catequista de otras comunidades</span>
-      </label>
-    </div>
-
-    <!-- Comunidades donde es catequista -->
-    <div id="catechist-section" class="hidden mt-4">
-      <div class="flex justify-between items-center mb-2">
-        <label class="font-semibold text-sm">Comunidades que sirvo:</label>
-        <button type="button" id="add-catechist-community" class="btn-add">
-          + Agregar
-        </button>
-      </div>
-      <div id="catechist-communities-list"></div>
-    </div>
-  </div>
   <button
     type="button"
     class="btn btn-secondary flex-1"

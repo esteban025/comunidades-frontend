@@ -1,5 +1,15 @@
 ---
-// Componente para renderizar detalles del hermano (Server-Side)
+import ParishCardWithHeader from "@/components/ParishCardWithHeader.astro";
+import PairsIcon from "@/assets/PairsIcon.astro";
+import MobilIcon from "@/assets/MobilIcon.astro";
+import ChurchIcon from "@/assets/ChurchIcon.astro";
+import UserFillIcon from "@/assets/UserFillIcon.astro";
+import SingleIcon from "@/assets/SingleIcon.astro";
+import HomeIcon from "@/assets/HomeIcon.astro";
+import LevelIcon from "@/assets/LevelIcon.astro";
+import RolesIcon from "@/assets/RolesIcon.astro";
+import LibraryIcon from "@/assets/LibraryIcon.astro";
+
 interface Props {
   brother: any;
 }
@@ -24,70 +34,172 @@ function formatCivilStatus(status: string): string {
   };
   return statuses[status] || status;
 }
+
+function getRoleIcon(role: string): string {
+  const icons: Record<string, string> = {
+    responsable: "👤",
+    corresponsable: "🤝",
+    didascala: "📖",
+    ostiario: "🚪",
+  };
+  return icons[role] || "•";
+}
+const classIcons = "w-5 aspect-square text-text-muted";
+const existRolesOrCatechist =
+  brother.roles_in_own_community?.length > 0 ||
+  brother.catechist_of_communities?.length > 0;
 ---
 
-<div class="detail-section">
-  <h3 class="section-title">Información Personal</h3>
-  <div class="detail-row">
-    <span class="detail-label">Nombre(s):</span>
-    <span class="detail-value">{brother.names}</span>
-  </div>
-  <div class="detail-row">
-    <span class="detail-label">Estado Civil:</span>
-    <span class="detail-value">{formatCivilStatus(brother.civil_status)}</span>
-  </div>
-  <div class="detail-row">
-    <span class="detail-label">Teléfono:</span>
-    <span class="detail-value">{brother.phone || "Sin teléfono"}</span>
-  </div>
-</div>
-
-<div class="detail-section">
-  <h3 class="section-title">Comunidad</h3>
-  <div class="detail-row">
-    <span class="detail-label">Parroquia:</span>
-    <span class="detail-value"
-      >{brother.parish?.name || "N/A"} ({brother.parish?.aka || "N/A"})</span
+<div class="">
+  <!-- Header de informacion -->
+  <div
+    class="bg-linear-to-b from-gray-500 to-gray-600 w-full h-40 flex items-center justify-center flex-col gap-4 text-white"
+  >
+    <div
+      class="p-3 border-3 border-border-light rounded-full w-20 aspect-square"
     >
+      <UserFillIcon class="w-full aspect-square block" />
+    </div>
+    <h2 class="text-2xl font-semibold">{brother.names}</h2>
   </div>
-  <div class="detail-row">
-    <span class="detail-label">Comunidad:</span>
-    <span class="detail-value">{brother.community?.number || "N/A"}</span>
-  </div>
-  <div class="detail-row">
-    <span class="detail-label">Nivel/Paso:</span>
-    <span class="detail-value"
-      >{brother.community?.level_paso || "Sin especificar"}</span
-    >
-  </div>
-</div>
 
-<div class="detail-section">
-  <h3 class="section-title">Roles en su Comunidad</h3>
-  <div class="roles-list">
-    {
-      brother.roles_in_own_community?.length > 0 ? (
-        brother.roles_in_own_community.map((role: string) => (
-          <span class={`role-badge ${role}`}>{formatRole(role)}</span>
-        ))
-      ) : (
-        <span class="text-gray-500 italic">Sin roles</span>
-      )
-    }
-  </div>
-</div>
-
-<div class="detail-section">
-  <h3 class="section-title">Catequista de Comunidades</h3>
-  {
-    brother.catechist_of_communities?.length > 0 ? (
-      brother.catechist_of_communities.map((comm: any) => (
-        <div class="catechist-community">
-          <strong>{comm.parish_aka}</strong> - Comunidad {comm.community_number}
+  <!-- Grid de información -->
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4 p-4">
+    <!-- Información Personal -->
+    <ParishCardWithHeader title="Información Personal" icon={SingleIcon}>
+      <div class="flex flex-col gap-4">
+        <div class="flex items-start gap-4">
+          <span>
+            {
+              brother.civil_status === "matrimonio" ? (
+                <PairsIcon class={classIcons} />
+              ) : (
+                <SingleIcon class={classIcons} />
+              )
+            }
+          </span>
+          <div class="flex flex-col">
+            <span class="uppercase font-medium text-sm text-text-muted"
+              >Estado Civil</span
+            >
+            <span class="text-text-primary"
+              >{formatCivilStatus(brother.civil_status)}</span
+            >
+          </div>
         </div>
-      ))
-    ) : (
-      <span class="text-gray-500 italic">No es catequista</span>
+
+        <!-- cellphone -->
+        <div class="flex items-start gap-4">
+          <span>
+            <MobilIcon class={classIcons} />
+          </span>
+          <div class="flex flex-col">
+            <span class="uppercase font-medium text-sm text-text-muted"
+              >Teléfono</span
+            >
+            <span class="text-text-primary">
+              {brother.cellphone || "-"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </ParishCardWithHeader>
+
+    <ParishCardWithHeader title="Comunidad" icon={HomeIcon}>
+      <div class="flex flex-col gap-4">
+        <div class="flex items-start gap-4">
+          <span>
+            <ChurchIcon class={classIcons} />
+          </span>
+          <div class="flex flex-col">
+            <span class="uppercase font-medium text-sm text-text-muted"
+              >Parroquia</span
+            >
+            <span class="text-text-primary">
+              {brother.parish?.name || "N/A"}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <span>
+            <PairsIcon class={classIcons} />
+          </span>
+          <div class="flex flex-col">
+            <span class="uppercase font-medium text-sm text-text-muted"
+              >Comunidad</span
+            >
+            <span class="text-text-primary">
+              {brother.community?.number || "N/A"}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <span>
+            <LevelIcon class:list={["rotate-90", classIcons]} />
+          </span>
+          <div class="flex flex-col">
+            <span class="uppercase font-medium text-sm text-text-muted"
+              >Nivel / Paso</span
+            >
+            <span class="text-text-primary">
+              {brother.community?.level_paso || "Sin especificar"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </ParishCardWithHeader>
+  </div>
+
+  {
+    existRolesOrCatechist && (
+      <div class="p-4 pt-0 flex flex-col gap-4">
+        <ParishCardWithHeader title="Roles en comunidad" icon={RolesIcon}>
+          <div class="flex flex-col gap-4">
+            {brother.roles_in_own_community?.length > 0 ||
+            brother.catechist_of_communities?.length > 0 ? (
+              <div class="flex flex-wrap gap-1 items-center">
+                {brother.roles_in_own_community?.map((role: string) => (
+                  <span data-rol={role} class="role-tag">
+                    {formatRole(role)}
+                  </span>
+                ))}
+                {brother.catechist_of_communities?.length > 0 && (
+                  <span data-rol="catequista" class="role-tag catequista">
+                    Catequista ({brother.catechist_of_communities.length})
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span class="empty-cell">-</span>
+            )}
+          </div>
+        </ParishCardWithHeader>
+
+        {brother.catechist_of_communities?.length > 0 && (
+          <ParishCardWithHeader
+            title="Servicios de Catequista"
+            icon={RolesIcon}
+          >
+            <div class="flex flex-col gap-3">
+              {brother.catechist_of_communities.map((comm: any) => (
+                <div class="flex items-center gap-4 p-4 bg-linear-to-b from-gray-100 to-gray-200 rounded-lg border-l-4 border-gray-600">
+                  <LibraryIcon class={classIcons} />
+                  <div class="flex flex-col gap-1">
+                    <span class="font-semibold text-sm text-text-secondary">
+                      {comm.parish_aka}
+                    </span>
+                    <span class="text-[0.75rem] text-text-muted">
+                      Comunidad {comm.community_number}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ParishCardWithHeader>
+        )}
+      </div>
     )
   }
 </div>
