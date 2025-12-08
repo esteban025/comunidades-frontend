@@ -190,6 +190,25 @@ try {
       const selectedCommunity = filterCommunity?.value || "";
       const selectedRole = filterRole?.value || "";
 
+      // Detectar si hay algún filtro activo
+      const hasActiveFilters =
+        searchTerm !== "" ||
+        selectedParish !== "" ||
+        selectedCommunity !== "" ||
+        selectedRole !== "";
+
+      // Mostrar u ocultar paginación según filtros activos
+      const paginationContainer = document.getElementById(
+        "pagination-container",
+      );
+      if (paginationContainer) {
+        if (hasActiveFilters) {
+          paginationContainer.style.display = "none";
+        } else {
+          paginationContainer.style.display = "block";
+        }
+      }
+
       const table = document.querySelector(".render-brothers-table");
       const rows = table?.querySelectorAll("tbody tr");
 

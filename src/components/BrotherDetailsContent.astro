@@ -34,16 +34,6 @@ function formatCivilStatus(status: string): string {
   };
   return statuses[status] || status;
 }
-
-function getRoleIcon(role: string): string {
-  const icons: Record<string, string> = {
-    responsable: "👤",
-    corresponsable: "🤝",
-    didascala: "📖",
-    ostiario: "🚪",
-  };
-  return icons[role] || "•";
-}
 const classIcons = "w-5 aspect-square text-text-muted";
 const existRolesOrCatechist =
   brother.roles_in_own_community?.length > 0 ||

@@ -1,0 +1,99 @@
+---
+import { db } from "@/lib/db";
+import CommunityDetailsContent from "@/components/CommunityDetailsContent.astro";
+
+const { id } = Astro.params;
+
+if (!id) {
+  return new Response(JSON.stringify({ error: "ID no proporcionado" }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+let community = null;
+let error = null;
+
+try {
+  // Obtener información básica de la comunidad
+  const [communityRows]: any = await db.query(
+    `SELECT 
+      c.id,
+      c.number_community,
+      c.level_paso,
+      p.name as parish_name,
+      p.aka as parish_aka,
+      (SELECT COUNT(*) FROM brothers WHERE community_id = c.id) as total_brothers
+    FROM communities c
+    LEFT JOIN parishes p ON c.parish_id = p.id
+    WHERE c.id = ?`,
+    [id],
+  );
+
+  if (!communityRows || communityRows.length === 0) {
+    error = "Comunidad no encontrada";
+  } else {
+    community = communityRows[0];
+
+    // Obtener responsables
+    const [responsables]: any = await db.query(
+      `SELECT b.id, b.names, b.phone
+      FROM brothers b
+      INNER JOIN brother_roles br ON b.id = br.brother_id AND br.community_id = b.community_id
+      WHERE b.community_id = ? AND br.role = 'responsable'`,
+      [id],
+    );
+    community.responsables = responsables;
+
+    // Obtener corresponsables
+    const [corresponsables]: any = await db.query(
+      `SELECT b.id, b.names, b.phone
+      FROM brothers b
+      INNER JOIN brother_roles br ON b.id = br.brother_id AND br.community_id = b.community_id
+      WHERE b.community_id = ? AND br.role = 'corresponsable'`,
+      [id],
+    );
+    community.corresponsables = corresponsables;
+
+    // Obtener catequistas de esta comunidad
+    const [catequistas]: any = await db.query(
+      `SELECT DISTINCT b.id, b.names, b.phone
+      FROM brothers b
+      INNER JOIN brother_roles br ON b.id = br.brother_id AND br.community_id = ?
+      WHERE br.role = 'catequista'`,
+      [id],
+    );
+    community.catequistas = catequistas;
+
+    // Obtener otros hermanos con roles (didascala, ostiario)
+    const [otherBrothers]: any = await db.query(
+      `SELECT b.id, b.names, b.phone, GROUP_CONCAT(br.role) as roles
+      FROM brothers b
+      INNER JOIN brother_roles br ON b.id = br.brother_id AND br.community_id = b.community_id
+      WHERE b.community_id = ? AND br.role IN ('didascala', 'ostiario')
+      GROUP BY b.id, b.names, b.phone`,
+      [id],
+    );
+
+    // Transformar roles de string a array
+    community.other_brothers = otherBrothers.map((b: any) => ({
+      ...b,
+      roles: b.roles ? b.roles.split(",") : [],
+    }));
+  }
+} catch (e) {
+  console.error("Error en /view-community/[id]:", e);
+  error = "Error al cargar los datos";
+}
+---
+
+{
+  error ? (
+    <div class="error-message text-center py-8 text-red-600">
+      <p class="font-semibold">{error}</p>
+      <p class="text-sm mt-2">Por favor, intenta nuevamente</p>
+    </div>
+  ) : community ? (
+    <CommunityDetailsContent community={community} />
+  ) : null
+}

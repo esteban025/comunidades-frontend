@@ -7,7 +7,6 @@ import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
 
-import ModalViewCommunity from "@/components/ModalViewCommunity.astro";
 import { db } from "@/lib/db";
 
 const { tag } = Astro.params;
@@ -208,7 +207,6 @@ if (!tag) {
   </div>
 
   <!-- Modal para ver detalles de comunidad -->
-  <ModalViewCommunity />
 </Layout>
 
 <script>

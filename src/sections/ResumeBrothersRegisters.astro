@@ -1,4 +1,9 @@
 ---
+import type {
+  BrothersResponse,
+  PaginationPage,
+  Brothers,
+} from "@/types/brothers";
 import SectionContainer from "@/components/SectionContainer.astro";
 import PaginationBrothers from "@/components/PaginationBrothers.astro";
 import SearchBrothers from "@/components/SearchBrothers.astro";
@@ -14,8 +19,8 @@ const page = parseInt(url.searchParams.get("page") || "1");
 const limit = 10; // 10 hermanos por página
 
 // Fetch en el servidor con paginación
-let brothers: any[] = [];
-let pagination: any = {
+let brothers: Brothers[] = [];
+let pagination: Partial<PaginationPage> = {
   currentPage: 1,
   totalPages: 1,
   totalItems: 0,
@@ -28,7 +33,7 @@ try {
   const response = await fetch(
     `http://localhost:4321/api/all-brothers?page=${page}&limit=${limit}`,
   );
-  const result = await response.json();
+  const result: BrothersResponse = await response.json();
 
   if (result.success && result.data) {
     brothers = result.data;
@@ -174,17 +179,19 @@ function formatRole(role: string): string {
     <!-- Controles de paginación -->
     {
       brothers.length > 0 && (
-        <PaginationBrothers
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          totalItems={pagination.totalItems}
-          from={pagination.from}
-          to={pagination.to}
-          hasNextPage={pagination.hasNextPage}
-          hasPrevPage={pagination.hasPrevPage}
-          baseUrl="/"
-          anchor="section-register-brothers"
-        />
+        <div id="pagination-container">
+          <PaginationBrothers
+            currentPage={pagination.currentPage || 1}
+            totalPages={pagination.totalPages || 1}
+            totalItems={pagination.totalItems || 0}
+            from={pagination.from || 0}
+            to={pagination.to || 0}
+            hasNextPage={pagination.hasNextPage || false}
+            hasPrevPage={pagination.hasPrevPage || false}
+            baseUrl="/"
+            anchor="section-register-brothers"
+          />
+        </div>
       )
     }
   </div>
