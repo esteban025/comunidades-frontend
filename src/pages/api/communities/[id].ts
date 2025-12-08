@@ -131,3 +131,199 @@ export const GET: APIRoute = async ({ params }) => {
     );
   }
 };
+
+/**
+ * PUT - Actualizar los detalles de una comunidad (número, paso)
+ */
+export const PUT: APIRoute = async ({ params, request }) => {
+  try {
+    const { id } = params;
+
+    if (!id) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ID de comunidad no proporcionado",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Verificar que la comunidad existe
+    const [existingCommunity]: any = await db.query(
+      "SELECT id, parish_id FROM communities WHERE id = ?",
+      [id],
+    );
+
+    if (!existingCommunity || existingCommunity.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Comunidad no encontrada",
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const body = await request.json();
+    const { number_community, level_paso } = body;
+
+    // Validar campos requeridos
+    if (!number_community || !level_paso) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Faltan campos requeridos: number_community, level_paso",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Verificar si ya existe otra comunidad con ese número en la misma parroquia
+    const parishId = existingCommunity[0].parish_id;
+    const [duplicateCheck]: any = await db.query(
+      "SELECT id FROM communities WHERE parish_id = ? AND number_community = ? AND id != ?",
+      [parishId, number_community, id],
+    );
+
+    if (duplicateCheck && duplicateCheck.length > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Ya existe una comunidad con el número ${number_community} en esta parroquia`,
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Actualizar la comunidad
+    await db.query(
+      "UPDATE communities SET number_community = ?, level_paso = ? WHERE id = ?",
+      [number_community, level_paso, id],
+    );
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Comunidad actualizada exitosamente",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  } catch (error) {
+    console.error("Error en PUT /api/communities/[id]:", error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Error al actualizar comunidad: " + (error as Error).message,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+};
+
+/**
+ * DELETE - Eliminar una comunidad (solo si no tiene hermanos)
+ */
+export const DELETE: APIRoute = async ({ params }) => {
+  try {
+    const { id } = params;
+
+    if (!id) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ID de comunidad no proporcionado",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Verificar que la comunidad existe
+    const [existingCommunity]: any = await db.query(
+      "SELECT id FROM communities WHERE id = ?",
+      [id],
+    );
+
+    if (!existingCommunity || existingCommunity.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Comunidad no encontrada",
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Verificar que no tenga hermanos
+    const [brothersCount]: any = await db.query(
+      "SELECT COUNT(*) as count FROM brothers WHERE community_id = ?",
+      [id],
+    );
+
+    if (brothersCount[0].count > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `No se puede eliminar la comunidad porque tiene ${brothersCount[0].count} hermano(s) registrado(s). Primero fusiona o reasigna los hermanos.`,
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Eliminar roles asociados (por si acaso)
+    await db.query("DELETE FROM brother_roles WHERE community_id = ?", [id]);
+
+    // Eliminar la comunidad
+    await db.query("DELETE FROM communities WHERE id = ?", [id]);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Comunidad eliminada exitosamente",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  } catch (error) {
+    console.error("Error en DELETE /api/communities/[id]:", error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Error al eliminar comunidad: " + (error as Error).message,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+};

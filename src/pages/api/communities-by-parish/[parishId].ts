@@ -13,10 +13,16 @@ export const GET: APIRoute = async ({ params }) => {
 
   try {
     const query = `
-      SELECT id, number_community, level_paso
-      FROM communities
-      WHERE parish_id = ?
-      ORDER BY number_community ASC
+      SELECT 
+        c.id, 
+        c.number_community, 
+        c.level_paso,
+        COUNT(b.id) as total_brothers
+      FROM communities c
+      LEFT JOIN brothers b ON c.id = b.community_id
+      WHERE c.parish_id = ?
+      GROUP BY c.id, c.number_community, c.level_paso
+      ORDER BY c.number_community ASC
     `;
 
     const [rows]: any = await db.query(query, [parishId]);

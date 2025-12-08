@@ -151,6 +151,160 @@ export const GET: APIRoute = async ({ params }) => {
   }
 };
 
+// PUT - Actualizar un hermano
+export const PUT: APIRoute = async ({ params, request }) => {
+  try {
+    const { id } = params;
+
+    if (!id) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ID de hermano no proporcionado",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Verificar si el hermano existe
+    const [existingBrother] = await db.query(
+      "SELECT id FROM brothers WHERE id = ?",
+      [id],
+    );
+
+    if ((existingBrother as any[]).length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Hermano no encontrado",
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const formData = await request.formData();
+
+    const civilStatus = formData.get("civil_status") as string;
+    const phone = (formData.get("phone") as string) || null;
+    const parishId = formData.get("parish_id") as string;
+    const communityNumber = formData.get("community_number") as string;
+
+    // Construir nombres según estado civil
+    let names = "";
+    if (civilStatus === "matrimonio") {
+      const husbandName = formData.get("husband_name") as string;
+      const wifeName = formData.get("wife_name") as string;
+      names = `${husbandName} y ${wifeName}`;
+    } else {
+      names = formData.get("full_name") as string;
+    }
+
+    if (!names || !civilStatus || !parishId || !communityNumber) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Faltan campos obligatorios",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Buscar o crear la comunidad
+    const [communityRows]: any = await db.query(
+      `SELECT id, level_paso FROM communities 
+       WHERE parish_id = ? AND number_community = ?`,
+      [parishId, communityNumber],
+    );
+
+    let communityId: number;
+
+    if (communityRows && communityRows.length > 0) {
+      communityId = communityRows[0].id;
+    } else {
+      // Crear nueva comunidad si no existe
+      const levelPaso = formData.get("level_paso") as string;
+      const [result]: any = await db.query(
+        `INSERT INTO communities (parish_id, number_community, level_paso) 
+         VALUES (?, ?, ?)`,
+        [parishId, communityNumber, levelPaso || null],
+      );
+      communityId = result.insertId;
+    }
+
+    // Actualizar datos básicos del hermano
+    await db.query(
+      `UPDATE brothers 
+       SET names = ?, civil_status = ?, phone = ?, community_id = ?
+       WHERE id = ?`,
+      [names, civilStatus, phone, communityId, id],
+    );
+
+    // Eliminar roles existentes
+    await db.query("DELETE FROM brother_roles WHERE brother_id = ?", [id]);
+
+    // Insertar roles en su propia comunidad
+    const rolesInOwnCommunity = formData.getAll("roles_in_own_community");
+    if (rolesInOwnCommunity && rolesInOwnCommunity.length > 0) {
+      for (const role of rolesInOwnCommunity) {
+        await db.query(
+          `INSERT INTO brother_roles (brother_id, community_id, role) 
+           VALUES (?, ?, ?)`,
+          [id, communityId, role],
+        );
+      }
+    }
+
+    // Insertar roles de catequista en otras comunidades
+    const catechistCount = parseInt(
+      (formData.get("catechist_count") as string) || "0",
+    );
+    for (let i = 0; i < catechistCount; i++) {
+      const catCommunityId = formData.get(
+        `catechist_community_${i}`,
+      ) as string;
+      if (catCommunityId) {
+        await db.query(
+          `INSERT INTO brother_roles (brother_id, community_id, role) 
+           VALUES (?, ?, 'catequista')`,
+          [id, catCommunityId],
+        );
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Hermano actualizado exitosamente",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  } catch (error) {
+    console.error("Error en PUT /api/brothers/[id]:", error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Error al actualizar el hermano: " + (error as Error).message,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+};
+
 // DELETE - Eliminar un hermano
 export const DELETE: APIRoute = async ({ params }) => {
   try {

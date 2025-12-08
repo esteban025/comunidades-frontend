@@ -321,8 +321,10 @@ function formatRole(role: string): string {
             (window as any).openViewBrotherModal(brotherId);
           }
         } else if (action === "edit") {
-          // TODO: Abrir modal de edición
-          showNotification("Función de edición en desarrollo", "info", 3000);
+          // Abrir modal de edición con datos precargados
+          if (typeof (window as any).openEditBrotherModal === "function") {
+            (window as any).openEditBrotherModal(brotherId);
+          }
         } else if (action === "more") {
           // Toggle menú de más opciones
           toggleMoreMenu(button as HTMLElement, brotherId);

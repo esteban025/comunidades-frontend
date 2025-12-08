@@ -23,6 +23,9 @@ try {
   isForm={true}
 >
   <div class="p-6" slot="body">
+    <!-- Campo oculto para el ID (usado en edición) -->
+    <input type="hidden" id="brother-id" name="brother_id" />
+
     <!-- Sección 1: Datos Personales -->
     <div class="form-section flex flex-col gap-5">
       <h3 class="section-title">Datos Personales</h3>
@@ -236,6 +239,24 @@ try {
   import { registerBrother } from "@/scripts/registerBrother";
   import { showNotification } from "@/scripts/notification";
 
+  // Función para actualizar hermano
+  async function updateBrother(brotherId: string, formData: FormData) {
+    try {
+      const response = await fetch(`/api/brothers/${brotherId}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error actualizando hermano:", error);
+      return {
+        success: false,
+        error: "Error de conexión al actualizar el hermano",
+      };
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     const $id = (selector: string) => document.getElementById(selector);
     const $ = (selector: string) => document.querySelector(selector);
@@ -262,6 +283,21 @@ try {
 
     // Función para abrir el modal
     function openBrotherModal() {
+      // Resetear el formulario y el título para nuevo registro
+      form?.reset();
+      const brotherIdInput = document.getElementById(
+        "brother-id",
+      ) as HTMLInputElement;
+      if (brotherIdInput) brotherIdInput.value = "";
+
+      const modalTitle = document.querySelector("#modal-brother h2");
+      if (modalTitle) modalTitle.textContent = "Registrar Hermano";
+
+      const submitBtn = form?.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement;
+      if (submitBtn) submitBtn.textContent = "Registrar Hermano";
+
       modal?.classList.remove("hidden");
       document.body.style.overflow = "hidden";
     }
@@ -271,6 +307,22 @@ try {
       modal?.classList.add("hidden");
       document.body.style.overflow = "";
       form?.reset();
+
+      // Resetear el ID oculto
+      const brotherIdInput = document.getElementById(
+        "brother-id",
+      ) as HTMLInputElement;
+      if (brotherIdInput) brotherIdInput.value = "";
+
+      // Restaurar título y botón
+      const modalTitle = document.querySelector("#modal-brother h2");
+      if (modalTitle) modalTitle.textContent = "Registrar Hermano";
+
+      const submitBtn = form?.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement;
+      if (submitBtn) submitBtn.textContent = "Registrar Hermano";
+
       catechistCount = 0;
       if (catechistList) catechistList.innerHTML = "";
       matrimonioFields?.classList.add("hidden");
@@ -430,19 +482,36 @@ try {
         const formData = new FormData(form);
         formData.append("catechist_count", catechistCount.toString());
 
+        const brotherId = (
+          document.getElementById("brother-id") as HTMLInputElement
+        )?.value;
+        const isEditing = !!brotherId;
+
         const submitButton = form.querySelector(
           'button[type="submit"]',
         ) as HTMLButtonElement;
         submitButton.disabled = true;
-        submitButton.textContent = "Registrando...";
+        submitButton.textContent = isEditing
+          ? "Actualizando..."
+          : "Registrando...";
 
-        const result = await registerBrother(formData);
+        let result;
+        if (isEditing) {
+          // Actualizar hermano existente
+          result = await updateBrother(brotherId, formData);
+        } else {
+          // Registrar nuevo hermano
+          result = await registerBrother(formData);
+        }
 
         closeBrotherModal();
 
         if (result.success) {
           showNotification(
-            result.message || "¡Hermano registrado exitosamente!",
+            result.message ||
+              (isEditing
+                ? "¡Hermano actualizado exitosamente!"
+                : "¡Hermano registrado exitosamente!"),
             "success",
             3000,
           );
@@ -453,18 +522,158 @@ try {
           }
         } else {
           showNotification(
-            result.error || "Error al registrar el hermano",
+            result.error ||
+              (isEditing
+                ? "Error al actualizar el hermano"
+                : "Error al registrar el hermano"),
             "error",
             5000,
           );
         }
 
         submitButton.disabled = false;
-        submitButton.textContent = "Registrar Hermano";
+        submitButton.textContent = isEditing
+          ? "Actualizar Hermano"
+          : "Registrar Hermano";
       });
     }
 
     // Hacer disponible globalmente
     (window as any).openBrotherModal = openBrotherModal;
+
+    // Función global para editar hermano
+    (window as any).openEditBrotherModal = async (brotherId: string) => {
+      try {
+        // Obtener datos del hermano
+        const response = await fetch(`/api/brothers/${brotherId}`);
+        const result = await response.json();
+
+        if (!result.success || !result.data) {
+          showNotification(
+            "Error al cargar los datos del hermano",
+            "error",
+            3000,
+          );
+          return;
+        }
+
+        const brother = result.data;
+
+        // Cambiar título del modal
+        const modalTitle = document.querySelector("#modal-brother h2");
+        if (modalTitle) modalTitle.textContent = "Editar Hermano";
+
+        // Cambiar texto del botón
+        const submitBtn = form?.querySelector(
+          'button[type="submit"]',
+        ) as HTMLButtonElement;
+        if (submitBtn) submitBtn.textContent = "Actualizar Hermano";
+
+        // Llenar campo oculto del ID
+        const brotherIdInput = document.getElementById(
+          "brother-id",
+        ) as HTMLInputElement;
+        if (brotherIdInput) brotherIdInput.value = brotherId;
+
+        // Llenar estado civil
+        const civilStatusRadio = document.querySelector(
+          `input[name="civil_status"][value="${brother.civil_status}"]`,
+        ) as HTMLInputElement;
+        if (civilStatusRadio) {
+          civilStatusRadio.checked = true;
+          civilStatusRadio.dispatchEvent(
+            new Event("change", { bubbles: true }),
+          );
+        }
+
+        // Esperar un momento para que se muestren los campos correctos
+        setTimeout(() => {
+          // Llenar nombres según estado civil
+          if (brother.civil_status === "matrimonio") {
+            const names = brother.names.split(" y ");
+            const husbandInput = document.getElementById(
+              "husband_name",
+            ) as HTMLInputElement;
+            const wifeInput = document.getElementById(
+              "wife_name",
+            ) as HTMLInputElement;
+            if (husbandInput) husbandInput.value = names[0] || "";
+            if (wifeInput) wifeInput.value = names[1] || "";
+          } else {
+            const fullNameInput = document.getElementById(
+              "full_name",
+            ) as HTMLInputElement;
+            if (fullNameInput) fullNameInput.value = brother.names;
+          }
+
+          // Llenar teléfono
+          const phoneInput = document.getElementById(
+            "phone",
+          ) as HTMLInputElement;
+          if (phoneInput) phoneInput.value = brother.phone || "";
+
+          // Llenar parroquia
+          const parishSelect = document.getElementById(
+            "parish_id",
+          ) as HTMLSelectElement;
+          if (parishSelect && brother.parish?.id) {
+            parishSelect.value = brother.parish.id.toString();
+            parishSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+
+          // Esperar a que se carguen las comunidades
+          setTimeout(() => {
+            // Llenar número de comunidad
+            const communityInput = document.getElementById(
+              "community_number",
+            ) as HTMLInputElement;
+            if (communityInput && brother.community?.number) {
+              communityInput.value = brother.community.number.toString();
+              communityInput.dispatchEvent(
+                new Event("input", { bubbles: true }),
+              );
+            }
+
+            // Llenar roles en su propia comunidad
+            if (brother.roles_in_own_community) {
+              brother.roles_in_own_community.forEach((role: string) => {
+                const checkbox = document.querySelector(
+                  `input[name="roles_in_own_community"][value="${role}"]`,
+                ) as HTMLInputElement;
+                if (checkbox) checkbox.checked = true;
+              });
+            }
+
+            // Llenar servicios de catequista
+            if (
+              brother.catechist_of_communities &&
+              brother.catechist_of_communities.length > 0
+            ) {
+              const isCatechistCheckbox = document.getElementById(
+                "is_catechist",
+              ) as HTMLInputElement;
+              if (isCatechistCheckbox) {
+                isCatechistCheckbox.checked = true;
+                isCatechistCheckbox.dispatchEvent(
+                  new Event("change", { bubbles: true }),
+                );
+              }
+
+              // TODO: Cargar las comunidades de catequista (requiere más lógica)
+            }
+          }, 300);
+        }, 100);
+
+        // Abrir modal
+        modal?.classList.remove("hidden");
+      } catch (error) {
+        console.error("Error cargando datos del hermano:", error);
+        showNotification(
+          "Error al cargar los datos del hermano",
+          "error",
+          3000,
+        );
+      }
+    };
   });
 </script>

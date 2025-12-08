@@ -1,0 +1,697 @@
+---
+// src/components/ModalManageCommunities.astro
+import ModalDesign from "./ModalDesign.astro";
+---
+
+<ModalDesign
+  id="modal-manage-communities"
+  title="Gestionar Comunidades"
+  isForm={false}
+>
+  <div class="manage-communities-container" slot="body">
+    <!-- Tabs para cambiar entre funcionalidades -->
+    <div class="tabs">
+      <button class="tab-button active" data-tab="merge"
+        >Fusionar Comunidades</button
+      >
+      <button class="tab-button" data-tab="reorganize"
+        >Reorganizar Números</button
+      >
+    </div>
+
+    <!-- Tab 1: Fusionar Comunidades -->
+    <div class="tab-content active" id="merge-tab">
+      <div class="form-section">
+        <label class="label-input">
+          <span>Parroquia:</span>
+          <select id="merge-parish" class="select-input" required>
+            <option value="">Seleccione una parroquia</option>
+          </select>
+        </label>
+
+        <label class="label-input">
+          <span>Comunidad Destino (se mantendrá):</span>
+          <select id="target-community" class="select-input" required>
+            <option value="">Seleccione comunidad destino</option>
+          </select>
+        </label>
+
+        <label class="label-input">
+          <span>Comunidades a Fusionar (se eliminarán):</span>
+          <select
+            id="source-communities"
+            class="select-input"
+            multiple
+            size="6"
+            required
+          >
+            <option value="">Primero seleccione una parroquia</option>
+          </select>
+          <small class="help-text"
+            >Mantén Ctrl/Cmd para seleccionar múltiples</small
+          >
+        </label>
+
+        <div class="info-box">
+          <strong>ℹ️ Importante:</strong>
+          <ul>
+            <li>Los hermanos y roles se transferirán a la comunidad destino</li>
+            <li>Las comunidades seleccionadas se eliminarán</li>
+            <li>Los roles duplicados se eliminarán automáticamente</li>
+          </ul>
+        </div>
+
+        <button
+          type="button"
+          class="button-submit"
+          onclick="handleMergeCommunities()"
+        >
+          Fusionar Comunidades
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab 2: Reorganizar Números -->
+    <div class="tab-content" id="reorganize-tab">
+      <div class="form-section">
+        <label class="label-input">
+          <span>Parroquia:</span>
+          <select id="reorganize-parish" class="select-input" required>
+            <option value="">Seleccione una parroquia</option>
+          </select>
+        </label>
+
+        <button
+          type="button"
+          class="button-secondary"
+          onclick="loadCommunitiesForReorganize()"
+        >
+          Cargar Comunidades
+        </button>
+
+        <div id="reorder-list" class="reorder-container">
+          <p class="placeholder-text">
+            Seleccione una parroquia y cargue las comunidades
+          </p>
+        </div>
+
+        <div class="info-box">
+          <strong>ℹ️ Cómo usar:</strong>
+          <ul>
+            <li>Cambie los números de comunidad directamente en los campos</li>
+            <li>
+              Los cambios se aplicarán a todas las comunidades modificadas
+            </li>
+            <li>No puede haber dos comunidades con el mismo número</li>
+          </ul>
+        </div>
+
+        <button
+          type="button"
+          class="button-submit"
+          onclick="handleReorganizeCommunities()"
+        >
+          Aplicar Cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</ModalDesign>
+
+<style>
+  .manage-communities-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  .tab-button {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.3s;
+  }
+
+  .tab-button:hover {
+    color: #374151;
+    background: #f9fafb;
+  }
+
+  .tab-button.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Form Elements */
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .label-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .label-input span {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.95rem;
+  }
+
+  .select-input {
+    padding: 0.75rem;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    transition: border-color 0.3s;
+  }
+
+  .select-input:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+
+  .select-input[multiple] {
+    min-height: 150px;
+  }
+
+  .help-text {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-top: -0.5rem;
+  }
+
+  /* Info Box */
+  .info-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 1rem;
+    color: #1e40af;
+  }
+
+  .info-box strong {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .info-box ul {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .info-box li {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+  }
+
+  /* Reorder List */
+  .reorder-container {
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #f9fafb;
+  }
+
+  .placeholder-text {
+    color: #9ca3af;
+    text-align: center;
+    padding: 3rem 0;
+  }
+
+  .community-item {
+    display: grid;
+    grid-template-columns: 100px 1fr 120px 120px;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s;
+  }
+
+  .community-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .community-number {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #1f2937;
+  }
+
+  .community-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .community-paso {
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+
+  .community-brothers {
+    font-size: 0.85rem;
+    color: #9ca3af;
+  }
+
+  .number-input {
+    width: 80px;
+    padding: 0.5rem;
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .number-input:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+
+  /* Buttons */
+  .button-submit,
+  .button-secondary {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .button-submit {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+  }
+
+  .button-submit:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+
+  .button-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 2px solid #d1d5db;
+  }
+
+  .button-secondary:hover {
+    background: #e5e7eb;
+  }
+
+  .button-submit:disabled,
+  .button-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+</style>
+
+<script>
+  // Variables globales
+  let allParishes: any[] = [];
+  let allCommunities: any[] = [];
+  let originalCommunities: any[] = [];
+
+  // Cargar parroquias al abrir el modal
+  async function loadParishes() {
+    try {
+      const response = await fetch("/api/parishes");
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        allParishes = result.data;
+        populateParishSelects();
+      }
+    } catch (error) {
+      console.error("Error cargando parroquias:", error);
+    }
+  }
+
+  function populateParishSelects() {
+    const mergeParish = document.getElementById(
+      "merge-parish",
+    ) as HTMLSelectElement;
+    const reorganizeParish = document.getElementById(
+      "reorganize-parish",
+    ) as HTMLSelectElement;
+
+    const parishOptions = allParishes
+      .map(
+        (p) =>
+          `<option value="${p.id}">${p.name} ${p.aka ? `(${p.aka})` : ""}</option>`,
+      )
+      .join("");
+
+    if (mergeParish) {
+      mergeParish.innerHTML =
+        '<option value="">Seleccione una parroquia</option>' + parishOptions;
+    }
+    if (reorganizeParish) {
+      reorganizeParish.innerHTML =
+        '<option value="">Seleccione una parroquia</option>' + parishOptions;
+    }
+  }
+
+  // Cargar comunidades cuando se selecciona una parroquia
+  async function loadCommunitiesByParish(parishId: number) {
+    try {
+      const response = await fetch(`/api/communities-by-parish/${parishId}`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        allCommunities = result.data;
+        return result.data;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error cargando comunidades:", error);
+      return [];
+    }
+  }
+
+  // Event listener para cambio de parroquia en merge
+  document
+    .getElementById("merge-parish")
+    ?.addEventListener("change", async (e) => {
+      const parishId = (e.target as HTMLSelectElement).value;
+      const targetSelect = document.getElementById(
+        "target-community",
+      ) as HTMLSelectElement;
+      const sourceSelect = document.getElementById(
+        "source-communities",
+      ) as HTMLSelectElement;
+
+      if (!parishId) {
+        targetSelect.innerHTML =
+          '<option value="">Seleccione comunidad destino</option>';
+        sourceSelect.innerHTML =
+          '<option value="">Primero seleccione una parroquia</option>';
+        return;
+      }
+
+      const communities = await loadCommunitiesByParish(parseInt(parishId));
+
+      const options = communities
+        .map(
+          (c: any) =>
+            `<option value="${c.id}">Comunidad ${c.number_community} - ${c.level_paso}</option>`,
+        )
+        .join("");
+
+      targetSelect.innerHTML =
+        '<option value="">Seleccione comunidad destino</option>' + options;
+      sourceSelect.innerHTML = options;
+    });
+
+  // Event listener para evitar seleccionar la misma comunidad como destino y fuente
+  document
+    .getElementById("target-community")
+    ?.addEventListener("change", (e) => {
+      const targetValue = (e.target as HTMLSelectElement).value;
+      const sourceSelect = document.getElementById(
+        "source-communities",
+      ) as HTMLSelectElement;
+
+      if (targetValue) {
+        Array.from(sourceSelect.options).forEach((option) => {
+          if (option.value === targetValue) {
+            option.disabled = true;
+            option.selected = false;
+          } else {
+            option.disabled = false;
+          }
+        });
+      }
+    });
+
+  // Cargar comunidades para reorganizar
+  (window as any).loadCommunitiesForReorganize = async function () {
+    const parishSelect = document.getElementById(
+      "reorganize-parish",
+    ) as HTMLSelectElement;
+    const parishId = parishSelect.value;
+
+    if (!parishId) {
+      alert("Por favor seleccione una parroquia");
+      return;
+    }
+
+    const communities = await loadCommunitiesByParish(parseInt(parishId));
+    originalCommunities = JSON.parse(JSON.stringify(communities)); // Deep copy
+
+    const container = document.getElementById("reorder-list");
+    if (!container) return;
+
+    if (communities.length === 0) {
+      container.innerHTML =
+        '<p class="placeholder-text">No hay comunidades en esta parroquia</p>';
+      return;
+    }
+
+    container.innerHTML = communities
+      .sort((a: any, b: any) => a.number_community - b.number_community)
+      .map(
+        (c: any) => `
+        <div class="community-item" data-id="${c.id}">
+          <div class="community-number">Com. ${c.number_community}</div>
+          <div class="community-info">
+            <div class="community-paso">${c.level_paso}</div>
+            <div class="community-brothers">${c.total_brothers || 0} hermano(s)</div>
+          </div>
+          <input 
+            type="number" 
+            class="number-input" 
+            value="${c.number_community}" 
+            min="1"
+            data-community-id="${c.id}"
+            data-original="${c.number_community}"
+          />
+        </div>
+      `,
+      )
+      .join("");
+  };
+
+  // Fusionar comunidades
+  (window as any).handleMergeCommunities = async function () {
+    const targetSelect = document.getElementById(
+      "target-community",
+    ) as HTMLSelectElement;
+    const sourceSelect = document.getElementById(
+      "source-communities",
+    ) as HTMLSelectElement;
+
+    const targetId = parseInt(targetSelect.value);
+    const sourceIds = Array.from(sourceSelect.selectedOptions)
+      .map((option) => parseInt(option.value))
+      .filter((id) => !isNaN(id));
+
+    if (!targetId) {
+      alert("Por favor seleccione una comunidad destino");
+      return;
+    }
+
+    if (sourceIds.length === 0) {
+      alert("Por favor seleccione al menos una comunidad para fusionar");
+      return;
+    }
+
+    if (sourceIds.includes(targetId)) {
+      alert("No puede fusionar una comunidad consigo misma");
+      return;
+    }
+
+    const sourceNames = Array.from(sourceSelect.selectedOptions)
+      .map((o) => o.textContent)
+      .join(", ");
+    const targetName =
+      targetSelect.options[targetSelect.selectedIndex].textContent;
+
+    const confirm = window.confirm(
+      `¿Está seguro de fusionar:\n\n${sourceNames}\n\nEn: ${targetName}\n\nEsta acción NO se puede deshacer.`,
+    );
+
+    if (!confirm) return;
+
+    try {
+      const response = await fetch("/api/communities/merge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetCommunityId: targetId,
+          sourceCommunityIds: sourceIds,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("✅ " + result.message);
+        location.reload();
+      } else {
+        alert("❌ Error: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error fusionando comunidades:", error);
+      alert("❌ Error al fusionar comunidades");
+    }
+  };
+
+  // Reorganizar comunidades
+  (window as any).handleReorganizeCommunities = async function () {
+    const parishSelect = document.getElementById(
+      "reorganize-parish",
+    ) as HTMLSelectElement;
+    const parishId = parseInt(parishSelect.value);
+
+    if (!parishId) {
+      alert("Por favor seleccione una parroquia");
+      return;
+    }
+
+    const inputs = document.querySelectorAll(
+      ".number-input",
+    ) as NodeListOf<HTMLInputElement>;
+    const updates: any[] = [];
+    const newNumbers: number[] = [];
+
+    inputs.forEach((input) => {
+      const communityId = parseInt(input.dataset.communityId || "");
+      const originalNumber = parseInt(input.dataset.original || "");
+      const newNumber = parseInt(input.value);
+
+      if (newNumber !== originalNumber) {
+        updates.push({
+          communityId,
+          newNumber,
+        });
+      }
+
+      newNumbers.push(newNumber);
+    });
+
+    if (updates.length === 0) {
+      alert("No hay cambios para aplicar");
+      return;
+    }
+
+    // Validar que no haya números duplicados
+    const uniqueNumbers = new Set(newNumbers);
+    if (uniqueNumbers.size !== newNumbers.length) {
+      alert("❌ Error: No puede haber dos comunidades con el mismo número");
+      return;
+    }
+
+    const confirm = window.confirm(
+      `¿Está seguro de reorganizar ${updates.length} comunidad(es)?\n\nEsta acción actualizará los números permanentemente.`,
+    );
+
+    if (!confirm) return;
+
+    try {
+      const response = await fetch("/api/communities/reorganize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          parishId,
+          updates,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("✅ " + result.message);
+        location.reload();
+      } else {
+        alert("❌ Error: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error reorganizando comunidades:", error);
+      alert("❌ Error al reorganizar comunidades");
+    }
+  };
+
+  // Tabs functionality
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const target = (e.target as HTMLElement).dataset.tab;
+
+      // Update active tab button
+      document
+        .querySelectorAll(".tab-button")
+        .forEach((btn) => btn.classList.remove("active"));
+      (e.target as HTMLElement).classList.add("active");
+
+      // Update active tab content
+      document
+        .querySelectorAll(".tab-content")
+        .forEach((content) => content.classList.remove("active"));
+      document.getElementById(target + "-tab")?.classList.add("active");
+    });
+  });
+
+  // Función global para abrir el modal
+  (window as any).openManageCommunitiesModal = function () {
+    const modal = document.getElementById(
+      "modal-manage-communities",
+    ) as HTMLElement;
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.style.display = "flex";
+      loadParishes();
+    }
+  };
+
+  // Cargar parroquias al cargar la página
+  if (typeof window !== "undefined") {
+    loadParishes();
+  }
+</script>
