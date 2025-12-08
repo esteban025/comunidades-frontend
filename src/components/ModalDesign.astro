@@ -293,7 +293,7 @@ const { id, idForm, title, isForm = false } = Astro.props;
   input:not(:placeholder-shown),
   textarea:not(:placeholder-shown),
   select:has(option:checked:not([value=""])) {
-    border-color: var(--color-gray-300);
+    border-color: var(--color-border-dark);
     background-color: color-mix(
       in oklab,
       var(--color-gray-100),
@@ -304,7 +304,7 @@ const { id, idForm, title, isForm = false } = Astro.props;
   /* Estilos para select */
   .select-input {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
     border: 2px solid #e5e7eb;
     border-radius: 9999px;
     font-size: 0.875rem;
@@ -313,6 +313,13 @@ const { id, idForm, title, isForm = false } = Astro.props;
     background-color: #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .select-input::picker-icon {
+    display: none;
   }
 
   .select-input:hover {
@@ -335,6 +342,9 @@ const { id, idForm, title, isForm = false } = Astro.props;
       transparent 60%
     );
     border-radius: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .options-select:hover {
@@ -354,7 +364,7 @@ const { id, idForm, title, isForm = false } = Astro.props;
     appearance: base-select;
     padding: 0.75rem;
     border: 2px solid #e5e7eb;
-    border-radius: 2rem;
+    border-radius: 1rem;
     font-size: 0.875rem;
     font-weight: 500;
     color: #374151;

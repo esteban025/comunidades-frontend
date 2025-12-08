@@ -1,0 +1,322 @@
+---
+import SearchIcon from "@/assets/SearchIcon.astro";
+import PLusIcon from "@/assets/PLusIcon.astro";
+import ArrowShortIcon from "@/assets/ArrowShortIcon.astro";
+import { db } from "@/lib/db";
+
+// Obtener parroquias del servidor
+let parishes: any[] = [];
+try {
+  const [rows]: any = await db.query(
+    "SELECT id, name, aka FROM parishes ORDER BY name ASC",
+  );
+  parishes = rows;
+} catch (error) {
+  console.error("Error obteniendo parroquias:", error);
+}
+---
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+  <!-- Buscador -->
+  <div class="relative flex items-center w-full">
+    <SearchIcon
+      class="absolute left-4 w-5 aspect-square block text-text-secondary pointer-events-none"
+    />
+    <div class="content-input w-full">
+      <input
+        type="text"
+        id="search-brothers-input"
+        placeholder="Buscar hermano..."
+        class="search-input"
+        autocomplete="off"
+      />
+    </div>
+    <button
+      class="absolute right-4 w-8 aspect-square border-none bg-gray-200 rounded-full items-center justify-center cursor-pointer text-text-secondary transition-all duration-200 hover:bg-gray-300 hover:text-text-purple-500 hidden clear-search-btn"
+      id="clear-search-btn"
+      title="Limpiar búsqueda"
+    >
+      <PLusIcon class="w-4 h-4 transform rotate-45" />
+    </button>
+  </div>
+
+  <!-- Filtro de Parroquias -->
+  <div class="relative flex items-center">
+    <select class="select-input space-y-1" id="filter-parish">
+      <option class="options-select" value="">Todas las parroquias</option>
+      {
+        parishes.map((parish) => (
+          <option class="options-select" value={parish.id}>
+            {parish.aka} -<span class=""> {parish.name}</span>
+          </option>
+        ))
+      }
+    </select>
+    <ArrowShortIcon
+      class="absolute right-4 w-4 aspect-square text-border-dark pointer-events-none -rotate-90"
+    />
+  </div>
+
+  <!-- Filtro de Comunidades -->
+  <div class="relative flex items-center">
+    <select class="select-input space-y-1" id="filter-community" disabled>
+      <option class="options-select truncate" value=""
+        >Selecciona primero una parroquia</option
+      >
+    </select>
+    <ArrowShortIcon
+      class="absolute right-4 w-4 aspect-square text-border-dark pointer-events-none -rotate-90"
+    />
+  </div>
+
+  <!-- Filtro de Roles -->
+  <div class="relative flex items-center">
+    <select class="select-input space-y-1" id="filter-role">
+      <option class="options-select" value="">Todos los roles</option>
+      <option class="options-select" value="responsable">Responsable</option>
+      <option class="options-select" value="corresponsable"
+        >Corresponsable</option
+      >
+      <option class="options-select" value="didascala">Didascala</option>
+      <option class="options-select" value="ostiario">Ostiario</option>
+      <option class="options-select" value="catequista">Catequista</option>
+    </select>
+    <ArrowShortIcon
+      class="absolute right-4 w-4 aspect-square text-border-dark pointer-events-none -rotate-90"
+    />
+  </div>
+
+  <!-- Botón de limpiar filtros -->
+  <div class="flex items-center">
+    <button class="btn btn-primary w-full" id="clear-filters-btn">
+      Limpiar filtros
+    </button>
+  </div>
+</div>
+
+<style>
+  .search-input {
+    padding: 0.75rem 3rem 0.75rem 3rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 9999px;
+    font-size: 0.95rem;
+    color: #374151;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  .search-input:focus {
+    border-color: var(--color-border-dark);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  .search-input::placeholder {
+    color: var(--color-text-light);
+  }
+
+  .clear-search-btn {
+    display: flex;
+  }
+
+  .clear-search-btn.hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById(
+      "search-brothers-input",
+    ) as HTMLInputElement;
+    const clearBtn = document.getElementById(
+      "clear-search-btn",
+    ) as HTMLButtonElement;
+    const filterParish = document.getElementById(
+      "filter-parish",
+    ) as HTMLSelectElement;
+    const filterCommunity = document.getElementById(
+      "filter-community",
+    ) as HTMLSelectElement;
+    const filterRole = document.getElementById(
+      "filter-role",
+    ) as HTMLSelectElement;
+    const clearFiltersBtn = document.getElementById(
+      "clear-filters-btn",
+    ) as HTMLButtonElement;
+
+    // Cargar comunidades cuando se selecciona una parroquia
+    filterParish?.addEventListener("change", async () => {
+      const parishId = filterParish.value;
+
+      if (!parishId) {
+        // Resetear comunidades
+        filterCommunity.disabled = true;
+        filterCommunity.innerHTML =
+          '<option class="options-select" value="">Selecciona primero una parroquia</option>';
+        applyFilters();
+        return;
+      }
+
+      try {
+        // Obtener comunidades de la parroquia seleccionada
+        const response = await fetch(`/api/communities-by-parish/${parishId}`);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          filterCommunity.disabled = false;
+          filterCommunity.innerHTML =
+            '<option class="options-select" value="">Todas las comunidades</option>';
+
+          result.data.forEach((community: any) => {
+            const option = document.createElement("option");
+            option.value = community.id;
+            option.textContent = `Comunidad ${community.number_community}`;
+            option.className = "options-select";
+            filterCommunity.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error("Error cargando comunidades:", error);
+      }
+
+      applyFilters();
+    });
+
+    // Función para aplicar los filtros
+    function applyFilters() {
+      const searchTerm = searchInput?.value.toLowerCase().trim() || "";
+      const selectedParish = filterParish?.value || "";
+      const selectedCommunity = filterCommunity?.value || "";
+      const selectedRole = filterRole?.value || "";
+
+      const table = document.querySelector(".render-brothers-table");
+      const rows = table?.querySelectorAll("tbody tr");
+
+      if (!rows) return;
+
+      let visibleCount = 0;
+
+      rows.forEach((row) => {
+        const nameCell =
+          row.querySelector("td:nth-child(1)")?.textContent?.toLowerCase() ||
+          "";
+        const parishCell =
+          row.querySelector("td:nth-child(2)")?.textContent?.toLowerCase() ||
+          "";
+        const communityCell =
+          row.querySelector("td:nth-child(3)")?.textContent?.toLowerCase() ||
+          "";
+        const rolesContainer = row.querySelector(".roles-container");
+        const roleTags = rolesContainer?.querySelectorAll(".role-tag") || [];
+
+        // Verificar búsqueda de texto
+        const matchesSearch =
+          !searchTerm ||
+          nameCell.includes(searchTerm) ||
+          parishCell.includes(searchTerm) ||
+          communityCell.includes(searchTerm);
+
+        // Verificar filtro de parroquia
+        const parishId =
+          (row as HTMLElement).getAttribute("data-parish-id") || "";
+        const matchesParish = !selectedParish || parishId === selectedParish;
+
+        // Verificar filtro de comunidad
+        const communityId =
+          (row as HTMLElement).getAttribute("data-community-id") || "";
+        const matchesCommunity =
+          !selectedCommunity || communityId === selectedCommunity;
+
+        // Verificar filtro de rol
+        let matchesRole = !selectedRole;
+        if (selectedRole) {
+          roleTags.forEach((tag) => {
+            const roleAttr =
+              (tag as HTMLElement).getAttribute("data-rol") || "";
+            if (roleAttr.toLowerCase() === selectedRole.toLowerCase()) {
+              matchesRole = true;
+            }
+          });
+        }
+
+        // Mostrar u ocultar la fila
+        if (matchesSearch && matchesParish && matchesCommunity && matchesRole) {
+          (row as HTMLElement).style.display = "";
+          visibleCount++;
+        } else {
+          (row as HTMLElement).style.display = "none";
+        }
+      });
+
+      // Mostrar mensaje si no hay resultados
+      showNoResultsMessage(table, visibleCount);
+    }
+
+    // Función para mostrar mensaje de "sin resultados"
+    function showNoResultsMessage(table: Element | null, visibleCount: number) {
+      let noResultsMsg = table?.parentElement?.querySelector(
+        ".no-results-message",
+      );
+
+      if (visibleCount === 0) {
+        if (!noResultsMsg) {
+          noResultsMsg = document.createElement("div");
+          noResultsMsg.className =
+            "no-results-message text-center py-8 text-gray-500";
+          noResultsMsg.innerHTML = `
+            <div class="text-4xl mb-2">🔍</div>
+            <p class="text-lg font-medium">No se encontraron resultados</p>
+            <p class="text-sm">Intenta con otros términos de búsqueda</p>
+          `;
+          table?.parentElement?.appendChild(noResultsMsg);
+        }
+        noResultsMsg.classList.remove("hidden");
+      } else {
+        noResultsMsg?.classList.add("hidden");
+      }
+    }
+
+    // Función para limpiar todos los filtros
+    function clearAllFilters() {
+      if (searchInput) searchInput.value = "";
+      if (filterParish) filterParish.value = "";
+      if (filterCommunity) {
+        filterCommunity.value = "";
+        filterCommunity.disabled = true;
+        filterCommunity.innerHTML =
+          '<option class="options-select" value="">Selecciona primero una parroquia</option>';
+      }
+      if (filterRole) filterRole.value = "";
+      clearBtn?.classList.add("hidden");
+      applyFilters();
+    }
+
+    // Mostrar/ocultar botón de limpiar búsqueda
+    searchInput?.addEventListener("input", () => {
+      if (searchInput.value.trim() !== "") {
+        clearBtn?.classList.remove("hidden");
+      } else {
+        clearBtn?.classList.add("hidden");
+      }
+      applyFilters();
+    });
+
+    // Limpiar búsqueda individual
+    clearBtn?.addEventListener("click", () => {
+      if (searchInput) {
+        searchInput.value = "";
+        clearBtn.classList.add("hidden");
+        searchInput.focus();
+        applyFilters();
+      }
+    });
+
+    // Aplicar filtros cuando cambien los selects
+    filterCommunity?.addEventListener("change", applyFilters);
+    filterRole?.addEventListener("change", applyFilters);
+
+    // Limpiar todos los filtros
+    clearFiltersBtn?.addEventListener("click", clearAllFilters);
+  });
+</script>

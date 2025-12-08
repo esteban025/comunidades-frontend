@@ -1,6 +1,7 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
 import PaginationBrothers from "@/components/PaginationBrothers.astro";
+import SearchBrothers from "@/components/SearchBrothers.astro";
 import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
@@ -68,6 +69,7 @@ function formatRole(role: string): string {
   </div>
   <div slot="body" class="flex flex-col gap-4">
     <!-- Aquí puedes agregar contenido relacionado con los registros de hermanos -->
+    <SearchBrothers />
     <div class="container-table">
       {
         brothers.length > 0 ? (
@@ -85,7 +87,10 @@ function formatRole(role: string): string {
             </thead>
             <tbody>
               {brothers.map((brother) => (
-                <tr>
+                <tr
+                  data-parish-id={brother.parish?.id || ""}
+                  data-community-id={brother.community?.id || ""}
+                >
                   <td class="font-medium">{brother.names}</td>
                   <td>{brother.parish?.aka || "N/A"}</td>
                   <td>{brother.community?.number || "N/A"}</td>

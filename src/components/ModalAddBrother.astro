@@ -2,6 +2,7 @@
 // Modal para agregar hermano
 import ModalDesign from "./ModalDesign.astro";
 import { db } from "@/lib/db";
+import { pasosListaPlana } from "@/datos/pasos-list";
 
 // Fetch de parroquias en el servidor
 let parishes: any[] = [];
@@ -139,12 +140,18 @@ try {
 
       <div id="level-paso-field" class="content-input hidden">
         <label for="level_paso">¿En qué paso está la comunidad?</label>
-        <input
-          type="text"
-          name="level_paso"
-          id="level_paso"
-          placeholder="Ej: Paso 2, Primeros Escrutinios, Shema, etc."
-        />
+        <select name="level_paso" id="level_paso" class="select-input">
+          <option class="options-select" value="" disabled selected
+            >Selecciona un paso</option
+          >
+          {
+            pasosListaPlana.map((paso) => (
+              <option class="options-select" value={paso}>
+                {paso}
+              </option>
+            ))
+          }
+        </select>
         <span class="text-xs text-neutral-600"
           >La comunidad no existe. Ingresa el paso para crearla</span
         >
