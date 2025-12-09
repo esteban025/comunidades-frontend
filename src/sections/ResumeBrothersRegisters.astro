@@ -2,7 +2,7 @@
 import type { PaginationPage, Brothers } from "@/types/brothers";
 import SectionContainer from "@/components/SectionContainer.astro";
 import PaginationBrothers from "@/components/PaginationBrothers.astro";
-import SearchBrothers from "@/components/SearchBrothers.astro";
+import FiltersAllBrothers from "@/components/FiltersAllBrothers.astro";
 import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
@@ -49,7 +49,7 @@ let pagination: PaginationPage = {
   </div>
   <div slot="body" class="flex flex-col gap-4">
     <!-- Aquí puedes agregar contenido relacionado con los registros de hermanos -->
-    <SearchBrothers />
+    <FiltersAllBrothers />
     <div class="container-table">
       {
         brothers?.length > 0 ? (
@@ -276,7 +276,7 @@ let pagination: PaginationPage = {
   (window as any).refreshBrothers = () => {
     setTimeout(() => {
       window.location.reload();
-    }, 2000);
+    }, 1000);
   };
 
   document.addEventListener("astro:page-load", () => {

@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getBrother } from "@/services/brothers";
 import { db } from "@/lib/db";
+import { autoInviteBrotherToActiveConvivencia } from "@/services/convivencias";
 
 // GET - Obtener todos los hermanos (paginado)
 export const GET: APIRoute = async ({ request }) => {
@@ -186,7 +187,17 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // 9. Obtener el hermano completo con sus datos
+    // 9. Auto-invitar a la convivencia activa (si existe y la comunidad participa)
+    try {
+      await autoInviteBrotherToActiveConvivencia(brother_id, community_id);
+    } catch (e) {
+      console.error(
+        "Error al auto-invitar hermano a convivencia activa (no bloqueante):",
+        e,
+      );
+    }
+
+    // 10. Obtener el hermano completo con sus datos
     const [newBrother]: any = await db.query(
       'SELECT * FROM brothers WHERE id = ?',
       [brother_id]

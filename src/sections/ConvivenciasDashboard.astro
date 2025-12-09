@@ -1,11 +1,17 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
 import PairsIcon from "@/assets/PairsIcon.astro";
-import BaseCard from "@/components/BaseCard.astro";
-import { getConvivenciasForDashboard } from "@/services/convivencias";
 import SearchBrothers from "@/components/SearchBrothers.astro";
+import {
+  getConvivenciasForDashboard,
+  getInvitedBrothersByConvivencia,
+} from "@/services/convivencias";
 
 const { convivencias, totals } = await getConvivenciasForDashboard();
+const currentConv = convivencias[0] ?? null;
+const invitedBrothers = currentConv
+  ? await getInvitedBrothersByConvivencia(currentConv.id)
+  : [];
 ---
 
 <SectionContainer
@@ -25,9 +31,13 @@ const { convivencias, totals } = await getConvivenciasForDashboard();
     <!-- Tabla de convivencias -->
     <section>
       <!-- observar este componente para crear filtro similar -->
-      <!-- <SearchBrothers /> -->
+      <SearchBrothers />
     </section>
-    <section class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+    <section
+      id="invited-brothers"
+      class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
+      data-convivencia-id={currentConv ? currentConv.id : ""}
+    >
       <header class="flex items-center justify-between mb-4">
         <div class="titles">
           <h2 class="font-semibold">Lista de Hermanos convocados</h2>
@@ -36,89 +46,196 @@ const { convivencias, totals } = await getConvivenciasForDashboard();
           </p>
         </div>
         <div class="accions">
-          <span>
-            <!-- nombre de la Convivencias -->
-          </span>
+          {
+            currentConv && (
+              <span class="text-sm text-gray-600">
+                Convivencia actual: <strong>{currentConv.name}</strong>
+              </span>
+            )
+          }
         </div>
       </header>
       <div class="container-table">
-        <!-- este contenedor ya contiene estilos por dejecto para las tablas -->
-        <!-- encabezado sugerido -->
-        <!-- parroquia(aka) | nombre del hermano | tipo | acciones -->
-      </div>
+        {
+          invitedBrothers.length === 0 && (
+            <p class="text-sm text-gray-500">
+              {currentConv
+                ? "Aún no hay hermanos invitados registrados para esta convivencia."
+                : "No hay ninguna convivencia activa en este momento."}
+            </p>
+          )
+        }
 
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-left text-sm">
-          <thead
-            class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500"
-          >
-            <tr>
-              <th class="px-3 py-2 font-medium">Nombre</th>
-              <th class="px-3 py-2 font-medium">Fechas</th>
-              <th class="px-3 py-2 font-medium">Parroquias</th>
-              <th class="px-3 py-2 font-medium">Comunidades</th>
-              <th class="px-3 py-2 font-medium">Asistentes</th>
-              <th class="px-3 py-2 font-medium">Estado</th>
-              <th class="px-3 py-2 font-medium text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 text-gray-700">
-            {
-              convivencias.length === 0 ? (
+        {
+          invitedBrothers.length > 0 && (
+            <table class="min-w-full text-sm text-left text-gray-700">
+              <thead class="border-b text-xs uppercase text-gray-500">
                 <tr>
-                  <td
-                    colspan="7"
-                    class="px-3 py-6 text-center text-sm text-gray-500"
-                  >
-                    Aún no hay convivencias registradas.
-                  </td>
+                  <th class="py-2 pr-4">Parroquia</th>
+                  <th class="py-2 pr-4">Comunidad</th>
+                  <th class="py-2 pr-4">Nombre del hermano</th>
+                  <th class="py-2 pr-4 text-right">Acciones</th>
                 </tr>
-              ) : (
-                convivencias.map((conv: any) => (
-                  <tr class="hover:bg-gray-50">
-                    <td class="px-3 py-2">
-                      <p class="text-sm font-medium text-gray-900">
-                        {conv.name}
-                      </p>
-                      {conv.description && (
-                        <p class="text-xs text-gray-500">{conv.description}</p>
-                      )}
+              </thead>
+              <tbody>
+                {invitedBrothers.map((brother: any) => (
+                  <tr class="border-b last:border-0">
+                    <td class="py-2 pr-4">
+                      <span class="font-medium">{brother.parish_aka}</span>
                     </td>
-                    <td class="px-3 py-2 text-xs text-gray-600">
-                      {conv.start_date} - {conv.end_date}
+                    <td class="py-2 pr-4">
+                      Comunidad {brother.community_number}
                     </td>
-                    <td class="px-3 py-2 text-xs text-gray-600">-</td>
-                    <td class="px-3 py-2 text-xs text-gray-600">
-                      {conv.total_communities || 0} comunidades
-                    </td>
-                    <td class="px-3 py-2 text-xs text-gray-600">
-                      {conv.total_attendees || 0}
-                    </td>
-                    <td class="px-3 py-2">
-                      <span class="inline-flex items-center rounded-full border border-gray-400 px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-50">
-                        {conv.status}
-                      </span>
-                    </td>
-                    <td class="px-3 py-2">
-                      <div class="flex justify-center gap-2 text-xs">
-                        <button class="px-2 py-1 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100">
-                          Ver
-                        </button>
-                        <button class="px-2 py-1 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100">
-                          Editar
-                        </button>
-                        <button class="px-2 py-1 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100">
-                          Eliminar
-                        </button>
-                      </div>
+                    <td class="py-2 pr-4">{brother.names}</td>
+                    <td class="py-2 pr-0 text-right">
+                      <button
+                        type="button"
+                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                        data-brother-id={brother.brother_id}
+                      >
+                        Confirmar asistencia
+                      </button>
                     </td>
                   </tr>
-                ))
-              )
-            }
-          </tbody>
-        </table>
+                ))}
+              </tbody>
+            </table>
+          )
+        }
       </div>
     </section>
   </div>
 </SectionContainer>
+
+<!-- Card flotante para capturar observaciones al confirmar asistencia -->
+<div
+  id="confirm-observations-card"
+  class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40"
+>
+  <div class="w-full max-w-md rounded-xl bg-white p-4 shadow-lg">
+    <h3 class="mb-2 text-sm font-semibold text-gray-800">
+      Confirmar asistencia
+    </h3>
+    <p class="mb-3 text-xs text-gray-600">
+      Puedes escribir alguna observación para este hermano (por ejemplo, tercera
+      edad, va con bebé, etc.). Este campo es opcional.
+    </p>
+    <textarea
+      id="confirm-observations-input"
+      class="mb-3 h-24 w-full rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-800 focus:border-gray-500 focus:outline-none"
+      placeholder="Escribe aquí las observaciones (opcional)"></textarea>
+    <div class="flex justify-end gap-2 text-xs">
+      <button
+        type="button"
+        id="confirm-observations-cancel"
+        class="rounded-md border border-gray-300 bg-white px-3 py-1 text-gray-700 hover:bg-gray-50"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        id="confirm-observations-submit"
+        class="rounded-md bg-gray-800 px-3 py-1 font-medium text-white hover:bg-gray-700"
+      >
+        Confirmar asistencia
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const container = document.querySelector("#invited-brothers");
+
+    if (!container) return;
+
+    const convivenciaId = container.getAttribute("data-convivencia-id");
+    if (!convivenciaId) return;
+
+    const buttons = container.querySelectorAll(
+      "button[data-brother-id]",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    const card = document.getElementById(
+      "confirm-observations-card",
+    ) as HTMLDivElement | null;
+    const input = document.getElementById(
+      "confirm-observations-input",
+    ) as HTMLTextAreaElement | null;
+    const btnCancel = document.getElementById(
+      "confirm-observations-cancel",
+    ) as HTMLButtonElement | null;
+    const btnSubmit = document.getElementById(
+      "confirm-observations-submit",
+    ) as HTMLButtonElement | null;
+
+    if (!card || !input || !btnCancel || !btnSubmit) return;
+
+    let selectedBrotherId: string | null = null;
+
+    const openCard = (brotherId: string) => {
+      selectedBrotherId = brotherId;
+      input.value = "";
+      card.classList.remove("hidden");
+      card.classList.add("flex");
+      input.focus();
+    };
+
+    const closeCard = () => {
+      selectedBrotherId = null;
+      card.classList.add("hidden");
+      card.classList.remove("flex");
+    };
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const brotherId = btn.getAttribute("data-brother-id");
+        if (!brotherId) return;
+        openCard(brotherId);
+      });
+    });
+
+    btnCancel.addEventListener("click", () => {
+      closeCard();
+    });
+
+    btnSubmit.addEventListener("click", async () => {
+      if (!selectedBrotherId) return;
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Confirmando...";
+
+      const observations =
+        input.value.trim() !== "" ? input.value.trim() : null;
+
+      try {
+        const res = await fetch(
+          `/api/convivencias/${convivenciaId}/attendees`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              brother_id: Number(selectedBrotherId),
+              observations,
+            }),
+          },
+        );
+
+        if (!res.ok) {
+          console.error("Error al confirmar asistencia", await res.text());
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = "Confirmar asistencia";
+          return;
+        }
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 400);
+      } catch (err) {
+        console.error("Error de red al confirmar asistencia", err);
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Confirmar asistencia";
+      }
+    });
+  });
+</script>

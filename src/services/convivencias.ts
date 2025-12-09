@@ -44,6 +44,18 @@ export async function createConvivencia(params: CreateConvivenciaParams) {
       const insertCommunitiesQuery =
         `INSERT INTO convivencia_communities (convivencia_id, community_id) VALUES ${values}`;
       await db.query(insertCommunitiesQuery, paramsArray);
+
+      // 3. Poblar tabla de invitados con todos los hermanos de esas comunidades
+      const placeholders = community_ids.map(() => "?").join(", ");
+      const invitedQuery = `
+        INSERT IGNORE INTO convivencia_invited (convivencia_id, brother_id)
+        SELECT ?, br.id
+        FROM communities c
+        INNER JOIN brothers br ON br.community_id = c.id
+        WHERE c.id IN (${placeholders})
+      `;
+
+      await db.query(invitedQuery, [convivenciaId, ...community_ids]);
     }
 
     // 3. Confirmar transacción
@@ -76,7 +88,7 @@ export async function getConvivenciasForDashboard() {
     FROM convivencias c
     LEFT JOIN convivencia_communities cc ON c.id = cc.convivencia_id
     LEFT JOIN convivencia_attendees ca 
-      ON c.id = ca.convivencia_id AND ca.will_attend = TRUE
+      ON c.id = ca.convivencia_id
     GROUP BY c.id, c.name, c.start_date, c.end_date, c.status, c.description
     ORDER BY c.start_date DESC, c.id DESC
   `;
@@ -138,4 +150,83 @@ export async function getEligibleBrothersByConvivencia(convivenciaId: number) {
     total_eligible,
     total_attending,
   };
+}
+
+export async function getInvitedBrothersByConvivencia(convivenciaId: number) {
+  const query = `
+    SELECT
+      br.id AS brother_id,
+      br.names,
+      c.number_community AS community_number,
+      p.name AS parish_name,
+      p.aka AS parish_aka
+    FROM convivencia_invited ci
+    INNER JOIN brothers br ON ci.brother_id = br.id
+    INNER JOIN communities c ON br.community_id = c.id
+    INNER JOIN parishes p ON c.parish_id = p.id
+    WHERE ci.convivencia_id = ?
+    ORDER BY p.name, c.number_community, br.names
+  `;
+
+  const [rows]: any = await db.query(query, [convivenciaId]);
+
+  return rows;
+}
+
+// Auto-invitar a un hermano recién creado a la convivencia activa (planificada)
+// siempre y cuando su comunidad forme parte de esa convivencia.
+export async function autoInviteBrotherToActiveConvivencia(
+  brotherId: number,
+  communityId: number,
+) {
+  // Buscar la convivencia más reciente en estado planificada
+  const findConvQuery = `
+    SELECT c.id
+    FROM convivencias c
+    INNER JOIN convivencia_communities cc ON cc.convivencia_id = c.id
+    WHERE c.status = 'planificada' AND cc.community_id = ?
+    ORDER BY c.start_date DESC, c.id DESC
+    LIMIT 1
+  `;
+
+  const [rows]: any = await db.query(findConvQuery, [communityId]);
+
+  if (!rows || rows.length === 0) {
+    return; // No hay convivencia activa para esta comunidad
+  }
+
+  const convivenciaId = rows[0].id as number;
+
+  // Insertar como invitado si aún no existe
+  const insertQuery = `
+    INSERT IGNORE INTO convivencia_invited (convivencia_id, brother_id)
+    VALUES (?, ?)
+  `;
+
+  await db.query(insertQuery, [convivenciaId, brotherId]);
+}
+
+export async function getConfirmedBrothersByConvivencia(convivenciaId: number) {
+  const query = `
+    SELECT
+      br.id AS brother_id,
+      br.names,
+      c.number_community AS community_number,
+      p.name AS parish_name,
+      p.aka AS parish_aka,
+      ca.observations,
+      ca.special_needs,
+      casas.name AS casa_name
+    FROM convivencia_attendees ca
+    INNER JOIN brothers br ON ca.brother_id = br.id
+    INNER JOIN communities c ON br.community_id = c.id
+    INNER JOIN parishes p ON c.parish_id = p.id
+    LEFT JOIN casas_convivencia casas ON ca.casa_id = casas.id
+    WHERE ca.convivencia_id = ?
+    ORDER BY p.name, c.number_community, br.names
+  `;
+
+  const [rows]: any = await db.query(query, [convivenciaId]);
+
+  return rows;
 }
