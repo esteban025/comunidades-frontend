@@ -257,7 +257,7 @@ try {
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("astro:page-load", () => {
     const $id = (selector: string) => document.getElementById(selector);
     const $ = (selector: string) => document.querySelector(selector);
     const $$ = (selector: string) => document.querySelectorAll(selector);

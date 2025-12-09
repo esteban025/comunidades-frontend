@@ -1,6 +1,5 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import HeaderPage from "@/sections/HeaderPage.astro";
 import SectionContainer from "@/components/SectionContainer.astro";
 
 import EyeIcon from "@/assets/EyesIcon.astro";
@@ -95,11 +94,10 @@ if (!tag) {
 
 <Layout>
   <div class="flex flex-col gap-10">
-    <HeaderPage />
-
     {
       error ? (
         <SectionContainer
+          transition:name="parishes-section"
           title={parishData ? parishData.name : "Parroquia No Encontrada"}
           description="Detalles de la parroquia y sus comunidades."
         >
@@ -131,6 +129,7 @@ if (!tag) {
       ) : (
         // San Juan Pablo II • Tag: SJPII • 2 comunidades
         <SectionContainer
+          transition:name="parishes-section"
           title={parishData.name}
           description={`${parishData.name} • Tag: ${parishData.tag} • ${communities.length} comunidades`}
         >
@@ -205,12 +204,10 @@ if (!tag) {
       )
     }
   </div>
-
-  <!-- Modal para ver detalles de comunidad -->
 </Layout>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("astro:page-load", () => {
     const actionButtons = document.querySelectorAll(".action-btn[data-action]");
 
     // Obtener nombre de la parroquia del header

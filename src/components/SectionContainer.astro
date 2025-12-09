@@ -3,16 +3,15 @@ interface Props {
   title: string;
   description?: string;
   id?: string;
-  transitionName?: string;
 }
 
-const { title, description, id, transitionName } = Astro.props;
+const { title, description, id } = Astro.props;
 ---
 
 <section
+  {...Astro.props}
   id={id}
   class="w-full max-w-6xl mx-auto bg-gray-50 rounded-xl shadow- overflow-hidden relative border border-border-light shadow-md hover:shadow-lg transition-all duration-300"
-  transition:name={transitionName}
 >
   <div class="flex items-center justify-between">
     <header class="p-6 pb-0">

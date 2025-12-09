@@ -9,6 +9,7 @@ import ModalViewCommunity from "@/components/ModalViewCommunity.astro";
 import ModalManageCommunities from "@/components/ModalManageCommunities.astro";
 import HeaderPage from "@/sections/HeaderPage.astro";
 import ClientRouter from "astro/components/ClientRouter.astro";
+import ModalAddConvivencia from "@/components/ModalAddConvivencia.astro";
 ---
 
 <!doctype html>
@@ -26,13 +27,15 @@ import ClientRouter from "astro/components/ClientRouter.astro";
 	</head>
 	<body class="relative text-neutral-950 bg-white px-2">
 		<HeaderPage />
+		<ButtonScrollUp />
 		<Notification />
+
 		<ModalAddParish />
 		<ModalAddBrother />
 		<ModalViewBrother />
 		<ModalViewCommunity />
-		<ButtonScrollUp />
 		<ModalManageCommunities />
+		<ModalAddConvivencia />
 		<slot />
 	</body>
 </html>

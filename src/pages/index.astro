@@ -9,8 +9,8 @@ import CommunitiesSection from "@/sections/CommunitiesSection.astro";
 
 <Layout>
 	<div class="flex flex-col gap-10">
-		<Navbar />
-		<ResumenCards transitionName="resume-container" transition:persist />
+		<Navbar transition:name="navbar-page" />
+		<ResumenCards />
 		<Parishes />
 		<ResumeBrothersRegisters />
 		<CommunitiesSection />

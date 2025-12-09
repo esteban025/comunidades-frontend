@@ -34,7 +34,7 @@ import ModalDesign from "./ModalDesign.astro";
 <script>
   import { showNotification } from "@/scripts/notification";
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("astro:page-load", () => {
     const modal = document.getElementById("modal-view-brother");
     const closeButtons = document.querySelectorAll(
       '[data-close="modal-view-brother"]',

@@ -1,34 +1,39 @@
 ---
-import NavbarPage from "@/components/NavbarPage.astro";
+import NavbarPage from "./NavbarPage.astro";
 import PlusIcon from "@/assets/PLusIcon.astro";
 ---
 
 <NavbarPage
   {...Astro.props}
-  title="Comunidades"
-  description="Sistema de Registro"
+  title="Sistema de convivencias"
+  description="Podemos crear o gestionar nuevas convivencias"
 >
   <div class="flex flex-wrap gap-2 transition-all duration-500" slot="actions">
-    <button class="btn btn-primary navbar-btn text-sm" data-modal="brother">
+    <button
+      class="btn btn-primary navbar-btn text-sm"
+      data-modal="create-convivencia"
+    >
       <div class="flex items-center gap-2">
         <span class="navbar-btn-icon">
           <PlusIcon class="w-4 aspect-square block" />
         </span>
-        <span class="navbar-btn-text">Agregar Hermano</span>
+        <span class="navbar-btn-text">Nueva Convivencia</span>
       </div>
     </button>
 
-    <button class="btn btn-secondary navbar-btn text-sm" data-modal="parish">
+    <button
+      class="btn btn-secondary navbar-btn text-sm"
+      data-modal="gestion-convivencia"
+    >
       <div class="flex items-center gap-2">
         <span class="navbar-btn-icon">
           <PlusIcon class="w-4 aspect-square block" />
         </span>
-        <span class="navbar-btn-text">Agregar Parroquia</span>
+        <span class="navbar-btn-text">Gestionar convivencia</span>
       </div>
     </button>
   </div>
 </NavbarPage>
-
 <script>
   document.addEventListener("astro:page-load", () => {
     const navbarButtons = document.querySelectorAll(".navbar-btn");
@@ -37,9 +42,11 @@ import PlusIcon from "@/assets/PLusIcon.astro";
       button.addEventListener("click", () => {
         const modalType = button.getAttribute("data-modal");
 
-        if (modalType === "brother") {
-          if (typeof (window as any).openBrotherModal === "function") {
-            (window as any).openBrotherModal();
+        if (modalType === "create-convivencia") {
+          if (
+            typeof (window as any).openCreateConvivenciaModal === "function"
+          ) {
+            (window as any).openCreateConvivenciaModal();
           } else {
             console.log("openBrotherModal no está disponible");
           }

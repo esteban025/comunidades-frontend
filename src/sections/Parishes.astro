@@ -25,6 +25,7 @@ try {
   title="Parroquias"
   description="Explora las parroquias registradas en nuestra plataforma."
   id="section-parishes"
+  transition:name="parishes-section"
 >
   <div class="icon-title block" slot="icon-title">
     <ChurchIcon class="w-8 aspect-square block text-gray-500" />
@@ -134,7 +135,7 @@ try {
     }, 500);
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("astro:page-load", () => {
     const actionButtons = document.querySelectorAll(".parish-action-btn");
 
     // Toggle menu al hacer click en el botón

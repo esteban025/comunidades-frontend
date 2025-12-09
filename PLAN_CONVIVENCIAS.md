@@ -498,3 +498,11 @@ El resto (reportes, estadísticas, etc.) son nice-to-have que puedes agregar des
 ---
 
 ¿Te parece bien este plan? ¿Necesitas que agregue o modifique algo antes de empezar a implementar?
+
+
+# Tareas realizadas
+- Creacion de las tablas en la base de datos
+- Modal de creacion de nueva convivencia.
+
+# Tareas que debes realizar
+- En la modal de crear nueva Convivencia (ModalAddConvivencia.astro), solicito el nombre de la convivencia una descripcion, la fecha de inicio y fin, posteriormente en seleccion de comunidades solicito seleccionar una parroquia y en comunidades disponibles deben aparecer todas las comunidades que hay en esa parroquia con las cards tal y como se muestran en este ejemplo estatico de las cards, si no hay parroquia seleccionada aparecera un mensaje 'Seleccione primero una parroquia' en el contenedor de comunidades disponibles

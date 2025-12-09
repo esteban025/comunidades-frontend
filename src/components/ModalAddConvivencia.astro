@@ -1,0 +1,248 @@
+---
+import ModalDesign from "./ModalDesign.astro";
+import PlusIcon from "@/assets/PLusIcon.astro";
+import CheckIcon from "@/assets/CheckIcon.astro";
+import ParishCard from "./ParishCard.astro";
+---
+
+<ModalDesign
+  id="modal-create-convi"
+  title="Crear nueva convivencia"
+  idForm="modal-convi-form"
+  isForm
+>
+  <article slot="body" class="flex flex-col gap-4">
+    <div class="pb-6 border-b border-border-medium">
+      <h3 class="font-semibold text-lg">Informacion basica</h3>
+      <div class="content-input p-2">
+        <div class="name-content">
+          <label for="name-convi">Nombre</label>
+          <input
+            type="text"
+            name="name-convi"
+            id="name-convi"
+            placeholder="Convivencia de transimicion - 2025"
+          />
+        </div>
+        <div class="description-content">
+          <label for="description-convi">Description</label>
+          <input
+            type="text"
+            name="description-convi"
+            id="description-convi"
+            placeholder="Opcional.."
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="date-start flex-1">
+            <label for="date-start">Fecha de inicio</label>
+            <input type="date" name="date-start" id="date-start" />
+          </div>
+          <div class="date-end flex-1">
+            <label for="date-end">Fecha final</label>
+            <input type="date" name="date-end" id="date-end" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- informacion de comunidades -->
+    <div class="pb-6 border-b border-border-medium">
+      <h3 class="font-semibold text-lg">Seleccion de comunidades</h3>
+      <div class="p-2 rounded-2xl space-y-4">
+        <div class="parishes-content content-input">
+          <div class="">
+            <label for="parishes-select">Seleccione una parroquia</label>
+            <select
+              class="select-input"
+              name="parishes-select"
+              id="parishes-select"
+            >
+              <option class="options-select" value="" disabled selected
+                >Todas las parroquias</option
+              >
+            </select>
+          </div>
+        </div>
+
+        <div class="communities-available space-y-2">
+          <h4>Comunidades disponibles</h4>
+          <div
+            class="comunidades grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 p-3 border border-border-medium rounded-xl bg-gray-100"
+          >
+            <ParishCard>
+              <div class="p-2">
+                <header
+                  class="flex justify-between items-center gap-2 pb-3 border-b border-border-medium"
+                >
+                  <h4 class="text-sm font-semibold">Comunidad</h4>
+                  <p
+                    class="size-10 flex items-center justify-center rounded-full bg-gray-500 text-white"
+                  >
+                    <span class="block leading-1 font-semibold">11</span>
+                  </p>
+                </header>
+                <div
+                  class="details flex items-center justify-between gap-1 p-2"
+                >
+                  <div class="">
+                    <p class="font-semibold text-xl">Moises Reino</p>
+                    <p class="text-sm text-text-muted">Segundos Escrutinios</p>
+                  </div>
+
+                  <!-- From Uiverse.io by Shubh0408 -->
+                  <div class="relative">
+                    <label
+                      for="checkbox"
+                      class="relative flex size-12 items-center justify-center overflow-hidden rounded-full bg-linear-to-tr from-gray-300 to-gray-400 p-1.5 cursor-pointer hover:p-2 duration-300"
+                    >
+                      <input
+                        type="checkbox"
+                        class="group peer hidden"
+                        id="checkbox"
+                      />
+                      <label
+                        for="checkbox"
+                        class="size-full rounded-full bg-white peer-checked:scale-0 transition-all duration-300"
+                      ></label>
+                      <CheckIcon
+                        class="w-8 aspect-square block text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-all duration-300 peer-checked:opacity-100"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </ParishCard>
+            <ParishCard>
+              <div class="p-2">
+                <header
+                  class="flex justify-between items-center gap-2 pb-3 border-b border-border-medium"
+                >
+                  <h4 class="text-sm font-semibold">Comunidad</h4>
+                  <p
+                    class="size-10 flex items-center justify-center rounded-full bg-gray-500 text-white"
+                  >
+                    <span class="block leading-1 font-semibold">11</span>
+                  </p>
+                </header>
+                <div
+                  class="details flex items-center justify-between gap-1 p-2"
+                >
+                  <div class="">
+                    <p class="font-semibold text-xl">Moises Reino</p>
+                    <p class="text-sm text-text-muted">Segundos Escrutinios</p>
+                  </div>
+
+                  <!-- From Uiverse.io by Shubh0408 -->
+                  <div class="relative">
+                    <label
+                      for="checkbox"
+                      class="relative flex size-12 items-center justify-center overflow-hidden rounded-full bg-linear-to-tr from-gray-300 to-gray-400 p-1.5 cursor-pointer hover:p-2 duration-300"
+                    >
+                      <input
+                        type="checkbox"
+                        class="group peer hidden"
+                        id="checkbox"
+                      />
+                      <label
+                        for="checkbox"
+                        class="size-full rounded-full bg-white peer-checked:scale-0 transition-all duration-300"
+                      ></label>
+                      <CheckIcon
+                        class="w-8 aspect-square block text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-all duration-300 peer-checked:opacity-100"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </ParishCard>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary w-full">✔ Invitar</button>
+    </div>
+
+    <div class="list-invi">
+      <h4>
+        Lista de Comunidades convocadas (Oculta hasta que hayan selecciones)
+      </h4>
+      <div
+        class="p-2 bg-gray-100 flex justify-between items-center gap-2 rounded-full"
+      >
+        <div class="flex items-center gap-2">
+          <p
+            class="size-10 flex items-center justify-center rounded-full bg-gray-500 text-white"
+          >
+            <span class="block leading-1 font-semibold">11</span>
+          </p>
+          <p>Moises Reino</p>
+        </div>
+        <div class="pr-2">
+          <p>San Juan Pablo II</p>
+        </div>
+      </div>
+    </div>
+  </article>
+  <button
+    type="button"
+    class="btn btn-secondary flex-1"
+    data-close="modal-create-convi"
+    slot="footer"
+  >
+    Cancelar
+  </button>
+  <button
+    type="submit"
+    class="btn btn-primary flex-1"
+    id="modal-parish-submit"
+    slot="footer"
+  >
+    Crear Convivencia
+  </button>
+</ModalDesign>
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const $id = (selector: string) => document.getElementById(selector);
+    const $ = (selector: string) => document.querySelector(selector);
+    const $$ = (selector: string) => document.querySelectorAll(selector);
+
+    const modal = $id("modal-create-convi");
+    const closeBtns = $$("[data-close='modal-create-convi']");
+
+    // let isEditMode = false;
+
+    function openCreateConvivenciaModal() {
+      // isEditMode = false;
+      modal?.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    // Función para cerrar el modal
+    function closeParishModal() {
+      modal?.classList.add("hidden");
+      document.body.style.overflow = "";
+      // form?.reset();
+    }
+
+    // Cerrar con los botones de cerrar
+    closeBtns.forEach((btn) => {
+      btn.addEventListener("click", closeParishModal);
+    });
+
+    // Cerrar al hacer clic fuera del modal
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeParishModal();
+      }
+    });
+
+    // Cerrar con la tecla Escape
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal?.classList.contains("hidden")) {
+        closeParishModal();
+      }
+    });
+
+    (window as any).openCreateConvivenciaModal = openCreateConvivenciaModal();
+  });
+</script>

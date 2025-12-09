@@ -1,15 +1,12 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
 import ArrowIcon from "@/assets/ArrowIcon.astro";
-interface Props {
-  transitionName?: string;
-}
+
 import {
   getTotalBrothers,
   getTotalCommunities,
   getTotalParishes,
 } from "@/lib/stats";
-const { transitionName } = Astro.props;
 const info = [
   {
     name: "Parroquias",
@@ -37,7 +34,6 @@ const info = [
 <SectionContainer
   title="Resumen"
   description="Vista rápida de las estadísticas principales de la plataforma"
-  transition:name={transitionName}
 >
   <div
     slot="body"
@@ -45,10 +41,10 @@ const info = [
   >
     {
       info.map((item, index) => (
-        <div class="w-1/4 inline-flex items-center justify-center gap-2 text-center py-3 relative z-10 h-full">
+        <div class="w-1/4 inline-flex items-center justify-center gap-2 text-center relative z-10 h-full">
           <a
             href={item.href}
-            class="resume-btn flex items-center justify-center gap-2 w-full h-full"
+            class="resume-btn flex items-center justify-center gap-2 w-full h-full py-3"
             data-index={index}
           >
             <p class="text-xl font-semibold text-primary">{item.count}</p>
