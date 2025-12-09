@@ -1,9 +1,5 @@
 ---
-import type {
-  BrothersResponse,
-  PaginationPage,
-  Brothers,
-} from "@/types/brothers";
+import type { PaginationPage, Brothers } from "@/types/brothers";
 import SectionContainer from "@/components/SectionContainer.astro";
 import PaginationBrothers from "@/components/PaginationBrothers.astro";
 import SearchBrothers from "@/components/SearchBrothers.astro";
@@ -12,56 +8,35 @@ import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
 import ArrowIcon from "@/assets/ArrowIcon.astro";
 import PairsIcon from "@/assets/PairsIcon.astro";
+import { getBrother } from "@/services/brothers";
+import { db } from "@/lib/db";
 
-// Obtener parámetros de paginación
-const url = Astro.url;
-const page = parseInt(url.searchParams.get("page") || "1");
-const limit = 10; // 10 hermanos por página
+const pageParam = Astro.url.searchParams.get("page") ?? "1";
+const page = Math.max(1, Number(pageParam) || 1);
+const limit = 10;
+const offset = (page - 1) * limit;
 
-// Fetch en el servidor con paginación
-let brothers: Brothers[] = [];
-let pagination: Partial<PaginationPage> = {
-  currentPage: 1,
-  totalPages: 1,
-  totalItems: 0,
-  hasNextPage: false,
-  hasPrevPage: false,
+const [countResult]: any = await db.query(
+  "SELECT COUNT(*) as total FROM brothers",
+);
+const totalItems = (countResult as any[])[0]?.total ?? 0;
+const totalPages = Math.max(1, Math.ceil(totalItems / limit || 1));
+
+const brothers: Brothers[] = await getBrother({ limit, offset });
+
+const from = totalItems > 0 ? offset + 1 : 0;
+const to = Math.min(offset + brothers.length, totalItems);
+
+let pagination: PaginationPage = {
+  currentPage: page,
+  totalPages,
+  totalItems,
+  itemsPerPage: limit,
+  from,
+  to,
+  hasNextPage: page < totalPages,
+  hasPrevPage: page > 1,
 };
-let hasError = false;
-
-try {
-  const response = await fetch(
-    `http://localhost:4321/api/all-brothers?page=${page}&limit=${limit}`,
-  );
-  const result: BrothersResponse = await response.json();
-
-  if (result.success && result.data) {
-    brothers = result.data;
-    pagination = result.pagination;
-  }
-} catch (error) {
-  console.error("Error cargando hermanos:", error);
-  hasError = true;
-}
-
-function formatCivilStatus(status: string): string {
-  const statuses: Record<string, string> = {
-    matrimonio: "Matrimonio",
-    soltero: "Soltero",
-    soltera: "Soltera",
-  };
-  return statuses[status] || status;
-}
-
-function formatRole(role: string): string {
-  const roles: Record<string, string> = {
-    responsable: "Responsable",
-    corresponsable: "Corresponsable",
-    didascala: "Didascala",
-    ostiario: "Ostiario",
-  };
-  return roles[role] || role;
-}
 ---
 
 <SectionContainer
@@ -77,7 +52,7 @@ function formatRole(role: string): string {
     <SearchBrothers />
     <div class="container-table">
       {
-        brothers.length > 0 ? (
+        brothers?.length > 0 ? (
           <table class="render-brothers-table brothres-table">
             <thead>
               <tr>
@@ -112,7 +87,7 @@ function formatRole(role: string): string {
                       <div class="roles-container flex flex-wrap gap-1 items-center">
                         {brother.roles_in_own_community?.map((role: string) => (
                           <span data-rol={role} class="role-tag">
-                            {formatRole(role)}
+                            {role}
                           </span>
                         ))}
                         {brother.catechist_of_communities?.length > 0 && (
@@ -129,7 +104,7 @@ function formatRole(role: string): string {
                       <span class="empty-cell">-</span>
                     )}
                   </td>
-                  <td>{formatCivilStatus(brother.civil_status)}</td>
+                  <td>{brother.civil_status}</td>
                   <td>
                     <div class="action-buttons flex justify-center gap-2">
                       <button
@@ -178,7 +153,7 @@ function formatRole(role: string): string {
 
     <!-- Controles de paginación -->
     {
-      brothers.length > 0 && (
+      brothers?.length > 0 && (
         <div id="pagination-container">
           <PaginationBrothers
             currentPage={pagination.currentPage || 1}
@@ -301,7 +276,7 @@ function formatRole(role: string): string {
   (window as any).refreshBrothers = () => {
     setTimeout(() => {
       window.location.reload();
-    }, 500);
+    }, 2000);
   };
 
   document.addEventListener("astro:page-load", () => {

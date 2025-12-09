@@ -1,6 +1,6 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
-import ParishCard from "@/components/ParishCard.astro";
+import BaseCard from "@/components/BaseCard.astro";
 
 import ConfigIcon from "@/assets/ConfigIcon.astro";
 import { db } from "@/lib/db";
@@ -68,7 +68,7 @@ const parishes = Array.from(parishesMap.values());
     <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
       {
         parishes.map((parish) => (
-          <ParishCard>
+          <BaseCard>
             <div class="p-6">
               <header class="flex flex-col gap-1">
                 <h3 class="text-2xl font-semibold text-text-primary">
@@ -101,7 +101,7 @@ const parishes = Array.from(parishesMap.values());
                 </div>
               )}
             </div>
-          </ParishCard>
+          </BaseCard>
         ))
       }
     </div>

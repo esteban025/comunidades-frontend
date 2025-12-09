@@ -14,14 +14,29 @@ export const GET: APIRoute = async ({ params }) => {
   try {
     const query = `
       SELECT 
+        c.id,
+        c.number_community,
+        c.level_paso,
+        p.name AS parish_name,
+        p.aka AS parish_aka,
+        (
+          SELECT br.names
+          FROM brothers br
+          INNER JOIN brother_roles brol ON br.id = brol.brother_id
+          WHERE brol.community_id = c.id AND brol.role = 'responsable'
+          LIMIT 1
+        ) AS responsible_name,
+        COUNT(b.id) AS total_brothers
+      FROM communities c
+      INNER JOIN parishes p ON c.parish_id = p.id
+      LEFT JOIN brothers b ON c.id = b.community_id
+      WHERE c.parish_id = ?
+      GROUP BY 
         c.id, 
         c.number_community, 
         c.level_paso,
-        COUNT(b.id) as total_brothers
-      FROM communities c
-      LEFT JOIN brothers b ON c.id = b.community_id
-      WHERE c.parish_id = ?
-      GROUP BY c.id, c.number_community, c.level_paso
+        p.name,
+        p.aka
       ORDER BY c.number_community ASC
     `;
 

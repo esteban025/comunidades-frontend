@@ -1,19 +1,10 @@
 ---
 // Modal para agregar hermano
 import ModalDesign from "./ModalDesign.astro";
-import { db } from "@/lib/db";
 import { pasosListaPlana } from "@/datos/pasos-list";
-
-// Fetch de parroquias en el servidor
-let parishes: any[] = [];
-try {
-  const [rows]: any = await db.query(
-    "SELECT id, name, aka, tag FROM parishes ORDER BY name",
-  );
-  parishes = rows;
-} catch (error) {
-  console.error("Error cargando parroquias:", error);
-}
+import type { Parish } from "@/types/parishes";
+import { getParishes } from "@/services/parishes";
+const parishes: Parish[] = await getParishes();
 ---
 
 <ModalDesign
@@ -119,7 +110,7 @@ try {
             Selecciona una parroquia
           </option>
           {
-            parishes.map((parish) => (
+            parishes?.map((parish) => (
               <option class="options-select" value={parish.id}>
                 {parish.aka} ({parish.tag})
               </option>
@@ -230,6 +221,7 @@ try {
   >
     Cancelar
   </button>
+
   <button type="submit" class="btn btn-primary flex-1" slot="footer">
     Registrar Hermano
   </button>
@@ -285,12 +277,10 @@ try {
     function openBrotherModal() {
       // Resetear el formulario y el título para nuevo registro
       form?.reset();
-      const brotherIdInput = document.getElementById(
-        "brother-id",
-      ) as HTMLInputElement;
+      const brotherIdInput = $id("brother-id") as HTMLInputElement;
       if (brotherIdInput) brotherIdInput.value = "";
 
-      const modalTitle = document.querySelector("#modal-brother h2");
+      const modalTitle = $("#modal-brother h2");
       if (modalTitle) modalTitle.textContent = "Registrar Hermano";
 
       const submitBtn = form?.querySelector(

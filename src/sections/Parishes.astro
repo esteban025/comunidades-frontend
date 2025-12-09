@@ -1,6 +1,6 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
-import ParishCard from "@/components/ParishCard.astro";
+import BaseCard from "@/components/BaseCard.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import ChurchIcon from "@/assets/ChurchIcon.astro";
 import type { ParishesResponse, Parish } from "@/types/parishes";
@@ -52,7 +52,7 @@ try {
           class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]"
         >
           {parishes.map((parish) => (
-            <ParishCard href={`/parishes/${parish.tag}`}>
+            <BaseCard href={`/parishes/${parish.tag}`}>
               <div class="relative" slot="btn-edit">
                 <button
                   class="parish-action-btn flex items-center justify-center w-8.5 aspect-square rounded-lg border border-gray-200 bg-white cursor-pointer transition-all duration-200 ease-in-out text-gray-500 hover:border-gray-300 hover:shadow-md"
@@ -85,7 +85,7 @@ try {
                   {parish.tag}
                 </span>
               </div>
-            </ParishCard>
+            </BaseCard>
           ))}
         </div>
       )

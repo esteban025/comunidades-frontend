@@ -1,14 +1,13 @@
 import type { APIRoute } from "astro";
-import { db } from "@/lib/db";
+import { createParish, getParishes } from "@/services/parishes";
 
 // GET - Obtener todas las parroquias
 export const GET: APIRoute = async () => {
   try {
-    const [rows] = await db.query('SELECT id, name, tag, aka FROM parishes');
-
+    const data = await getParishes();
     return new Response(JSON.stringify({
       success: true,
-      data: rows
+      data: data
     }), {
       status: 200,
       headers: {
@@ -80,22 +79,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Insertar la nueva parroquia
-    const [result] = await db.query(
-      'INSERT INTO parishes (name, tag, aka) VALUES (?, ?, ?)',
-      [name, tag, aka]
-    );
-
-    // Obtener el ID insertado
-    const insertId = (result as any).insertId;
-
-    // Obtener la parroquia recién creada
-    const [rows] = await db.query(
-      'SELECT id, name, tag, aka FROM parishes WHERE id = ?',
-      [insertId]
-    );
-
-    const newParish = (rows as any[])[0];
+    const newParish = await createParish({ name, tag, aka });
 
     return new Response(JSON.stringify({
       success: true,

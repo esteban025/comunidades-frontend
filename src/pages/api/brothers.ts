@@ -1,5 +1,36 @@
 import type { APIRoute } from "astro";
+import { getBrother } from "@/services/brothers";
 import { db } from "@/lib/db";
+
+// GET - Obtener todos los hermanos (paginado)
+export const GET: APIRoute = async ({ request }) => {
+  try {
+    const url = new URL(request.url);
+    const limit = parseInt(url.searchParams.get("limit") || "20");
+    const offset = parseInt(url.searchParams.get("offset") || "0");
+    const data = await getBrother({ limit, offset });
+    return new Response(JSON.stringify({
+      success: true,
+      data
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Error en GET /api/brothers:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Error al obtener los hermanos'
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+};
 
 // POST - Registrar un nuevo hermano
 export const POST: APIRoute = async ({ request }) => {

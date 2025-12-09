@@ -1,8 +1,9 @@
 ---
 import ModalDesign from "./ModalDesign.astro";
-import PlusIcon from "@/assets/PLusIcon.astro";
 import CheckIcon from "@/assets/CheckIcon.astro";
-import ParishCard from "./ParishCard.astro";
+import type { Parish } from "@/types/parishes";
+import { getParishes } from "@/services/parishes";
+const parishes: Parish[] = await getParishes();
 ---
 
 <ModalDesign
@@ -22,15 +23,17 @@ import ParishCard from "./ParishCard.astro";
             name="name-convi"
             id="name-convi"
             placeholder="Convivencia de transimicion - 2025"
+            autocomplete="off"
           />
         </div>
         <div class="description-content">
-          <label for="description-convi">Description</label>
+          <label for="description-convi">Description (Optional)</label>
           <input
             type="text"
             name="description-convi"
             id="description-convi"
-            placeholder="Opcional.."
+            placeholder="Convivencia en la ..."
+            autocomplete="off"
           />
         </div>
         <div class="flex items-center gap-2">
@@ -54,13 +57,20 @@ import ParishCard from "./ParishCard.astro";
           <div class="">
             <label for="parishes-select">Seleccione una parroquia</label>
             <select
-              class="select-input"
+              class="select-input space-y-1"
               name="parishes-select"
               id="parishes-select"
             >
               <option class="options-select" value="" disabled selected
                 >Todas las parroquias</option
               >
+              {
+                parishes?.map((parish) => (
+                  <option class="options-select" value={parish.id}>
+                    {parish.aka} ({parish.tag})
+                  </option>
+                ))
+              }
             </select>
           </div>
         </div>
@@ -68,118 +78,31 @@ import ParishCard from "./ParishCard.astro";
         <div class="communities-available space-y-2">
           <h4>Comunidades disponibles</h4>
           <div
-            class="comunidades grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 p-3 border border-border-medium rounded-xl bg-gray-100"
+            id="communities-container"
+            class="comunidades grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 p-3 border border-border-medium rounded-3xl bg-gray-100 min-h-20"
           >
-            <ParishCard>
-              <div class="p-2">
-                <header
-                  class="flex justify-between items-center gap-2 pb-3 border-b border-border-medium"
-                >
-                  <h4 class="text-sm font-semibold">Comunidad</h4>
-                  <p
-                    class="size-10 flex items-center justify-center rounded-full bg-gray-500 text-white"
-                  >
-                    <span class="block leading-1 font-semibold">11</span>
-                  </p>
-                </header>
-                <div
-                  class="details flex items-center justify-between gap-1 p-2"
-                >
-                  <div class="">
-                    <p class="font-semibold text-xl">Moises Reino</p>
-                    <p class="text-sm text-text-muted">Segundos Escrutinios</p>
-                  </div>
-
-                  <!-- From Uiverse.io by Shubh0408 -->
-                  <div class="relative">
-                    <label
-                      for="checkbox"
-                      class="relative flex size-12 items-center justify-center overflow-hidden rounded-full bg-linear-to-tr from-gray-300 to-gray-400 p-1.5 cursor-pointer hover:p-2 duration-300"
-                    >
-                      <input
-                        type="checkbox"
-                        class="group peer hidden"
-                        id="checkbox"
-                      />
-                      <label
-                        for="checkbox"
-                        class="size-full rounded-full bg-white peer-checked:scale-0 transition-all duration-300"
-                      ></label>
-                      <CheckIcon
-                        class="w-8 aspect-square block text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-all duration-300 peer-checked:opacity-100"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </ParishCard>
-            <ParishCard>
-              <div class="p-2">
-                <header
-                  class="flex justify-between items-center gap-2 pb-3 border-b border-border-medium"
-                >
-                  <h4 class="text-sm font-semibold">Comunidad</h4>
-                  <p
-                    class="size-10 flex items-center justify-center rounded-full bg-gray-500 text-white"
-                  >
-                    <span class="block leading-1 font-semibold">11</span>
-                  </p>
-                </header>
-                <div
-                  class="details flex items-center justify-between gap-1 p-2"
-                >
-                  <div class="">
-                    <p class="font-semibold text-xl">Moises Reino</p>
-                    <p class="text-sm text-text-muted">Segundos Escrutinios</p>
-                  </div>
-
-                  <!-- From Uiverse.io by Shubh0408 -->
-                  <div class="relative">
-                    <label
-                      for="checkbox"
-                      class="relative flex size-12 items-center justify-center overflow-hidden rounded-full bg-linear-to-tr from-gray-300 to-gray-400 p-1.5 cursor-pointer hover:p-2 duration-300"
-                    >
-                      <input
-                        type="checkbox"
-                        class="group peer hidden"
-                        id="checkbox"
-                      />
-                      <label
-                        for="checkbox"
-                        class="size-full rounded-full bg-white peer-checked:scale-0 transition-all duration-300"
-                      ></label>
-                      <CheckIcon
-                        class="w-8 aspect-square block text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-all duration-300 peer-checked:opacity-100"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </ParishCard>
+            <p
+              id="communities-placeholder"
+              class="col-span-full text-center text-sm text-text-muted"
+            >
+              Seleccione primero una parroquia
+            </p>
           </div>
         </div>
       </div>
-      <button class="btn btn-primary w-full">✔ Invitar</button>
+      <button id="btn-invitar-communities" class="btn btn-primary w-full">
+        ✔ Invitar
+      </button>
     </div>
 
-    <div class="list-invi">
+    <div id="invited-list-section" class="list-invi hidden">
       <h4>
         Lista de Comunidades convocadas (Oculta hasta que hayan selecciones)
       </h4>
       <div
-        class="p-2 bg-gray-100 flex justify-between items-center gap-2 rounded-full"
+        id="invited-list"
+        class="p-3 border border-border-medium rounded-3xl bg-gray-100 min-h-20 flex flex-col gap-2"
       >
-        <div class="flex items-center gap-2">
-          <p
-            class="size-10 flex items-center justify-center rounded-full bg-gray-500 text-white"
-          >
-            <span class="block leading-1 font-semibold">11</span>
-          </p>
-          <p>Moises Reino</p>
-        </div>
-        <div class="pr-2">
-          <p>San Juan Pablo II</p>
-        </div>
       </div>
     </div>
   </article>
@@ -208,11 +131,179 @@ import ParishCard from "./ParishCard.astro";
 
     const modal = $id("modal-create-convi");
     const closeBtns = $$("[data-close='modal-create-convi']");
+    const form = $id("modal-convi-form") as HTMLFormElement;
+    const parishSelect = $id("parishes-select") as HTMLSelectElement | null;
+    const communitiesContainer = $id(
+      "communities-container",
+    ) as HTMLDivElement | null;
+    const communitiesPlaceholder = $id(
+      "communities-placeholder",
+    ) as HTMLParagraphElement | null;
+    const invitedListSection = $id(
+      "invited-list-section",
+    ) as HTMLDivElement | null;
+    const invitedList = $id("invited-list") as HTMLDivElement | null;
+    const btnInvitar = $id(
+      "btn-invitar-communities",
+    ) as HTMLButtonElement | null;
+
+    type CommunityItem = {
+      id: number;
+      number_community: number;
+      level_paso?: string | null;
+      total_brothers: number;
+      parish_id: number;
+      parish_name: string;
+      parish_aka: string;
+      responsible_name?: string | null;
+    };
+
+    // Estado interno: comunidades seleccionadas por ID
+    const selectedCommunities = new Map<number, CommunityItem>();
+
+    function createCommunityCardHTML(item: CommunityItem) {
+      const isChecked = selectedCommunities.has(item.id) ? "checked" : "";
+
+      return `
+        <article class="p-2 rounded-2xl bg-white shadow-sm border border-border-medium">
+          <header class="flex justify-between items-center gap-2 pb-2 border-b border-border-medium">
+            <h3 class="text-sm font-semibold">Comunidad</h3>
+            <p class="size-10 flex items-center justify-center rounded-full bg-gray-400 text-white">
+              <span class="block leading-1 font-semibold">${item.number_community}</span>
+            </p>
+          </header>
+          <div class="details flex items-center justify-between gap-1 p-2">
+            <div class="w-full overflow-hidden">
+              <p class="font-semibold text-lg truncate">${
+                item.responsible_name || "Sin responsable asignado"
+              }</p>
+              <p class="text-sm text-text-muted">${
+                item.level_paso || "Nivel de paso no especificado"
+              }</p>
+            </div>
+            <div class="relative">
+              <label class="relative flex size-12 items-center justify-center overflow-hidden rounded-full bg-linear-to-tr from-gray-300 to-gray-400 p-1.5 cursor-pointer hover:p-2 duration-300">
+                <input type="checkbox" class="group peer hidden community-checkbox" data-community-id="${
+                  item.id
+                }" ${isChecked} />
+                <span class="size-full rounded-full bg-white peer-checked:scale-0 transition-all duration-300"></span>
+                <span class="w-8 aspect-square block text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-all duration-300 peer-checked:opacity-100 text-[20px] text-center">✔</span>
+              </label>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function createInvitedRowHTML(item: CommunityItem) {
+      return `
+        <div class="p-2 bg-white flex justify-between items-center gap-2 rounded-full border border-border-medium">
+          <div class="flex items-center gap-2">
+            <p class="size-10 flex items-center justify-center rounded-full bg-gray-500 text-white">
+              <span class="block leading-1 font-semibold">${
+                item.number_community
+              }</span>
+            </p>
+            <p class="font-semibold truncate">${item.responsible_name || "Sin responsable asignado"}</p>
+          </div>
+          <div class="pr-2">
+            <p class="text-sm text-text-muted">${item.parish_aka || item.parish_name}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function resetCommunitiesUI() {
+      if (communitiesContainer) {
+        communitiesContainer.innerHTML = "";
+        if (communitiesPlaceholder) {
+          communitiesContainer.appendChild(communitiesPlaceholder);
+          communitiesPlaceholder.textContent =
+            "Seleccione primero una parroquia";
+        }
+      }
+    }
+
+    function renderCommunities(parishId: number) {
+      if (!communitiesContainer) return;
+
+      communitiesContainer.innerHTML =
+        '<p class="col-span-full text-center text-sm text-text-muted">Cargando comunidades...</p>';
+
+      fetch(`/api/communities-by-parish/${parishId}`)
+        .then((res) => res.json())
+        .then((result) => {
+          if (!result.success || !result.data || result.data.length === 0) {
+            communitiesContainer.innerHTML =
+              '<p class="col-span-full text-center text-sm text-text-muted">No hay comunidades registradas para esta parroquia</p>';
+            return;
+          }
+
+          const items: CommunityItem[] = result.data.map((comm: any) => ({
+            id: comm.id,
+            number_community: comm.number_community,
+            level_paso: comm.level_paso,
+            total_brothers: comm.total_brothers,
+            parish_id: parishId,
+            parish_name: comm.parish_name,
+            parish_aka: comm.parish_aka,
+            responsible_name: comm.responsible_name,
+          }));
+
+          communitiesContainer.innerHTML = items
+            .map((item) => createCommunityCardHTML(item))
+            .join("");
+
+          // Re-asignar listeners a los checkboxes
+          const checkboxes = communitiesContainer.querySelectorAll(
+            ".community-checkbox",
+          );
+          checkboxes.forEach((checkbox) => {
+            const input = checkbox as HTMLInputElement;
+            const id = Number(input.dataset.communityId);
+            const item = items.find((it) => it.id === id);
+            if (!item) return;
+
+            input.addEventListener("change", () => {
+              if (input.checked) {
+                selectedCommunities.set(item.id, item);
+              } else {
+                selectedCommunities.delete(item.id);
+              }
+            });
+          });
+        })
+        .catch(() => {
+          communitiesContainer.innerHTML =
+            '<p class="col-span-full text-center text-sm text-red-500 font-medium">Error al cargar las comunidades</p>';
+        });
+    }
+
+    function updateInvitedList() {
+      if (!invitedListSection || !invitedList) return;
+
+      if (selectedCommunities.size === 0) {
+        invitedList.innerHTML = "";
+        invitedListSection.classList.add("hidden");
+        return;
+      }
+
+      const rowsHTML = Array.from(selectedCommunities.values())
+        .map((item) => createInvitedRowHTML(item))
+        .join("");
+
+      invitedList.innerHTML = rowsHTML;
+      invitedListSection.classList.remove("hidden");
+    }
 
     // let isEditMode = false;
 
     function openCreateConvivenciaModal() {
       // isEditMode = false;
+      form?.reset();
+      selectedCommunities.clear();
+      resetCommunitiesUI();
+      updateInvitedList();
       modal?.classList.remove("hidden");
       document.body.style.overflow = "hidden";
     }
@@ -221,7 +312,10 @@ import ParishCard from "./ParishCard.astro";
     function closeParishModal() {
       modal?.classList.add("hidden");
       document.body.style.overflow = "";
-      // form?.reset();
+      form?.reset();
+      selectedCommunities.clear();
+      resetCommunitiesUI();
+      updateInvitedList();
     }
 
     // Cerrar con los botones de cerrar
@@ -243,6 +337,93 @@ import ParishCard from "./ParishCard.astro";
       }
     });
 
-    (window as any).openCreateConvivenciaModal = openCreateConvivenciaModal();
+    if (parishSelect) {
+      // Exponer datos de parroquias en window para uso en el script
+      (window as any).parishesData =
+        (window as any).parishesData ||
+        Array.from(parishSelect.options)
+          .filter((opt) => opt.value)
+          .map((opt) => ({
+            id: Number(opt.value),
+            aka: opt.text,
+          }));
+
+      parishSelect.addEventListener("change", () => {
+        const value = parishSelect.value;
+        if (!value) {
+          resetCommunitiesUI();
+          return;
+        }
+        const parishId = Number(value);
+        if (!Number.isNaN(parishId)) {
+          renderCommunities(parishId);
+        }
+      });
+    }
+
+    if (btnInvitar) {
+      btnInvitar.addEventListener("click", (e) => {
+        e.preventDefault();
+        updateInvitedList();
+      });
+    }
+
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = (form.querySelector(
+          "#name-convi",
+        ) as HTMLInputElement | null)?.value;
+        const description = (form.querySelector(
+          "#description-convi",
+        ) as HTMLInputElement | null)?.value;
+        const startDate = (form.querySelector(
+          "#date-start",
+        ) as HTMLInputElement | null)?.value;
+        const endDate = (form.querySelector(
+          "#date-end",
+        ) as HTMLInputElement | null)?.value;
+
+        const communityIds = Array.from(selectedCommunities.values()).map(
+          (c) => c.id,
+        );
+
+        const payload = {
+          name,
+          description,
+          start_date: startDate,
+          end_date: endDate,
+          community_ids: communityIds,
+        };
+
+        try {
+          const res = await fetch("/api/convivencias", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const result = await res.json();
+          console.log("[ModalAddConvivencia] Respuesta POST /api/convivencias:", result);
+
+          if (result.success) {
+            closeParishModal();
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          } else {
+            alert(result.error || "Error al crear la convivencia");
+          }
+        } catch (error) {
+          console.error("Error enviando convivencia:", error);
+          alert("Error de conexión al crear la convivencia");
+        }
+      });
+    }
+
+    (window as any).openCreateConvivenciaModal = openCreateConvivenciaModal;
   });
 </script>

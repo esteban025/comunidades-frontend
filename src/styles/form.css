@@ -22,7 +22,7 @@
   font-weight: 500;
   color: #374151;
   margin-bottom: 0.4rem;
-  display: block;
+  /* display: block; */
 }
 
 .content-input input {

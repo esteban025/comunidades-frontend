@@ -77,3 +77,67 @@ INNER JOIN brother_roles brol ON br.id = brol.brother_id
 INNER JOIN communities c ON brol.community_id = c.id
 INNER JOIN parishes p ON c.parish_id = p.id
 WHERE brol.role = 'catequista';
+
+-- ORGANIZACION PARA CASA DE CONVIVENCIAS
+CREATE TABLE convivencias (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  description TEXT,
+  status ENUM('planificada', 'en_curso', 'finalizada') DEFAULT 'planificada',
+  total_capacity INT,  -- Capacidad total entre todas las casas
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+); 
+CREATE TABLE convivencia_communities (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  convivencia_id INT NOT NULL,
+  community_id INT NOT NULL,
+  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (convivencia_id) REFERENCES convivencias(id) ON DELETE CASCADE,
+  FOREIGN KEY (community_id) REFERENCES communities(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_community_convivencia (convivencia_id, community_id)
+);
+CREATE TABLE casas_convivencia (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  location VARCHAR(255),
+  capacity INT NOT NULL,
+  has_ground_floor_rooms BOOLEAN DEFAULT FALSE,  -- Tiene habitaciones en planta baja
+  has_baby_facilities BOOLEAN DEFAULT FALSE,     -- Tiene facilidades para bebés
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE convivencia_casas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  convivencia_id INT NOT NULL,
+  casa_id INT NOT NULL,
+  capacity_assigned INT,  -- Cuántos hermanos se asignarán a esta casa
+  FOREIGN KEY (convivencia_id) REFERENCES convivencias(id) ON DELETE CASCADE,
+  FOREIGN KEY (casa_id) REFERENCES casas_convivencia(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_casa_convivencia (convivencia_id, casa_id)
+);
+CREATE TABLE convivencia_invited (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  convivencia_id INT NOT NULL,
+  brother_id INT NOT NULL,
+  invited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (convivencia_id) REFERENCES convivencias(id) ON DELETE CASCADE,
+  FOREIGN KEY (brother_id) REFERENCES brothers(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_invited (convivencia_id, brother_id)
+);
+CREATE TABLE convivencia_attendees (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  convivencia_id INT NOT NULL,
+  brother_id INT NOT NULL,
+  casa_id INT,  -- Casa asignada (puede ser NULL si aún no se asigna)
+  observations TEXT,  -- "Tercera edad - necesita planta baja", "Matrimonio con bebé"
+  special_needs ENUM('ninguna', 'tercera_edad', 'bebe', 'movilidad_reducida', 'otra') DEFAULT 'ninguna',
+  registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (convivencia_id) REFERENCES convivencias(id) ON DELETE CASCADE,
+  FOREIGN KEY (brother_id) REFERENCES brothers(id) ON DELETE CASCADE,
+  FOREIGN KEY (casa_id) REFERENCES casas_convivencia(id) ON DELETE SET NULL,
+  UNIQUE KEY unique_attendance (convivencia_id, brother_id)
+);

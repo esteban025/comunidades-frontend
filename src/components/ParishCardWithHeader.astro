@@ -1,5 +1,5 @@
 ---
-import ParishCard from "./ParishCard.astro";
+import BaseCard from "./BaseCard.astro";
 
 interface Props {
   title: string;
@@ -14,7 +14,7 @@ const {
 } = Astro.props;
 ---
 
-<ParishCard>
+<BaseCard>
   <header class="flex items-center p-4 gap-4 bg-gray-100">
     {Icon && <Icon class={iconClass} />}
     <h3 class="uppercase font-semibold text-md text-text-primary">
@@ -24,4 +24,4 @@ const {
   <div class="p-4">
     <slot />
   </div>
-</ParishCard>
+</BaseCard>

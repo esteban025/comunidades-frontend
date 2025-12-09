@@ -1,0 +1,124 @@
+---
+import SectionContainer from "@/components/SectionContainer.astro";
+import PairsIcon from "@/assets/PairsIcon.astro";
+import BaseCard from "@/components/BaseCard.astro";
+import { getConvivenciasForDashboard } from "@/services/convivencias";
+import SearchBrothers from "@/components/SearchBrothers.astro";
+
+const { convivencias, totals } = await getConvivenciasForDashboard();
+---
+
+<SectionContainer
+  id="convivencias-dashboard"
+  title="Gestión de convivencias"
+  description="Visualiza, planifica y edita las convivencias de tu comunidad."
+>
+  <div slot="icon-title" class="flex items-center justify-center">
+    <PairsIcon class="w-7 aspect-square text-gray-500" />
+  </div>
+  <div slot="nav-links" class="sss">
+    <!-- <button class="btn btn-primary">Finalizar Convivencias</button> -->
+    <!-- <button>Editar</button> -->
+  </div>
+
+  <div slot="body" class="flex flex-col gap-6">
+    <!-- Tabla de convivencias -->
+    <section>
+      <!-- observar este componente para crear filtro similar -->
+      <!-- <SearchBrothers /> -->
+    </section>
+    <section class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+      <header class="flex items-center justify-between mb-4">
+        <div class="titles">
+          <h2 class="font-semibold">Lista de Hermanos convocados</h2>
+          <p class="text-text-muted text-sm">
+            Apareceran todos los hermanos que han sido convocados
+          </p>
+        </div>
+        <div class="accions">
+          <span>
+            <!-- nombre de la Convivencias -->
+          </span>
+        </div>
+      </header>
+      <div class="container-table">
+        <!-- este contenedor ya contiene estilos por dejecto para las tablas -->
+        <!-- encabezado sugerido -->
+        <!-- parroquia(aka) | nombre del hermano | tipo | acciones -->
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left text-sm">
+          <thead
+            class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500"
+          >
+            <tr>
+              <th class="px-3 py-2 font-medium">Nombre</th>
+              <th class="px-3 py-2 font-medium">Fechas</th>
+              <th class="px-3 py-2 font-medium">Parroquias</th>
+              <th class="px-3 py-2 font-medium">Comunidades</th>
+              <th class="px-3 py-2 font-medium">Asistentes</th>
+              <th class="px-3 py-2 font-medium">Estado</th>
+              <th class="px-3 py-2 font-medium text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-gray-700">
+            {
+              convivencias.length === 0 ? (
+                <tr>
+                  <td
+                    colspan="7"
+                    class="px-3 py-6 text-center text-sm text-gray-500"
+                  >
+                    Aún no hay convivencias registradas.
+                  </td>
+                </tr>
+              ) : (
+                convivencias.map((conv: any) => (
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2">
+                      <p class="text-sm font-medium text-gray-900">
+                        {conv.name}
+                      </p>
+                      {conv.description && (
+                        <p class="text-xs text-gray-500">{conv.description}</p>
+                      )}
+                    </td>
+                    <td class="px-3 py-2 text-xs text-gray-600">
+                      {conv.start_date} - {conv.end_date}
+                    </td>
+                    <td class="px-3 py-2 text-xs text-gray-600">-</td>
+                    <td class="px-3 py-2 text-xs text-gray-600">
+                      {conv.total_communities || 0} comunidades
+                    </td>
+                    <td class="px-3 py-2 text-xs text-gray-600">
+                      {conv.total_attendees || 0}
+                    </td>
+                    <td class="px-3 py-2">
+                      <span class="inline-flex items-center rounded-full border border-gray-400 px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-50">
+                        {conv.status}
+                      </span>
+                    </td>
+                    <td class="px-3 py-2">
+                      <div class="flex justify-center gap-2 text-xs">
+                        <button class="px-2 py-1 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100">
+                          Ver
+                        </button>
+                        <button class="px-2 py-1 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100">
+                          Editar
+                        </button>
+                        <button class="px-2 py-1 border border-gray-300 rounded-lg text-gray-700 bg-gray-50 hover:bg-gray-100">
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</SectionContainer>
