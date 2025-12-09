@@ -8,15 +8,21 @@ import ModalDesign from "./ModalDesign.astro";
   title="Gestionar Comunidades"
   isForm={false}
 >
-  <div class="manage-communities-container" slot="body">
+  <div class="p-4 flex flex-col gap-4" slot="body">
     <!-- Tabs para cambiar entre funcionalidades -->
-    <div class="tabs">
+    <div
+      class="bg-gray-100 rounded-full border border-border-light shadow-sm relative flex"
+    >
       <button class="tab-button active" data-tab="merge"
         >Fusionar Comunidades</button
       >
       <button class="tab-button" data-tab="reorganize"
         >Reorganizar Números</button
       >
+      <div
+        class="absolute bg-bg-primary rounded-full border border-border-light inset-0 w-1/2 h-full shadow-xs transition-all duration-300 pointer-events-none tab-indicator"
+      >
+      </div>
     </div>
 
     <!-- Tab 1: Fusionar Comunidades -->
@@ -24,15 +30,19 @@ import ModalDesign from "./ModalDesign.astro";
       <div class="form-section">
         <label class="label-input">
           <span>Parroquia:</span>
-          <select id="merge-parish" class="select-input" required>
-            <option value="">Seleccione una parroquia</option>
+          <select id="merge-parish" class="select-input space-y-1" required>
+            <option class="options-select" value="" disabled selected
+              >Seleccione una parroquia</option
+            >
           </select>
         </label>
 
         <label class="label-input">
           <span>Comunidad Destino (se mantendrá):</span>
-          <select id="target-community" class="select-input" required>
-            <option value="">Seleccione comunidad destino</option>
+          <select id="target-community" class="select-input space-y-1" required>
+            <option class="options-select" value="" disabled selected
+              >Seleccione comunidad destino</option
+            >
           </select>
         </label>
 
@@ -40,34 +50,29 @@ import ModalDesign from "./ModalDesign.astro";
           <span>Comunidades a Fusionar (se eliminarán):</span>
           <select
             id="source-communities"
-            class="select-input"
+            class="space-y-1 select-input no-rounded"
             multiple
             size="6"
             required
           >
-            <option value="">Primero seleccione una parroquia</option>
+            <option class="options-select" value=""
+              >Primero seleccione una parroquia</option
+            >
           </select>
-          <small class="help-text"
+          <small class="text-xs text-text-light"
             >Mantén Ctrl/Cmd para seleccionar múltiples</small
           >
         </label>
 
-        <div class="info-box">
-          <strong>ℹ️ Importante:</strong>
+        <div
+          class="border border-l-4 border-border-dark border-l-gray-700 rounded-md p-4 bg-linear-to-br from-gray-100 to-gray-300 text-text-primary"
+        >
+          <strong>Importante:</strong>
           <ul>
-            <li>Los hermanos y roles se transferirán a la comunidad destino</li>
-            <li>Las comunidades seleccionadas se eliminarán</li>
-            <li>Los roles duplicados se eliminarán automáticamente</li>
+            <li>- Los hermanos se transferirán a la comunidad destino</li>
+            <li>- Se eliminarán todos los roles de ambas comunidades</li>
           </ul>
         </div>
-
-        <button
-          type="button"
-          class="button-submit"
-          onclick="handleMergeCommunities()"
-        >
-          Fusionar Comunidades
-        </button>
       </div>
     </div>
 
@@ -76,14 +81,20 @@ import ModalDesign from "./ModalDesign.astro";
       <div class="form-section">
         <label class="label-input">
           <span>Parroquia:</span>
-          <select id="reorganize-parish" class="select-input" required>
-            <option value="">Seleccione una parroquia</option>
+          <select
+            id="reorganize-parish"
+            class="select-input space-y-1"
+            required
+          >
+            <option class="options-select" value="" disabled selected
+              >Seleccione una parroquia</option
+            >
           </select>
         </label>
 
         <button
           type="button"
-          class="button-secondary"
+          class="btn btn-secondary"
           onclick="loadCommunitiesForReorganize()"
         >
           Cargar Comunidades
@@ -95,63 +106,49 @@ import ModalDesign from "./ModalDesign.astro";
           </p>
         </div>
 
-        <div class="info-box">
-          <strong>ℹ️ Cómo usar:</strong>
+        <div
+          class="border border-l-4 border-border-dark border-l-gray-700 rounded-md p-4 bg-linear-to-br from-gray-100 to-gray-300 text-text-primary"
+        >
+          <strong>Cómo usar:</strong>
           <ul>
-            <li>Cambie los números de comunidad directamente en los campos</li>
             <li>
-              Los cambios se aplicarán a todas las comunidades modificadas
+              - Cambie los números de comunidad directamente en los campos
             </li>
-            <li>No puede haber dos comunidades con el mismo número</li>
+            <li>
+              - Los cambios se aplicarán a todas las comunidades modificadas
+            </li>
+            <li>- No puede haber dos comunidades con el mismo número</li>
           </ul>
         </div>
-
-        <button
-          type="button"
-          class="button-submit"
-          onclick="handleReorganizeCommunities()"
-        >
-          Aplicar Cambios
-        </button>
       </div>
     </div>
   </div>
+  <button slot="footer" class="btn btn-secondary w-full" id="modal-close-btn"
+    >Cerrar</button
+  >
+  <button slot="footer" class="btn btn-primary w-full" id="modal-action-btn"
+    >Fusionar Comunidades</button
+  >
 </ModalDesign>
 
 <style>
-  .manage-communities-container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  /* Tabs */
-  .tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid #e5e7eb;
-  }
-
   .tab-button {
-    padding: 0.75rem 1.5rem;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
+    /* w-1/2 inline-flex items-center justify-center gap-2 text-center py-3 relative z-10 h-full */
+    width: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+    padding: 0.75rem 0;
+    position: relative;
+    z-index: 10;
+    height: 100%;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #6b7280;
-    transition: all 0.3s;
-  }
-
-  .tab-button:hover {
-    color: #374151;
-    background: #f9fafb;
   }
 
   .tab-button.active {
-    color: #2563eb;
-    border-bottom-color: #2563eb;
+    font-weight: 600;
   }
 
   .tab-content {
@@ -193,52 +190,8 @@ import ModalDesign from "./ModalDesign.astro";
     font-size: 0.95rem;
   }
 
-  .select-input {
-    padding: 0.75rem;
-    border: 2px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 1rem;
-    background: white;
-    transition: border-color 0.3s;
-  }
-
-  .select-input:focus {
-    outline: none;
-    border-color: #2563eb;
-  }
-
   .select-input[multiple] {
     min-height: 150px;
-  }
-
-  .help-text {
-    color: #6b7280;
-    font-size: 0.85rem;
-    margin-top: -0.5rem;
-  }
-
-  /* Info Box */
-  .info-box {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
-    padding: 1rem;
-    color: #1e40af;
-  }
-
-  .info-box strong {
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-
-  .info-box ul {
-    margin: 0;
-    padding-left: 1.5rem;
-  }
-
-  .info-box li {
-    margin: 0.25rem 0;
-    font-size: 0.9rem;
   }
 
   /* Reorder List */
@@ -246,16 +199,16 @@ import ModalDesign from "./ModalDesign.astro";
     min-height: 200px;
     max-height: 400px;
     overflow-y: auto;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
+    border: 2px solid var(--color-border-medium);
+    border-radius: 1rem;
     padding: 1rem;
-    background: #f9fafb;
+    background: var(--color-gray-50);
   }
 
   .placeholder-text {
-    color: #9ca3af;
+    color: var(--color-text-light);
     text-align: center;
-    padding: 3rem 0;
+    /* padding: 3rem 0; */
   }
 
   .community-item {
@@ -309,47 +262,7 @@ import ModalDesign from "./ModalDesign.astro";
 
   .number-input:focus {
     outline: none;
-    border-color: #2563eb;
-  }
-
-  /* Buttons */
-  .button-submit,
-  .button-secondary {
-    padding: 1rem 2rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-
-  .button-submit {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    color: white;
-  }
-
-  .button-submit:hover {
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-  }
-
-  .button-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 2px solid #d1d5db;
-  }
-
-  .button-secondary:hover {
-    background: #e5e7eb;
-  }
-
-  .button-submit:disabled,
-  .button-secondary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+    border-color: red;
   }
 </style>
 
@@ -385,17 +298,19 @@ import ModalDesign from "./ModalDesign.astro";
     const parishOptions = allParishes
       .map(
         (p) =>
-          `<option value="${p.id}">${p.name} ${p.aka ? `(${p.aka})` : ""}</option>`,
+          `<option class="options-select" value="${p.id}">${p.name} ${p.aka ? `(${p.aka})` : ""}</option>`,
       )
       .join("");
 
     if (mergeParish) {
       mergeParish.innerHTML =
-        '<option value="">Seleccione una parroquia</option>' + parishOptions;
+        '<option class="options-select" value="" disabled selected>Seleccione una parroquia</option>' +
+        parishOptions;
     }
     if (reorganizeParish) {
       reorganizeParish.innerHTML =
-        '<option value="">Seleccione una parroquia</option>' + parishOptions;
+        '<option class="options-select" value="" disabled selected>Seleccione una parroquia</option>' +
+        parishOptions;
     }
   }
 
@@ -430,9 +345,9 @@ import ModalDesign from "./ModalDesign.astro";
 
       if (!parishId) {
         targetSelect.innerHTML =
-          '<option value="">Seleccione comunidad destino</option>';
+          '<option class="options-select" value="" disabled selected>Seleccione comunidad destino</option>';
         sourceSelect.innerHTML =
-          '<option value="">Primero seleccione una parroquia</option>';
+          '<option class="options-select" value="" disabled selected>Primero seleccione una parroquia</option>';
         return;
       }
 
@@ -441,12 +356,13 @@ import ModalDesign from "./ModalDesign.astro";
       const options = communities
         .map(
           (c: any) =>
-            `<option value="${c.id}">Comunidad ${c.number_community} - ${c.level_paso}</option>`,
+            `<option class="options-select" value="${c.id}">Comunidad ${c.number_community} - ${c.level_paso}</option>`,
         )
         .join("");
 
       targetSelect.innerHTML =
-        '<option value="">Seleccione comunidad destino</option>' + options;
+        '<option class="options-select" value="" disabled selected>Seleccione comunidad destino</option>' +
+        options;
       sourceSelect.innerHTML = options;
     });
 
@@ -491,7 +407,7 @@ import ModalDesign from "./ModalDesign.astro";
 
     if (communities.length === 0) {
       container.innerHTML =
-        '<p class="placeholder-text">No hay comunidades en esta parroquia</p>';
+        '<p class="text-text-light">No hay comunidades en esta parroquia</p>';
       return;
     }
 
@@ -499,11 +415,13 @@ import ModalDesign from "./ModalDesign.astro";
       .sort((a: any, b: any) => a.number_community - b.number_community)
       .map(
         (c: any) => `
-        <div class="community-item" data-id="${c.id}">
-          <div class="community-number">Com. ${c.number_community}</div>
-          <div class="community-info">
-            <div class="community-paso">${c.level_paso}</div>
-            <div class="community-brothers">${c.total_brothers || 0} hermano(s)</div>
+        <div class="content-input flex items-center gap-4 p-4 bg-white border border-border-light rounded-xl shadow-sm hover:shadow-md transition-all duration-300" data-id="${c.id}">
+          <div class="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-md">
+            ${c.number_community}
+          </div>
+          <div class="flex-1 flex flex-col gap-1">
+            <p class="text-sm font-semibold text-text-primary">${c.level_paso}</p>
+            <p class="text-xs text-text-muted">${c.total_brothers || 0} hermano(s)</p>
           </div>
           <input 
             type="number" 
@@ -660,9 +578,13 @@ import ModalDesign from "./ModalDesign.astro";
   };
 
   // Tabs functionality
-  document.querySelectorAll(".tab-button").forEach((button) => {
+  document.querySelectorAll(".tab-button").forEach((button, index) => {
     button.addEventListener("click", (e) => {
       const target = (e.target as HTMLElement).dataset.tab;
+      const tabIndicator = document.querySelector(
+        ".tab-indicator",
+      ) as HTMLElement;
+      const actionBtn = document.getElementById("modal-action-btn");
 
       // Update active tab button
       document
@@ -675,8 +597,36 @@ import ModalDesign from "./ModalDesign.astro";
         .querySelectorAll(".tab-content")
         .forEach((content) => content.classList.remove("active"));
       document.getElementById(target + "-tab")?.classList.add("active");
+
+      // Move indicator
+      if (tabIndicator) {
+        const translateValue = index * 100; // 0%, 100%
+        tabIndicator.style.transform = `translateX(${translateValue}%)`;
+      }
+
+      // Update action button text
+      if (actionBtn) {
+        if (target === "merge") {
+          actionBtn.textContent = "Fusionar Comunidades";
+          actionBtn.onclick = () => handleMergeCommunities();
+        } else if (target === "reorganize") {
+          actionBtn.textContent = "Aplicar Reorganización";
+          actionBtn.onclick = () => handleReorganizeCommunities();
+        }
+      }
     });
   });
+
+  // Función para cerrar el modal
+  function closeManageCommunitiesModal() {
+    const modal = document.getElementById(
+      "modal-manage-communities",
+    ) as HTMLElement;
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
+  }
 
   // Función global para abrir el modal
   (window as any).openManageCommunitiesModal = function () {
@@ -689,6 +639,35 @@ import ModalDesign from "./ModalDesign.astro";
       loadParishes();
     }
   };
+
+  // Cerrar modal con botón de cerrar
+  document
+    .getElementById("modal-close-btn")
+    ?.addEventListener("click", closeManageCommunitiesModal);
+
+  // Cerrar modal con ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const modal = document.getElementById("modal-manage-communities");
+      if (modal && !modal.classList.contains("hidden")) {
+        closeManageCommunitiesModal();
+      }
+    }
+  });
+
+  // Cerrar modal al hacer click fuera
+  document
+    .getElementById("modal-manage-communities")
+    ?.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).id === "modal-manage-communities") {
+        closeManageCommunitiesModal();
+      }
+    });
+
+  // Cerrar modal con botón X del header
+  document
+    .querySelector('[data-close="modal-manage-communities"]')
+    ?.addEventListener("click", closeManageCommunitiesModal);
 
   // Cargar parroquias al cargar la página
   if (typeof window !== "undefined") {

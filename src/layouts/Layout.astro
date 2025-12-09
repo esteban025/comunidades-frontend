@@ -6,6 +6,9 @@ import ModalAddBrother from "@/components/ModalAddBrother.astro";
 import ModalViewBrother from "@/components/ModalViewBrother.astro";
 import ButtonScrollUp from "@/components/ButtonScrollUp.astro";
 import ModalViewCommunity from "@/components/ModalViewCommunity.astro";
+import ModalManageCommunities from "@/components/ModalManageCommunities.astro";
+import HeaderPage from "@/sections/HeaderPage.astro";
+import ClientRouter from "astro/components/ClientRouter.astro";
 ---
 
 <!doctype html>
@@ -15,18 +18,21 @@ import ModalViewCommunity from "@/components/ModalViewCommunity.astro";
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>Registro de Hermanos | Camino Neocatecumenal</title>
+		<ClientRouter />
 		<meta
 			name="description"
 			content="Plataforma para el registro y gestión de hermanos para organizacion en convivencias."
 		/>
 	</head>
 	<body class="relative text-neutral-950 bg-white px-2">
+		<HeaderPage />
 		<Notification />
 		<ModalAddParish />
 		<ModalAddBrother />
 		<ModalViewBrother />
 		<ModalViewCommunity />
 		<ButtonScrollUp />
+		<ModalManageCommunities />
 		<slot />
 	</body>
 </html>

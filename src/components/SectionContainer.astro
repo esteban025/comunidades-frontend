@@ -3,24 +3,31 @@ interface Props {
   title: string;
   description?: string;
   id?: string;
+  transitionName?: string;
 }
 
-const { title, description, id } = Astro.props;
+const { title, description, id, transitionName } = Astro.props;
 ---
 
 <section
   id={id}
   class="w-full max-w-6xl mx-auto bg-gray-50 rounded-xl shadow- overflow-hidden relative border border-border-light shadow-md hover:shadow-lg transition-all duration-300"
+  transition:name={transitionName}
 >
-  <header class="p-6 pb-0">
-    <h3
-      class="text-2xl font-bold text-text-primary flex items-center gap-2 mb-2"
-    >
-      <slot name="icon-title" />
-      <span>{title}</span>
-    </h3>
-    {description && <p class="text-sm text-text-secondary">{description}</p>}
-  </header>
+  <div class="flex items-center justify-between">
+    <header class="p-6 pb-0">
+      <h3
+        class="text-2xl font-bold text-text-primary flex items-center gap-2 mb-2"
+      >
+        <slot name="icon-title" />
+        <span>{title}</span>
+      </h3>
+      {description && <p class="text-sm text-text-secondary">{description}</p>}
+    </header>
+    <nav>
+      <slot name="nav-links" />
+    </nav>
+  </div>
 
   <div class="my-8 px-6">
     <slot name="body" />

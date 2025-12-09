@@ -1,13 +1,15 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
 import ArrowIcon from "@/assets/ArrowIcon.astro";
+interface Props {
+  transitionName?: string;
+}
 import {
   getTotalBrothers,
-  getTotalCatechists,
   getTotalCommunities,
   getTotalParishes,
 } from "@/lib/stats";
-
+const { transitionName } = Astro.props;
 const info = [
   {
     name: "Parroquias",
@@ -22,12 +24,12 @@ const info = [
   {
     name: "Comunidades",
     count: await getTotalCommunities(),
-    href: "/communities",
+    href: "#section-communities",
   },
   {
-    name: "Catequistas",
-    count: await getTotalCatechists(),
-    href: "#",
+    name: "Convivencias",
+    count: 0,
+    href: "/convivencias",
   },
 ];
 ---
@@ -35,6 +37,7 @@ const info = [
 <SectionContainer
   title="Resumen"
   description="Vista rápida de las estadísticas principales de la plataforma"
+  transition:name={transitionName}
 >
   <div
     slot="body"
@@ -73,7 +76,7 @@ const info = [
 </SectionContainer>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("astro:page-load", () => {
     const resumeButtons = document.querySelectorAll(".resume-btn");
     const resumeIndicator = document.querySelector(
       ".resume-indicator",

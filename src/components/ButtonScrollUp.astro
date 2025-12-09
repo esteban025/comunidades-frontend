@@ -31,9 +31,11 @@ import ArrowIcon from "@/assets/ArrowIcon.astro";
 </style>
 
 <script>
-  const btnScrollUp = document.getElementById("btn-scroll-up");
+  document.addEventListener("astro:page-load", () => {
+    const btnScrollUp = document.getElementById("btn-scroll-up");
 
-  btnScrollUp?.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    btnScrollUp?.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   });
 </script>
