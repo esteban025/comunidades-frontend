@@ -1,0 +1,112 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import {
+  getConvivenciasForDashboard,
+  getConfirmedBrothersByConvivencia,
+} from "@/services/convivencias";
+
+const COSTO_POR_HERMANO = 65; // costo base, aún no visible en UI
+
+const { convivencias } = await getConvivenciasForDashboard();
+
+const url = new URL(Astro.request.url);
+const convivenciaIdParam = url.searchParams.get("convivenciaId");
+
+let currentConv = convivencias[0] ?? null;
+
+if (convivenciaIdParam) {
+  const idNum = Number(convivenciaIdParam);
+  const found = convivencias.find((c: any) => c.id === idNum);
+  if (found) {
+    currentConv = found;
+  }
+}
+
+let asistentes: any[] = [];
+
+if (currentConv) {
+  const allConfirmed = await getConfirmedBrothersByConvivencia(currentConv.id);
+  // Por ahora, para cobros solo usamos los que tienen attended = true
+  asistentes = allConfirmed.filter((b: any) => Boolean(b.attended));
+}
+
+const totalAsistentes = asistentes.length;
+const totalTeorico = totalAsistentes * COSTO_POR_HERMANO;
+---
+
+<Layout>
+  <main class="max-w-5xl mx-auto mt-6 space-y-6">
+    <header class="space-y-1">
+      <h1 class="text-2xl font-bold text-gray-800">Cobros por comunidad</h1>
+      {
+        currentConv && (
+          <p class="text-sm text-gray-600">
+            Convivencia: <strong>{currentConv.name}</strong>
+          </p>
+        )
+      }
+      {
+        !currentConv && (
+          <p class="text-sm text-red-600">
+            No se pudo determinar la convivencia para los cobros.
+          </p>
+        )
+      }
+    </header>
+
+    {
+      currentConv && totalAsistentes === 0 && (
+        <p class="text-sm text-gray-600">
+          No hay asistentes marcados como que realmente asistieron. Primero
+          confirma la asistencia real en la página de asistentes confirmados.
+        </p>
+      )
+    }
+
+    {
+      currentConv && totalAsistentes > 0 && (
+        <section class="space-y-4">
+          <div class="text-sm text-gray-700 space-y-1">
+            <p>
+              Total de asistentes definitivos:{" "}
+              <strong>{totalAsistentes}</strong>
+            </p>
+            <p>
+              Monto teórico total (sin considerar colecta real):
+              <strong> ${totalTeorico}</strong>
+            </p>
+            <p class="text-xs text-gray-500">
+              (El costo por hermano se maneja internamente en el sistema por
+              ahora.)
+            </p>
+          </div>
+
+          <div class="overflow-x-auto border border-gray-200 rounded-lg">
+            <table class="min-w-full text-sm text-left text-gray-700">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                <tr>
+                  <th class="py-2 px-3">Parroquia</th>
+                  <th class="py-2 px-3">Comunidad</th>
+                  <th class="py-2 px-3">Nombre</th>
+                </tr>
+              </thead>
+              <tbody>
+                {asistentes.map((brother: any) => (
+                  <tr class="border-t last:border-b-0">
+                    <td class="py-2 px-3">
+                      {brother.parish_aka ?? brother.parish_name}
+                    </td>
+                    <td class="py-2 px-3">
+                      Comunidad {brother.community_number}
+                    </td>
+                    <td class="py-2 px-3">{brother.names}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )
+    }
+  </main>
+</Layout>

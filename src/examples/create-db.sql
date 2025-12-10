@@ -134,6 +134,7 @@ CREATE TABLE convivencia_attendees (
   casa_id INT,  -- Casa asignada (puede ser NULL si aún no se asigna)
   observations TEXT,  -- "Tercera edad - necesita planta baja", "Matrimonio con bebé"
   special_needs ENUM('ninguna', 'tercera_edad', 'bebe', 'movilidad_reducida', 'otra') DEFAULT 'ninguna',
+  attended TINYINT(1) NOT NULL DEFAULT 0,
   registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (convivencia_id) REFERENCES convivencias(id) ON DELETE CASCADE,

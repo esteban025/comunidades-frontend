@@ -1,0 +1,227 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import {
+  getConvivenciasForDashboard,
+  getConfirmedBrothersByConvivencia,
+} from "@/services/convivencias";
+
+const { convivencias } = await getConvivenciasForDashboard();
+
+const url = new URL(Astro.request.url);
+const convivenciaIdParam = url.searchParams.get("convivenciaId");
+
+let currentConv = convivencias[0] ?? null;
+
+if (convivenciaIdParam) {
+  const idNum = Number(convivenciaIdParam);
+  const found = convivencias.find((c: any) => c.id === idNum);
+  if (found) {
+    currentConv = found;
+  }
+}
+
+const confirmedBrothers = currentConv
+  ? await getConfirmedBrothersByConvivencia(currentConv.id)
+  : [];
+---
+
+<Layout>
+  <main
+    class="max-w-5xl mx-auto mt-6 space-y-6"
+    data-convivencia-id={currentConv ? String(currentConv.id) : ""}
+  >
+    <header class="space-y-1">
+      <h1 class="text-2xl font-bold text-gray-800">Asistentes confirmados</h1>
+      {
+        currentConv && (
+          <p class="text-sm text-gray-600">
+            Convivencia actual: <strong>{currentConv.name}</strong>
+          </p>
+        )
+      }
+      {
+        !currentConv && (
+          <p class="text-sm text-red-600">
+            No hay ninguna convivencia activa para mostrar asistentes.
+          </p>
+        )
+      }
+    </header>
+
+    {
+      currentConv && confirmedBrothers.length === 0 && (
+        <p class="text-sm text-gray-600">
+          Aún no hay asistentes confirmados para esta convivencia.
+        </p>
+      )
+    }
+
+    {
+      currentConv && confirmedBrothers.length > 0 && (
+        <section class="space-y-4">
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <span>
+              Marca quiénes <strong>realmente asistieron</strong> a la
+              convivencia.
+            </span>
+          </div>
+
+          <div class="overflow-x-auto border border-gray-200 rounded-lg">
+            <table class="min-w-full text-sm text-left text-gray-700">
+              <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                <tr>
+                  <th class="py-2 px-3">Parroquia</th>
+                  <th class="py-2 px-3">Comunidad</th>
+                  <th class="py-2 px-3">Nombre</th>
+                  <th class="py-2 px-3 text-center">Asistió</th>
+                </tr>
+              </thead>
+              <tbody>
+                {confirmedBrothers.map((brother: any) => (
+                  <tr class="border-t last:border-b-0">
+                    <td class="py-2 px-3">
+                      {brother.parish_aka ?? brother.parish_name}
+                    </td>
+                    <td class="py-2 px-3">
+                      Comunidad {brother.community_number}
+                    </td>
+                    <td class="py-2 px-3">{brother.names}</td>
+                    <td class="py-2 px-3 text-center">
+                      <input
+                        type="checkbox"
+                        class="w-4 h-4 cursor-pointer attended-checkbox"
+                        data-brother-id={brother.brother_id}
+                        checked={Boolean(brother.attended)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex flex-wrap gap-3 justify-end mt-4">
+            <button
+              type="button"
+              class="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              id="btn-print-attendees"
+            >
+              Imprimir
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-700"
+              id="btn-save-attended"
+            >
+              Guardar asistieron realmente
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-500"
+              id="btn-go-cobros"
+            >
+              Ir a cobros
+            </button>
+          </div>
+        </section>
+      )
+    }
+  </main>
+</Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const main = document.querySelector("main");
+    if (!main) return;
+
+    const saveBtn = document.getElementById(
+      "btn-save-attended",
+    ) as HTMLButtonElement | null;
+    const printBtn = document.getElementById(
+      "btn-print-attendees",
+    ) as HTMLButtonElement | null;
+    const cobrosBtn = document.getElementById(
+      "btn-go-cobros",
+    ) as HTMLButtonElement | null;
+
+    const convivenciaId = main.getAttribute("data-convivencia-id") ?? "";
+
+    if (printBtn) {
+      printBtn.addEventListener("click", () => {
+        window.print();
+      });
+    }
+
+    if (cobrosBtn) {
+      cobrosBtn.addEventListener("click", () => {
+        if (!convivenciaId) {
+          alert("No se pudo determinar la convivencia actual.");
+          return;
+        }
+        window.location.href = `/cobros?convivenciaId=${convivenciaId}`;
+      });
+    }
+
+    if (!saveBtn) return;
+
+    saveBtn.addEventListener("click", async () => {
+      if (!convivenciaId) {
+        alert("No se pudo determinar la convivencia actual.");
+        return;
+      }
+
+      const checkboxes = document.querySelectorAll(
+        ".attended-checkbox",
+      ) as NodeListOf<HTMLInputElement>;
+
+      const attendedIds: number[] = [];
+      const notAttendedIds: number[] = [];
+
+      checkboxes.forEach((cb) => {
+        const idAttr = cb.getAttribute("data-brother-id");
+        if (!idAttr) return;
+        const id = Number(idAttr);
+        if (cb.checked) {
+          attendedIds.push(id);
+        } else {
+          notAttendedIds.push(id);
+        }
+      });
+
+      saveBtn.disabled = true;
+      const originalText =
+        saveBtn.textContent || "Guardar asistieron realmente";
+      saveBtn.textContent = "Guardando...";
+
+      try {
+        const res = await fetch(`/api/convivencias/${convivenciaId}/attended`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            attended_ids: attendedIds,
+            not_attended_ids: notAttendedIds,
+          }),
+        });
+
+        if (!res.ok) {
+          console.error("Error al guardar asistencia real", await res.text());
+          alert("Ocurrió un error al guardar los cambios.");
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalText;
+          return;
+        }
+
+        saveBtn.textContent = "Guardado";
+        setTimeout(() => {
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalText;
+        }, 1000);
+      } catch (error) {
+        console.error("Error de red al guardar asistencia real", error);
+        alert("Error de red al guardar asistencia.");
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
+    });
+  });
+</script>

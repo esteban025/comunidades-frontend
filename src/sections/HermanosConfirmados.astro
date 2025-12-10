@@ -65,7 +65,16 @@ const confirmedBrothers = currentConv
   {
     confirmedBrothers.length > 0 && (
       <div class="" slot="footer-link">
-        <button class="btn btn-primary">Asignar Hospedaje</button>
+        <a
+          class="btn btn-primary flex"
+          href={
+            currentConv
+              ? `/asistentes-confirmados?convivenciaId=${currentConv.id}`
+              : "/asistentes-confirmados"
+          }
+        >
+          Ver lista de confirmados
+        </a>
       </div>
     )
   }

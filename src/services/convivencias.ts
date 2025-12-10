@@ -216,6 +216,7 @@ export async function getConfirmedBrothersByConvivencia(convivenciaId: number) {
       p.aka AS parish_aka,
       ca.observations,
       ca.special_needs,
+      ca.attended,
       casas.name AS casa_name
     FROM convivencia_attendees ca
     INNER JOIN brothers br ON ca.brother_id = br.id
