@@ -1,0 +1,233 @@
+---
+import SearchIcon from "@/assets/SearchIcon.astro";
+import PlusIcon from "@/assets/PLusIcon.astro";
+---
+
+<div class="flex flex-col gap-4" id="search-invited-root">
+  <div class="flex justify-end">
+    <div class="relative flex items-center w-full max-w-lg">
+      <SearchIcon
+        class="absolute left-4 w-5 aspect-square block text-text-secondary pointer-events-none"
+      />
+      <div class="content-input w-full">
+        <input
+          type="text"
+          id="search-invited-input"
+          placeholder="Buscar hermano..."
+          class="search-input"
+          autocomplete="off"
+        />
+      </div>
+      <button
+        class="absolute right-4 w-8 aspect-square border-none bg-gray-200 rounded-full items-center justify-center cursor-pointer text-text-secondary transition-all duration-200 hover:bg-gray-300 hover:text-text-purple-500 hidden clear-search-btn"
+        id="clear-search-invited"
+        title="Limpiar búsqueda"
+      >
+        <PlusIcon class="w-4 h-4 transform rotate-45" />
+      </button>
+    </div>
+  </div>
+
+  <div class="container-table" id="search-invited-results">
+    <p class="text-sm text-gray-500">
+      Escribe al menos 2 caracteres para buscar hermanos por nombre.
+    </p>
+  </div>
+</div>
+
+<style>
+  #search-invited-root .search-input {
+    padding: 0.75rem 3rem 0.75rem 3rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 9999px;
+    font-size: 0.95rem;
+    color: #374151;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  #search-invited-root .search-input:focus {
+    border-color: var(--color-border-dark);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  #search-invited-root .search-input::placeholder {
+    color: var(--color-text-light);
+  }
+
+  #search-invited-root .clear-search-btn {
+    display: flex;
+  }
+
+  #search-invited-root .clear-search-btn.hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  interface SearchResultBrother {
+    id: number;
+    names: string;
+    community: {
+      number: number;
+    };
+    parish: {
+      aka: string;
+      name: string;
+    };
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    const root = document.getElementById(
+      "search-invited-root",
+    ) as HTMLDivElement | null;
+    const input = document.getElementById(
+      "search-invited-input",
+    ) as HTMLInputElement | null;
+    const clearBtn = document.getElementById(
+      "clear-search-invited",
+    ) as HTMLButtonElement | null;
+    const results = document.getElementById(
+      "search-invited-results",
+    ) as HTMLDivElement | null;
+
+    if (!root || !input || !results) return;
+
+    let selectedIds = new Set<number>();
+    let lastTerm = "";
+
+    const renderResults = (brothers: SearchResultBrother[], term: string) => {
+      selectedIds.clear();
+
+      if (!term || term.length < 2) {
+        results.innerHTML =
+          '<p class="text-sm text-gray-500">Escribe al menos 2 caracteres para buscar hermanos por nombre.</p>';
+        return;
+      }
+
+      if (brothers.length === 0) {
+        results.innerHTML =
+          '<p class="text-sm text-gray-500">No se encontraron hermanos con ese nombre.</p>';
+        return;
+      }
+
+      const rows = brothers
+        .map((brother) => {
+          const parishLabel = brother.parish.aka || brother.parish.name;
+          return `
+            <tr class="border-b last:border-0">
+              <td class="py-2 pr-4">
+                <span class="font-medium">${parishLabel}</span>
+              </td>
+              <td class="py-2 pr-4">Comunidad ${brother.community.number}</td>
+              <td class="py-2 pr-4">${brother.names}</td>
+              <td class="py-2 pr-0 text-right">
+                <input
+                  type="checkbox"
+                  class="w-4 h-4 cursor-pointer"
+                  data-brother-id="${brother.id}"
+                />
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      results.innerHTML = `
+        <table class="min-w-full text-sm text-left text-gray-700">
+          <thead class="border-b text-xs uppercase text-gray-500">
+            <tr>
+              <th class="py-2 pr-4">Parroquia</th>
+              <th class="py-2 pr-4">Comunidad</th>
+              <th class="py-2 pr-4">Nombre del hermano</th>
+              <th class="py-2 pr-4 text-right">Invitar</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+
+      const checkboxes = results.querySelectorAll(
+        "input[data-brother-id]",
+      ) as NodeListOf<HTMLInputElement>;
+
+      checkboxes.forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const idAttr = cb.getAttribute("data-brother-id");
+          if (!idAttr) return;
+          const id = Number(idAttr);
+          if (cb.checked) {
+            selectedIds.add(id);
+          } else {
+            selectedIds.delete(id);
+          }
+        });
+      });
+
+      // Hacer disponible la selección para quien lo necesite
+      (window as any).getSelectedInvitedBrothers = () =>
+        Array.from(selectedIds);
+    };
+
+    const searchBrothers = async (term: string) => {
+      lastTerm = term;
+
+      if (!term || term.length < 2) {
+        renderResults([], term);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/all-brothers?page=1&limit=200");
+        const json = await res.json();
+
+        if (!json.success || !Array.isArray(json.data)) {
+          results.innerHTML =
+            '<p class="text-sm text-red-600">Error al buscar hermanos.</p>';
+          selectedIds.clear();
+          return;
+        }
+
+        const brothers: SearchResultBrother[] = json.data.filter(
+          (b: any) =>
+            typeof b.names === "string" &&
+            b.names.toLowerCase().includes(term.toLowerCase()),
+        );
+
+        renderResults(brothers, term);
+      } catch (error) {
+        console.error("Error buscando hermanos:", error);
+        results.innerHTML =
+          '<p class="text-sm text-red-600">Error de red al buscar hermanos.</p>';
+        selectedIds.clear();
+      }
+    };
+
+    let debounceTimeout: any;
+
+    input.addEventListener("input", () => {
+      const term = input.value.trim();
+
+      if (term !== "") {
+        clearBtn?.classList.remove("hidden");
+      } else {
+        clearBtn?.classList.add("hidden");
+      }
+
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(() => {
+        searchBrothers(term);
+      }, 300);
+    });
+
+    clearBtn?.addEventListener("click", () => {
+      input.value = "";
+      clearBtn.classList.add("hidden");
+      input.focus();
+      searchBrothers("");
+    });
+  });
+</script>

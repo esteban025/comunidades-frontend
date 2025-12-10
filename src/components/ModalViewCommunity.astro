@@ -2,8 +2,12 @@
 import ModalDesign from "./ModalDesign.astro";
 ---
 
-<ModalDesign id="modal-view-brother" title="Detalles de la comunidad" idForm="">
-  <div class="flex flex-col gap-6" slot="body" id="brother-details-content">
+<ModalDesign id="modal-view-community" title="Detalles de la comunidad">
+  <div
+    class="flex flex-col gap-6 w-full"
+    slot="body"
+    id="community-details-content"
+  >
     <div class="flex items-center justify-center">
       <div class="loading-spinner">Cargando...</div>
     </div>
@@ -11,7 +15,7 @@ import ModalDesign from "./ModalDesign.astro";
   <button
     type="button"
     class="btn btn-secondary flex-1"
-    data-close="modal-view-brother"
+    data-close="modal-view-community"
     slot="footer"
   >
     Cerrar
@@ -34,52 +38,82 @@ import ModalDesign from "./ModalDesign.astro";
 <script>
   import { showNotification } from "@/scripts/notification";
 
-  // Función global para abrir el modal de comunidad
-  (window as any).openViewCommunityModal = async (
-    communityId: string,
-    // parishName: string,
-    // communityNumber: string,
-  ) => {
-    const modal = document.getElementById("modal-view-brother");
-    const contentDiv = document.getElementById("brother-details-content");
+  document.addEventListener("astro:page-load", () => {
+    const modal = document.getElementById(
+      "modal-view-community",
+    ) as HTMLDivElement;
+    const closeButtons = document.querySelectorAll(
+      '[data-close="modal-view-community"]',
+    );
+    const contentDiv = document.getElementById(
+      "community-details-content",
+    ) as HTMLDivElement;
 
     if (!modal || !contentDiv) return;
 
-    // Abrir modal
-    modal.classList.remove("hidden");
-
-    // Mostrar loading
-    contentDiv.innerHTML = `
-      <div class="flex items-center justify-center">
-        <div class="loading-spinner">Cargando detalles de la comunidad...</div>
-      </div>
-    `;
-
-    try {
-      // Obtener HTML renderizado del servidor
-      const response = await fetch(`/view-community/${communityId}`);
-
-      if (!response.ok) {
-        throw new Error("Error al cargar los datos");
-      }
-
-      const html = await response.text();
-
-      // Renderizar contenido
-      contentDiv.innerHTML = html;
-    } catch (error) {
-      console.error("Error cargando detalles de comunidad:", error);
-      showNotification(
-        "Error al cargar los detalles de la comunidad",
-        "error",
-        3000,
-      );
+    function resetContent() {
       contentDiv.innerHTML = `
-        <div class="error-message">
-          <p class="font-semibold">Error al cargar los datos</p>
-          <p class="text-sm mt-2">Por favor, intenta nuevamente</p>
+        <div class="flex items-center justify-center">
+          <div class="loading-spinner">Cargando...</div>
         </div>
       `;
     }
-  };
+
+    function closeViewCommunityModal() {
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+      resetContent();
+    }
+
+    async function openViewCommunityModal(communityId: string) {
+      modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+
+      contentDiv.innerHTML = `
+        <div class="flex items-center justify-center">
+          <div class="loading-spinner">Cargando detalles de la comunidad...</div>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`/view-community/${communityId}`);
+
+        if (!response.ok) {
+          throw new Error("Error al cargar los datos");
+        }
+
+        const html = await response.text();
+        contentDiv.innerHTML = html;
+      } catch (error) {
+        console.error("Error cargando detalles de comunidad:", error);
+        showNotification(
+          "Error al cargar los detalles de la comunidad",
+          "error",
+          3000,
+        );
+        contentDiv.innerHTML = `
+          <div class="error-message">
+            <p class="font-semibold">Error al cargar los datos</p>
+            <p class="text-sm mt-2">Por favor, intenta nuevamente</p>
+          </div>
+        `;
+      }
+    }
+
+    closeButtons.forEach((button) => {
+      button.addEventListener("click", closeViewCommunityModal);
+    });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeViewCommunityModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeViewCommunityModal();
+      }
+    });
+
+    (window as any).openViewCommunityModal = openViewCommunityModal;
+  });
 </script>

@@ -1,0 +1,121 @@
+---
+import ModalDesign from "./ModalDesign.astro";
+import SearchInvited from "./SearchInvited.astro";
+---
+
+<ModalDesign title="Invitar Hermanos" id="modal-invited-brother" isBig>
+  <section slot="body" class="flex flex-col gap-6 w-full">
+    <p class="text-sm text-neutral-700">
+      Puedes buscar hermanos por su nombre para agregarlos como convocados a la
+      convivencia.
+    </p>
+
+    <SearchInvited />
+  </section>
+  <button slot="footer" class="btn btn-secondary flex-1">Cancelar</button>
+  <button
+    slot="footer"
+    class="btn btn-primary flex-1"
+    type="button"
+    id="confirm-selected-invited"
+  >
+    Aceptar
+  </button>
+</ModalDesign>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const modal = document.getElementById(
+      "modal-invited-brother",
+    ) as HTMLDivElement | null;
+    const confirmBtn = document.getElementById(
+      "confirm-selected-invited",
+    ) as HTMLButtonElement | null;
+
+    if (!modal || !confirmBtn) return;
+
+    const closeButtons = document.querySelectorAll(
+      '[data-close="modal-invited-brother"]',
+    );
+
+    let convivenciaId: string | null = null;
+
+    const closeModal = () => {
+      convivenciaId = null;
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+    };
+
+    const openModal = (convId: string) => {
+      convivenciaId = convId;
+      modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    };
+
+    closeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        closeModal();
+      });
+    });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeModal();
+      }
+    });
+
+    confirmBtn.addEventListener("click", async () => {
+      if (!convivenciaId) {
+        closeModal();
+        return;
+      }
+
+      const getter = (window as any).getSelectedInvitedBrothers;
+      const selected: number[] = typeof getter === "function" ? getter() : [];
+
+      if (!selected || selected.length === 0) {
+        closeModal();
+        return;
+      }
+
+      confirmBtn.disabled = true;
+      const originalText = confirmBtn.textContent || "Aceptar";
+      confirmBtn.textContent = "Agregando...";
+
+      try {
+        const res = await fetch(`/api/convivencias/${convivenciaId}/invited`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ brother_ids: selected }),
+        });
+
+        if (!res.ok) {
+          console.error("Error al agregar invitados", await res.text());
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = originalText;
+          return;
+        }
+
+        closeModal();
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 400);
+      } catch (error) {
+        console.error("Error de red al agregar invitados", error);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = originalText;
+      }
+    });
+
+    (window as any).openMoreInvitedModal = (convId: string) => {
+      openModal(convId);
+    };
+  });
+</script>

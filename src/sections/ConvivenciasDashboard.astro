@@ -6,6 +6,7 @@ import {
   getConvivenciasForDashboard,
   getInvitedBrothersByConvivencia,
 } from "@/services/convivencias";
+import PLusIcon from "@/assets/PLusIcon.astro";
 
 const { convivencias, totals } = await getConvivenciasForDashboard();
 const currentConv = convivencias[0] ?? null;
@@ -105,47 +106,22 @@ const invitedBrothers = currentConv
       </div>
     </section>
   </div>
-</SectionContainer>
-
-<!-- Card flotante para capturar observaciones al confirmar asistencia -->
-<div
-  id="confirm-observations-card"
-  class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40"
->
-  <div class="w-full max-w-md rounded-xl bg-white p-4 shadow-lg">
-    <h3 class="mb-2 text-sm font-semibold text-gray-800">
-      Confirmar asistencia
-    </h3>
-    <p class="mb-3 text-xs text-gray-600">
-      Puedes escribir alguna observación para este hermano (por ejemplo, tercera
-      edad, va con bebé, etc.). Este campo es opcional.
-    </p>
-    <textarea
-      id="confirm-observations-input"
-      class="mb-3 h-24 w-full rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-800 focus:border-gray-500 focus:outline-none"
-      placeholder="Escribe aquí las observaciones (opcional)"></textarea>
-    <div class="flex justify-end gap-2 text-xs">
-      <button
-        type="button"
-        id="confirm-observations-cancel"
-        class="rounded-md border border-gray-300 bg-white px-3 py-1 text-gray-700 hover:bg-gray-50"
-      >
-        Cancelar
-      </button>
-      <button
-        type="button"
-        id="confirm-observations-submit"
-        class="rounded-md bg-gray-800 px-3 py-1 font-medium text-white hover:bg-gray-700"
-      >
-        Confirmar asistencia
-      </button>
-    </div>
+  <div class="btns-action" slot="footer-link">
+    <button
+      class="btn btn-primary flex item gap-2"
+      data-modal="invited-brother-btn"
+    >
+      <PLusIcon class="size-5 block" />
+      <span>Invitar Hermanos</span>
+    </button>
   </div>
-</div>
+</SectionContainer>
 
 <script>
   document.addEventListener("astro:page-load", () => {
-    const container = document.querySelector("#invited-brothers");
+    const $id = (selector: string) => document.getElementById(selector);
+
+    const container = $id("invited-brothers");
 
     if (!container) return;
 
@@ -156,86 +132,31 @@ const invitedBrothers = currentConv
       "button[data-brother-id]",
     ) as NodeListOf<HTMLButtonElement>;
 
-    const card = document.getElementById(
-      "confirm-observations-card",
-    ) as HTMLDivElement | null;
-    const input = document.getElementById(
-      "confirm-observations-input",
-    ) as HTMLTextAreaElement | null;
-    const btnCancel = document.getElementById(
-      "confirm-observations-cancel",
-    ) as HTMLButtonElement | null;
-    const btnSubmit = document.getElementById(
-      "confirm-observations-submit",
-    ) as HTMLButtonElement | null;
-
-    if (!card || !input || !btnCancel || !btnSubmit) return;
-
-    let selectedBrotherId: string | null = null;
-
-    const openCard = (brotherId: string) => {
-      selectedBrotherId = brotherId;
-      input.value = "";
-      card.classList.remove("hidden");
-      card.classList.add("flex");
-      input.focus();
-    };
-
-    const closeCard = () => {
-      selectedBrotherId = null;
-      card.classList.add("hidden");
-      card.classList.remove("flex");
-    };
-
     buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const brotherId = btn.getAttribute("data-brother-id");
         if (!brotherId) return;
-        openCard(brotherId);
+
+        if (typeof (window as any).openConfirmAttendanceModal === "function") {
+          (window as any).openConfirmAttendanceModal(convivenciaId, brotherId);
+        } else {
+          console.error("openConfirmAttendanceModal no está disponible");
+        }
       });
     });
 
-    btnCancel.addEventListener("click", () => {
-      closeCard();
-    });
+    const inviteBtn = document.querySelector(
+      '[data-modal="invited-brother-btn"]',
+    ) as HTMLButtonElement | null;
 
-    btnSubmit.addEventListener("click", async () => {
-      if (!selectedBrotherId) return;
-
-      btnSubmit.disabled = true;
-      btnSubmit.textContent = "Confirmando...";
-
-      const observations =
-        input.value.trim() !== "" ? input.value.trim() : null;
-
-      try {
-        const res = await fetch(
-          `/api/convivencias/${convivenciaId}/attendees`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              brother_id: Number(selectedBrotherId),
-              observations,
-            }),
-          },
-        );
-
-        if (!res.ok) {
-          console.error("Error al confirmar asistencia", await res.text());
-          btnSubmit.disabled = false;
-          btnSubmit.textContent = "Confirmar asistencia";
-          return;
+    if (inviteBtn) {
+      inviteBtn.addEventListener("click", () => {
+        if (typeof (window as any).openMoreInvitedModal === "function") {
+          (window as any).openMoreInvitedModal(convivenciaId);
+        } else {
+          console.error("openMoreInvitedModal no está disponible");
         }
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 400);
-      } catch (err) {
-        console.error("Error de red al confirmar asistencia", err);
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Confirmar asistencia";
-      }
-    });
+      });
+    }
   });
 </script>

@@ -25,7 +25,7 @@
   /* display: block; */
 }
 
-.content-input input {
+.content-input input, .content-input textarea{
   width: 100%;
   padding: 0.5rem 1.25rem;
   border: 2px solid #e5e7eb;
@@ -35,6 +35,9 @@
   border-radius: 9999px;
   outline: none;
   transition: all 0.2s ease;
+}
+.content-input textarea.no-rounded {
+  border-radius: 1rem;
 }
 
 .content-input input:focus {

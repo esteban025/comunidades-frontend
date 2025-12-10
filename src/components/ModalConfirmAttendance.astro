@@ -1,0 +1,150 @@
+---
+import ModalDesign from "./ModalDesign.astro";
+---
+
+<ModalDesign
+  title="Confirmar asistencia"
+  id="modal-confirm-attendance"
+  isForm
+  idForm="modal-confirm-attendance-form"
+>
+  <article slot="body" class="flex flex-col gap-3">
+    <p class="text-sm text-neutral-700">
+      Puedes escribir alguna observación para este hermano (por ejemplo, tercera
+      edad, va con bebé, etc.). Este campo es opcional.
+    </p>
+
+    <div class="content-input">
+      <textarea
+        id="confirm-observations-input"
+        class="input no-rounded"
+        placeholder="Escribe aquí las observaciones (opcional)"></textarea>
+    </div>
+  </article>
+
+  <button
+    type="button"
+    slot="footer"
+    class="flex-1 btn btn-secondary"
+    data-close="modal-confirm-attendance"
+  >
+    Cancelar
+  </button>
+
+  <button type="submit" slot="footer" class="flex-1 btn btn-primary">
+    Confirmar asistencia
+  </button>
+</ModalDesign>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const $id = (selector: string) => document.getElementById(selector);
+
+    const modal = $id("modal-confirm-attendance");
+    const form = $id("modal-confirm-attendance-form") as HTMLFormElement | null;
+    const input = $id(
+      "confirm-observations-input",
+    ) as HTMLTextAreaElement | null;
+
+    if (!modal || !form || !input) return;
+
+    const closeButtons = document.querySelectorAll(
+      '[data-close="modal-confirm-attendance"]',
+    );
+
+    let convivenciaId: string | null = null;
+    let selectedBrotherId: string | null = null;
+
+    const openConfirmAttendanceModal = (convId: string, brotherId: string) => {
+      convivenciaId = convId;
+      selectedBrotherId = brotherId;
+
+      input.value = "";
+
+      modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+
+      input.focus();
+    };
+
+    const closeConfirmAttendanceModal = () => {
+      convivenciaId = null;
+      selectedBrotherId = null;
+
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+
+      input.value = "";
+    };
+
+    closeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        closeConfirmAttendanceModal();
+      });
+    });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeConfirmAttendanceModal();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeConfirmAttendanceModal();
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!convivenciaId || !selectedBrotherId) return;
+
+      const submitButton = form.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement | null;
+
+      if (!submitButton) return;
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Confirmando...";
+
+      const observations =
+        input.value.trim() !== "" ? input.value.trim() : null;
+
+      try {
+        const res = await fetch(
+          `/api/convivencias/${convivenciaId}/attendees`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              brother_id: Number(selectedBrotherId),
+              observations,
+            }),
+          },
+        );
+
+        if (!res.ok) {
+          console.error("Error al confirmar asistencia", await res.text());
+          submitButton.disabled = false;
+          submitButton.textContent = "Confirmar asistencia";
+          return;
+        }
+
+        closeConfirmAttendanceModal();
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 400);
+      } catch (err) {
+        console.error("Error de red al confirmar asistencia", err);
+        submitButton.disabled = false;
+        submitButton.textContent = "Confirmar asistencia";
+      }
+    });
+
+    (window as any).openConfirmAttendanceModal = openConfirmAttendanceModal;
+  });
+</script>

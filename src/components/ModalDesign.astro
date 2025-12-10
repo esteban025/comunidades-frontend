@@ -4,16 +4,23 @@ interface Props {
   idForm?: string;
   title: string;
   isForm?: boolean;
+  isBig?: boolean;
 }
 
-const { id, idForm, title, isForm = false } = Astro.props;
+const { id, idForm, title, isForm = false, isBig = false } = Astro.props;
+const widthContainer = isBig ? "max-w-[1000px]" : "max-w-[700px]";
 ---
 
 <div
   id={id}
   class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 items-center justify-center p-4 backdrop-blur-md"
 >
-  <div class="modal-container w-full max-w-[700px] rounded-2xl overflow-hidden">
+  <div
+    class:list={[
+      "modal-container w-full  rounded-2xl overflow-hidden",
+      widthContainer,
+    ]}
+  >
     <div class="modal-content bg-white shadow-lg">
       <header
         class="modal-header flex justify-between items-center p-6 border-b-2 border-neutral-300"
@@ -35,20 +42,20 @@ const { id, idForm, title, isForm = false } = Astro.props;
         isForm ? (
           <div class="modal-body">
             <form id={idForm}>
-              <div class="p-6 flex flex-col gap-5">
+              <div class="p-6 flex flex-col gap-5 border-b-2 border-neutral-300 ">
                 <slot name="body" />
               </div>
-              <footer class="modal-footer flex gap-3 mt-2 border-t-2 border-neutral-300 p-6">
+              <footer class="modal-footer flex gap-3 p-6 max-w-[700px] mx-auto">
                 <slot name="footer" />
               </footer>
             </form>
           </div>
         ) : (
           <div class="modal-body">
-            <div class="ss">
+            <div class="border-b-2 border-neutral-300 p-6 flex">
               <slot name="body" />
             </div>
-            <footer class="modal-footer flex gap-3 border-t-2 border-neutral-300 p-6">
+            <footer class="modal-footer flex gap-3 p-6 max-w-[700px] mx-auto">
               <slot name="footer" />
             </footer>
           </div>
