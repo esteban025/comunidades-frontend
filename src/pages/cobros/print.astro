@@ -4,6 +4,7 @@ import {
   getConvivenciasForDashboard,
   getConfirmedBrothersByConvivencia,
 } from "@/services/convivencias";
+import { formatConvivenciaRange } from "@/utils/formatDates";
 
 const { convivencias } = await getConvivenciasForDashboard();
 
@@ -48,11 +49,15 @@ const parroquia =
   (first?.parish_name as string | undefined) ||
   "";
 const numComunidad = (first?.community_number as number | undefined) || 0;
+const fechaConvivencia = currentConv
+  ? formatConvivenciaRange(currentConv.start_date, currentConv.end_date)
+  : "";
 ---
 
 <PrintByCommunity
   responsable={responsable}
   parroquia={parroquia}
   numComunidad={numComunidad}
+  fechaConvivencia={fechaConvivencia}
   hermanos={hermanos}
 />

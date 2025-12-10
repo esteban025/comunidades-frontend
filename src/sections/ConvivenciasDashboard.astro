@@ -8,7 +8,7 @@ import {
 } from "@/services/convivencias";
 import PLusIcon from "@/assets/PLusIcon.astro";
 
-const { convivencias, totals } = await getConvivenciasForDashboard();
+const { convivencias } = await getConvivenciasForDashboard();
 const currentConv =
   convivencias.find(
     (c: any) => c.status === "planificada" || c.status === "en_curso",
@@ -22,14 +22,12 @@ const invitedBrothers = currentConv
   id="convivencias-dashboard"
   title="Gestión de convivencias"
   description="Visualiza, planifica y edita las convivencias de tu comunidad."
+  data-convivencia-id={currentConv ? currentConv.id : ""}
 >
   <div slot="icon-title" class="flex items-center justify-center">
     <PairsIcon class="w-7 aspect-square text-gray-500" />
   </div>
-  <div slot="nav-links" class="sss">
-    <!-- <button class="btn btn-primary">Finalizar Convivencias</button> -->
-    <!-- <button>Editar</button> -->
-  </div>
+  <div slot="nav-links" class="sss"></div>
 
   <div slot="body" class="flex flex-col gap-6">
     <!-- Tabla de convivencias -->
@@ -37,41 +35,19 @@ const invitedBrothers = currentConv
       <!-- observar este componente para crear filtro similar -->
       <SearchBrothers />
     </section>
-    <section
-      id="invited-brothers"
-      class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
-      data-convivencia-id={currentConv ? currentConv.id : ""}
-    >
-      <header class="flex items-center justify-between mb-4">
-        <div class="titles">
-          <h2 class="font-semibold">Lista de Hermanos convocados</h2>
-          <p class="text-text-muted text-sm">
-            Apareceran todos los hermanos que han sido convocados
+    <section id="invited-brothers" class="">
+      {
+        invitedBrothers.length === 0 && (
+          <p class="text-sm w-full p-4 min-h-20 text-gray-500 bg-gray-50 border-dashed border-2 border-border-dark rounded-xl">
+            {currentConv
+              ? "Aún no hay hermanos invitados registrados para esta convivencia."
+              : "No hay ninguna convivencia activa en este momento."}
           </p>
-        </div>
-        <div class="accions">
-          {
-            currentConv && (
-              <span class="text-sm text-gray-600">
-                Convivencia actual: <strong>{currentConv.name}</strong>
-              </span>
-            )
-          }
-        </div>
-      </header>
-      <div class="container-table">
-        {
-          invitedBrothers.length === 0 && (
-            <p class="text-sm text-gray-500">
-              {currentConv
-                ? "Aún no hay hermanos invitados registrados para esta convivencia."
-                : "No hay ninguna convivencia activa en este momento."}
-            </p>
-          )
-        }
-
-        {
-          invitedBrothers.length > 0 && (
+        )
+      }
+      {
+        invitedBrothers.length > 0 && (
+          <div class="container-table">
             <table class="min-w-full text-sm text-left text-gray-700">
               <thead class="border-b text-xs uppercase text-gray-500">
                 <tr>
@@ -104,9 +80,9 @@ const invitedBrothers = currentConv
                 ))}
               </tbody>
             </table>
-          )
-        }
-      </div>
+          </div>
+        )
+      }
     </section>
   </div>
   <div class="btns-action" slot="footer-link">
@@ -122,16 +98,19 @@ const invitedBrothers = currentConv
 
 <script>
   document.addEventListener("astro:page-load", () => {
-    const $id = (selector: string) => document.getElementById(selector);
+    const mainContainer = document.getElementById(
+      "convivencias-dashboard",
+    ) as HTMLElement | null;
+    const invitedContainer = document.getElementById(
+      "invited-brothers",
+    ) as HTMLElement | null;
 
-    const container = $id("invited-brothers");
+    if (!mainContainer || !invitedContainer) return;
 
-    if (!container) return;
-
-    const convivenciaId = container.getAttribute("data-convivencia-id");
+    const convivenciaId = mainContainer.getAttribute("data-convivencia-id");
     if (!convivenciaId) return;
 
-    const buttons = container.querySelectorAll(
+    const buttons = invitedContainer.querySelectorAll(
       "button[data-brother-id]",
     ) as NodeListOf<HTMLButtonElement>;
 

@@ -1,8 +1,11 @@
 ---
+import { formatTodayLong } from "@/utils/formatDates";
+
 interface Props {
   responsable: string;
   parroquia: string;
   numComunidad: number;
+  fechaConvivencia: string;
   hermanos?: {
     tipo: string;
     nombres: string;
@@ -10,7 +13,13 @@ interface Props {
     hospedaje: string;
   }[];
 }
-const { responsable, parroquia, numComunidad, hermanos = [] } = Astro.props;
+const {
+  responsable,
+  parroquia,
+  numComunidad,
+  fechaConvivencia,
+  hermanos = [],
+} = Astro.props as Props;
 
 const hermanosAsistieron = hermanos;
 const COSTO_POR_PERSONA = 28;
@@ -63,6 +72,7 @@ const numeroAOrdinal = (num: number): string => {
 };
 
 const comunidadOrdinal = numeroAOrdinal(numComunidad);
+const fechaHoy = formatTodayLong();
 ---
 
 <html lang="es">
@@ -75,8 +85,7 @@ const comunidadOrdinal = numeroAOrdinal(numComunidad);
   <body class="p-8">
     <div class="max-w-4xl mx-auto bg-white p-12">
       <div class="text-right mb-10">
-        <!-- esta fecha debe actualizarse automaticamente al dia que se crea el archivo -->
-        <p>Cuenca, 26 de noviembre de 2025</p>
+        <p>Cuenca, {fechaHoy}</p>
       </div>
 
       <div class="mb-6">
@@ -93,8 +102,10 @@ const comunidadOrdinal = numeroAOrdinal(numComunidad);
 
       <p class="text-justify mb-6">
         A través de la presente solicito cancelar el valor pendiente de la
-        convivencia de transmisión de responsables del 20 al 23 de noviembre del
-        2025 que deberá ser cancelado máximo en 15 días.
+        convivencia de transmisión de responsables realizada del {
+          fechaConvivencia
+        }
+        que deberá ser cancelado máximo en 15 días.
       </p>
 
       <p class="mb-4">

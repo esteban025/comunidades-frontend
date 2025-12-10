@@ -116,6 +116,7 @@ function getTipoFromCivilStatus(status?: string | null): string {
                       <th>Tipo</th>
                       <th>Observación</th>
                       <th>Hospedaje</th>
+                      <th>Num. Habit</th>
                       <th class="no-print">Asistió</th>
                     </tr>
                   </thead>
@@ -127,6 +128,7 @@ function getTipoFromCivilStatus(status?: string | null): string {
                         <td>{getTipoFromCivilStatus(brother.civil_status)}</td>
                         <td>{brother.observations || "-"}</td>
                         <td>Seminario</td>
+                        <td />
                         <td class="no-print">
                           <input
                             type="checkbox"
