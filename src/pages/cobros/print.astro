@@ -1,0 +1,58 @@
+---
+import PrintByCommunity from "@/layouts/PrintByCommunity.astro";
+import {
+  getConvivenciasForDashboard,
+  getConfirmedBrothersByConvivencia,
+} from "@/services/convivencias";
+
+const { convivencias } = await getConvivenciasForDashboard();
+
+const url = new URL(Astro.request.url);
+const convivenciaIdParam = url.searchParams.get("convivenciaId");
+const communityIdParam = url.searchParams.get("communityId");
+
+let currentConv = convivencias[0] ?? null;
+
+if (convivenciaIdParam) {
+  const idNum = Number(convivenciaIdParam);
+  const found = convivencias.find((c: any) => c.id === idNum);
+  if (found) {
+    currentConv = found;
+  }
+}
+
+let comunidadAsistentes: any[] = [];
+
+if (currentConv && communityIdParam) {
+  const allConfirmed = await getConfirmedBrothersByConvivencia(currentConv.id);
+  const communityIdNum = Number(communityIdParam);
+  comunidadAsistentes = allConfirmed.filter(
+    (b: any) => Boolean(b.attended) && b.community_id === communityIdNum,
+  );
+}
+
+const first = comunidadAsistentes[0] || null;
+
+const hermanos = comunidadAsistentes.map((b: any) => ({
+  tipo: b.civil_status,
+  nombres: b.names,
+  observaciones: b.observations || "",
+  hospedaje: b.casa_name || "No especificado",
+}));
+
+// Por ahora no tenemos responsable en la BD; usamos un texto genérico
+// para que no aparezca el nombre del primer hermano como responsable.
+const responsable = "SIN RESPONSABLE ASIGNADO";
+const parroquia =
+  (first?.parish_aka as string | undefined) ||
+  (first?.parish_name as string | undefined) ||
+  "";
+const numComunidad = (first?.community_number as number | undefined) || 0;
+---
+
+<PrintByCommunity
+  responsable={responsable}
+  parroquia={parroquia}
+  numComunidad={numComunidad}
+  hermanos={hermanos}
+/>

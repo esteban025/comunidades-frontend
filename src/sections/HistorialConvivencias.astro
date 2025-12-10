@@ -1,0 +1,52 @@
+---
+import SectionContainer from "@/components/SectionContainer.astro";
+import { getConvivenciasForDashboard } from "@/services/convivencias";
+
+const { convivencias } = await getConvivenciasForDashboard();
+---
+
+<SectionContainer
+  title="Historial de convivencias"
+  description="Listado de convivencias creadas con su estado y fechas."
+>
+  <div slot="body" class="space-y-4">
+    {
+      convivencias.length === 0 && (
+        <p class="text-sm text-text-muted">
+          Aún no se ha creado ninguna convivencia.
+        </p>
+      )
+    }
+
+    {
+      convivencias.length > 0 && (
+        <div class="container-table">
+          <table class="min-w-full text-sm text-left text-gray-700">
+            <thead class="border-b text-xs uppercase text-gray-500">
+              <tr>
+                <th class="py-2 pr-4">Nombre</th>
+                <th class="py-2 pr-4">Fecha inicio</th>
+                <th class="py-2 pr-4">Fecha fin</th>
+                <th class="py-2 pr-4">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {convivencias.map((conv: any) => (
+                <tr class="border-b last:border-0">
+                  <td class="py-2 pr-4">{conv.name}</td>
+                  <td class="py-2 pr-4">
+                    {new Date(conv.start_date).toLocaleDateString()}
+                  </td>
+                  <td class="py-2 pr-4">
+                    {new Date(conv.end_date).toLocaleDateString()}
+                  </td>
+                  <td class="py-2 pr-4 capitalize">{conv.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+  </div>
+</SectionContainer>

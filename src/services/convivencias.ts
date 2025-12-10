@@ -212,6 +212,7 @@ export async function getConfirmedBrothersByConvivencia(convivenciaId: number) {
       br.id AS brother_id,
       br.names,
       br.civil_status,
+      c.id AS community_id,
       c.number_community AS community_number,
       p.name AS parish_name,
       p.aka AS parish_aka,

@@ -9,7 +9,10 @@ import {
 import PLusIcon from "@/assets/PLusIcon.astro";
 
 const { convivencias, totals } = await getConvivenciasForDashboard();
-const currentConv = convivencias[0] ?? null;
+const currentConv =
+  convivencias.find(
+    (c: any) => c.status === "planificada" || c.status === "en_curso",
+  ) ?? null;
 const invitedBrothers = currentConv
   ? await getInvitedBrothersByConvivencia(currentConv.id)
   : [];

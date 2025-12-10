@@ -1,0 +1,194 @@
+---
+interface Props {
+  responsable: string;
+  parroquia: string;
+  numComunidad: number;
+  hermanos?: {
+    tipo: string;
+    nombres: string;
+    observaciones: string;
+    hospedaje: string;
+  }[];
+}
+const { responsable, parroquia, numComunidad, hermanos = [] } = Astro.props;
+
+const hermanosAsistieron = hermanos;
+const COSTO_POR_PERSONA = 28;
+
+// Calcular asistentes y total
+const calcularAsistentesYTotal = () => {
+  let totalAsistentes = 0;
+
+  hermanosAsistieron.forEach((hermano) => {
+    if (hermano.tipo === "matrimonio") {
+      totalAsistentes += 2; // Matrimonio cuenta como 2 personas
+    } else {
+      totalAsistentes += 1; // Soltero o soltera cuenta como 1
+    }
+  });
+
+  return {
+    totalAsistentes,
+    totalAPagar: totalAsistentes * COSTO_POR_PERSONA,
+  };
+};
+
+const { totalAsistentes, totalAPagar } = calcularAsistentesYTotal();
+
+// Función para convertir número a ordinal
+const numeroAOrdinal = (num: number): string => {
+  const ordinales: { [key: number]: string } = {
+    1: "PRIMERA",
+    2: "SEGUNDA",
+    3: "TERCERA",
+    4: "CUARTA",
+    5: "QUINTA",
+    6: "SEXTA",
+    7: "SÉPTIMA",
+    8: "OCTAVA",
+    9: "NOVENA",
+    10: "DÉCIMA",
+    11: "UNDÉCIMA",
+    12: "DUODÉCIMA",
+    13: "DECIMOTERCERA",
+    14: "DECIMOCUARTA",
+    15: "DECIMOQUINTA",
+    16: "DECIMOSEXTA",
+    17: "DECIMOSÉPTIMA",
+    18: "DECIMOCTAVA",
+    19: "DECIMONOVENA",
+    20: "VIGÉSIMA",
+  };
+  return ordinales[num] || `${num}ª`;
+};
+
+const comunidadOrdinal = numeroAOrdinal(numComunidad);
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carta de Cobro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="p-8">
+    <div class="max-w-4xl mx-auto bg-white p-12">
+      <div class="text-right mb-10">
+        <!-- esta fecha debe actualizarse automaticamente al dia que se crea el archivo -->
+        <p>Cuenca, 26 de noviembre de 2025</p>
+      </div>
+
+      <div class="mb-6">
+        <p class="mb-1">Hermano</p>
+        <p class="font-bold">{responsable}</p>
+        <p class="font-bold">
+          RESPONSABLE DE LA {comunidadOrdinal} COMUNIDAD DE {
+            parroquia.toUpperCase()
+          }
+        </p>
+      </div>
+
+      <p class="mb-6">De mi consideración:</p>
+
+      <p class="text-justify mb-6">
+        A través de la presente solicito cancelar el valor pendiente de la
+        convivencia de transmisión de responsables del 20 al 23 de noviembre del
+        2025 que deberá ser cancelado máximo en 15 días.
+      </p>
+
+      <p class="mb-4">
+        Adjunto el detalle del valor de la deuda por comunidad:
+      </p>
+
+      <section class="my-8">
+        <div class="border border-gray-300">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="border border-gray-300 px-4 py-2 text-left"
+                  >Nombres</th
+                >
+                <th class="border border-gray-300 px-4 py-2 text-right"
+                  >Valor</th
+                >
+              </tr>
+            </thead>
+            <tbody>
+              {
+                hermanosAsistieron.map((hermano) => {
+                  const esMatrimonio = hermano.tipo === "matrimonio";
+                  const valor = esMatrimonio
+                    ? COSTO_POR_PERSONA * 2
+                    : COSTO_POR_PERSONA;
+
+                  return (
+                    <tr>
+                      <td class="border border-gray-300 px-4 py-2">
+                        {hermano.nombres}
+                        {esMatrimonio && (
+                          <span class="text-sm text-gray-600"> (x2)</span>
+                        )}
+                      </td>
+                      <td class="border border-gray-300 px-4 py-2 text-right">
+                        ${valor.toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })
+              }
+              <tr class="bg-gray-50 font-bold">
+                <td class="border border-gray-300 px-4 py-2 text-right">
+                  TOTAL ({totalAsistentes}
+                  {totalAsistentes === 1 ? "persona" : "personas"})
+                </td>
+                <td class="border border-gray-300 px-4 py-2 text-right">
+                  ${totalAPagar.toFixed(2)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <p class="mb-6">Sírvase depositar en la siguiente cuenta:</p>
+
+      <div class="mb-8">
+        <p class="font-bold">Banco del Pichincha</p>
+        <p><span class="font-bold">Cuenta de Ahorros N:</span> 2200675196</p>
+        <p><span class="font-bold">Nombre:</span> Marco López</p>
+        <p><span class="font-bold">CI:</span> 0102907029</p>
+      </div>
+
+      <p class="mb-8">
+        Seguro de contar con su apoyo, anticipo mi agradecimiento.
+      </p>
+
+      <div class="my-8">
+        <p>La paz</p>
+        <p class="font-bold">Rodrigo Salgado</p>
+        <p>CNC Cuenca</p>
+      </div>
+
+      <div class="mt-8">
+        <p>
+          <span class="font-bold">PD:</span> Enviar el comprobante de depósito al
+          número de <span class="font-bold">Marco López</span>, celular
+          <span class="font-bold">0994822876</span>
+        </p>
+      </div>
+    </div>
+  </body>
+
+  <style is:global>
+    @import "tailwindcss";
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        font-size: 12px;
+      }
+    }
+  </style>
+</html>

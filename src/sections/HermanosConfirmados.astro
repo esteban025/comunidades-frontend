@@ -6,7 +6,10 @@ import {
 } from "@/services/convivencias";
 
 const { convivencias } = await getConvivenciasForDashboard();
-const currentConv = convivencias[0] ?? null;
+const currentConv =
+  convivencias.find(
+    (c: any) => c.status === "planificada" || c.status === "en_curso",
+  ) ?? null;
 const confirmedBrothers = currentConv
   ? await getConfirmedBrothersByConvivencia(currentConv.id)
   : [];

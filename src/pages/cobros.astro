@@ -1,11 +1,12 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import SectionContainer from "@/components/SectionContainer.astro";
+import PrintIcon from "@/assets/PrintIcon.astro";
 import {
   getConvivenciasForDashboard,
   getConfirmedBrothersByConvivencia,
 } from "@/services/convivencias";
-
-const COSTO_POR_HERMANO = 65; // costo base, aún no visible en UI
+import BaseCard from "@/components/BaseCard.astro";
 
 const { convivencias } = await getConvivenciasForDashboard();
 
@@ -26,87 +27,159 @@ let asistentes: any[] = [];
 
 if (currentConv) {
   const allConfirmed = await getConfirmedBrothersByConvivencia(currentConv.id);
-  // Por ahora, para cobros solo usamos los que tienen attended = true
+  // Para cobros solo usamos los que tienen attended = true
   asistentes = allConfirmed.filter((b: any) => Boolean(b.attended));
 }
 
-const totalAsistentes = asistentes.length;
-const totalTeorico = totalAsistentes * COSTO_POR_HERMANO;
+// Agrupar asistentes por comunidad para generar una "carta de cobro" por comunidad
+const comunidadesMap = asistentes.reduce(
+  (acc: any, brother: any) => {
+    const key = brother.community_id;
+    if (!acc[key]) {
+      acc[key] = {
+        community_id: brother.community_id,
+        community_number: brother.community_number,
+        parish_name: brother.parish_aka ?? brother.parish_name,
+        hermanos: [] as any[],
+      };
+    }
+    acc[key].hermanos.push(brother);
+    return acc;
+  },
+  {} as Record<string, any>,
+);
+
+const comunidades = Object.values(comunidadesMap) as any[];
 ---
 
 <Layout>
-  <main class="max-w-5xl mx-auto mt-6 space-y-6">
-    <header class="space-y-1">
-      <h1 class="text-2xl font-bold text-gray-800">Cobros por comunidad</h1>
+  <SectionContainer
+    title="Cobros de cada comunidad"
+    description="Encontraras los archivos listos para imprimir de cada comunidad"
+    data-convivencia-id={currentConv ? String(currentConv.id) : ""}
+  >
+    <div class="block" slot="icon-title">
+      <PrintIcon class="w-7 aspect-square block text-gray-500" />
+    </div>
+    <section class="p-4 space-y-4" slot="body">
       {
         currentConv && (
-          <p class="text-sm text-gray-600">
-            Convivencia: <strong>{currentConv.name}</strong>
-          </p>
+          <h2 class="text-lg text-gray-600 mb-2">
+            <strong>{currentConv.name}</strong>
+          </h2>
         )
       }
+
       {
-        !currentConv && (
-          <p class="text-sm text-red-600">
-            No se pudo determinar la convivencia para los cobros.
+        currentConv && comunidades.length === 0 && (
+          <p class="text-sm text-gray-600">
+            No hay asistentes marcados como que realmente asistieron. Primero
+            confirma la asistencia real en la página de asistentes confirmados.
           </p>
         )
       }
-    </header>
 
-    {
-      currentConv && totalAsistentes === 0 && (
-        <p class="text-sm text-gray-600">
-          No hay asistentes marcados como que realmente asistieron. Primero
-          confirma la asistencia real en la página de asistentes confirmados.
-        </p>
-      )
-    }
-
-    {
-      currentConv && totalAsistentes > 0 && (
-        <section class="space-y-4">
-          <div class="text-sm text-gray-700 space-y-1">
-            <p>
-              Total de asistentes definitivos:{" "}
-              <strong>{totalAsistentes}</strong>
-            </p>
-            <p>
-              Monto teórico total (sin considerar colecta real):
-              <strong> ${totalTeorico}</strong>
-            </p>
-            <p class="text-xs text-gray-500">
-              (El costo por hermano se maneja internamente en el sistema por
-              ahora.)
-            </p>
+      {
+        currentConv && comunidades.length > 0 && (
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
+            {comunidades.map((comunidad: any) => (
+              <BaseCard
+                href={`/cobros/print?convivenciaId=${currentConv.id}&communityId=${comunidad.community_id}`}
+              >
+                <article class="p-4 flex flex-col justify-between h-full">
+                  <header class="space-y-1">
+                    <p class="text-xs text-gray-500">Parroquia</p>
+                    <h3 class="text-sm font-semibold text-gray-800">
+                      {comunidad.parish_name}
+                    </h3>
+                  </header>
+                  <div class="mt-3 space-y-1 text-sm text-gray-700">
+                    <p>
+                      Comunidad
+                      <span class="font-semibold">
+                        {" "}
+                        {comunidad.community_number}
+                      </span>
+                    </p>
+                    <p>
+                      Hermanos asistentes:
+                      <span class="font-semibold">
+                        {" "}
+                        {comunidad.hermanos.length}
+                      </span>
+                    </p>
+                  </div>
+                  <p class="mt-4 text-xs text-gray-500">
+                    Click para ver carta de cobro lista para imprimir
+                  </p>
+                </article>
+              </BaseCard>
+            ))}
           </div>
+        )
+      }
+    </section>
 
-          <div class="overflow-x-auto border border-gray-200 rounded-lg">
-            <table class="min-w-full text-sm text-left text-gray-700">
-              <thead class="bg-gray-50 text-xs uppercase text-gray-500">
-                <tr>
-                  <th class="py-2 px-3">Parroquia</th>
-                  <th class="py-2 px-3">Comunidad</th>
-                  <th class="py-2 px-3">Nombre</th>
-                </tr>
-              </thead>
-              <tbody>
-                {asistentes.map((brother: any) => (
-                  <tr class="border-t last:border-b-0">
-                    <td class="py-2 px-3">
-                      {brother.parish_aka ?? brother.parish_name}
-                    </td>
-                    <td class="py-2 px-3">
-                      Comunidad {brother.community_number}
-                    </td>
-                    <td class="py-2 px-3">{brother.names}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )
-    }
-  </main>
+    <button id="finaly-convivencia" slot="footer-link" class="btn btn-primary"
+      >Finalizar Convivencia</button
+    >
+  </SectionContainer>
 </Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const container = document.querySelector(
+      "[data-convivencia-id]",
+    ) as HTMLElement | null;
+    const btn = document.getElementById(
+      "finaly-convivencia",
+    ) as HTMLButtonElement | null;
+
+    if (!container || !btn) return;
+
+    const convivenciaId = container.getAttribute("data-convivencia-id");
+
+    btn.addEventListener("click", async () => {
+      if (!convivenciaId) {
+        alert("No se pudo determinar la convivencia actual.");
+        return;
+      }
+
+      if (
+        !confirm(
+          "¿Seguro que deseas finalizar esta convivencia? Luego no será considerada como activa.",
+        )
+      ) {
+        return;
+      }
+
+      btn.disabled = true;
+      const originalText = btn.textContent || "Finalizar Convivencia";
+      btn.textContent = "Finalizando...";
+
+      try {
+        const res = await fetch(
+          `/api/convivencias/${convivenciaId}/finalizar`,
+          {
+            method: "POST",
+          },
+        );
+
+        if (!res.ok) {
+          console.error("Error al finalizar convivencia", await res.text());
+          alert("Ocurrió un error al finalizar la convivencia.");
+          btn.disabled = false;
+          btn.textContent = originalText;
+          return;
+        }
+
+        window.location.href = "/convivencias?finalizada=1";
+      } catch (error) {
+        console.error("Error de red al finalizar convivencia", error);
+        alert("Error de red al finalizar la convivencia.");
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+  });
+</script>

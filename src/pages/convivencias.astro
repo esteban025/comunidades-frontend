@@ -5,6 +5,7 @@ import NavbarPage from "@/components/NavbarPage.astro";
 import NavbarConvi from "@/components/NavbarConvi.astro";
 import ConvivenciasDashboard from "@/sections/ConvivenciasDashboard.astro";
 import HermanosConfirmados from "@/sections/HermanosConfirmados.astro";
+import HistorialConvivencias from "@/sections/HistorialConvivencias.astro";
 ---
 
 <Layout>
@@ -12,5 +13,33 @@ import HermanosConfirmados from "@/sections/HermanosConfirmados.astro";
     <NavbarConvi transition:name="navbar-page" />
     <ConvivenciasDashboard />
     <HermanosConfirmados />
+    <HistorialConvivencias />
   </div>
 </Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    try {
+      const url = new URL(window.location.href);
+      const finalizada = url.searchParams.get("finalizada");
+
+      if (finalizada === "1") {
+        if (typeof (window as any).showNotification === "function") {
+          (window as any).showNotification(
+            "La convivencia se ha finalizado. Ya puedes crear una nueva convivencia.",
+            "success",
+            5000,
+          );
+        }
+
+        url.searchParams.delete("finalizada");
+        window.history.replaceState({}, "", url.toString());
+      }
+    } catch (error) {
+      console.error(
+        "Error manejando el estado de convivencia finalizada",
+        error,
+      );
+    }
+  });
+</script>
