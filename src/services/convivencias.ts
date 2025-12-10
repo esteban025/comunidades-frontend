@@ -211,6 +211,7 @@ export async function getConfirmedBrothersByConvivencia(convivenciaId: number) {
     SELECT
       br.id AS brother_id,
       br.names,
+      br.civil_status,
       c.number_community AS community_number,
       p.name AS parish_name,
       p.aka AS parish_aka,

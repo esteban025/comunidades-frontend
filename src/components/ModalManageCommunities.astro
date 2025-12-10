@@ -609,10 +609,12 @@ import ModalDesign from "./ModalDesign.astro";
         if (actionBtn) {
           if (target === "merge") {
             actionBtn.textContent = "Fusionar Comunidades";
-            actionBtn.onclick = () => handleMergeCommunities();
+            actionBtn.onclick = () =>
+              (window as any).handleMergeCommunities?.();
           } else if (target === "reorganize") {
             actionBtn.textContent = "Aplicar Reorganización";
-            actionBtn.onclick = () => handleReorganizeCommunities();
+            actionBtn.onclick = () =>
+              (window as any).handleReorganizeCommunities?.();
           }
         }
       });
