@@ -323,13 +323,13 @@ export const DELETE: APIRoute = async ({ params }) => {
       );
     }
 
-    // Verificar si el hermano existe
-    const [brotherRows] = await db.query(
-      "SELECT id, names FROM brothers WHERE id = ?",
+    // Verificar si el hermano existe y obtener a su cónyuge (si aplica)
+    const [brotherRows]: any = await db.query(
+      "SELECT id, names, spouse_id FROM brothers WHERE id = ?",
       [id],
     );
 
-    if ((brotherRows as any[]).length === 0) {
+    if (!brotherRows || brotherRows.length === 0) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -342,16 +342,36 @@ export const DELETE: APIRoute = async ({ params }) => {
       );
     }
 
-    // Eliminar roles del hermano
-    await db.query("DELETE FROM brother_roles WHERE brother_id = ?", [id]);
+    const brother = brotherRows[0] as { id: number; names: string; spouse_id?: number | null };
 
-    // Eliminar el hermano
-    await db.query("DELETE FROM brothers WHERE id = ?", [id]);
+    // Construir lista de IDs a eliminar: hermano y, si existe, su cónyuge
+    const idsToDelete: number[] = [brother.id];
+
+    if (brother.spouse_id) {
+      idsToDelete.push(brother.spouse_id);
+    }
+
+    // Eliminar roles de todos los hermanos afectados
+    await db.query(
+      `DELETE FROM brother_roles WHERE brother_id IN (${idsToDelete
+        .map(() => "?")
+        .join(",")})`,
+      idsToDelete,
+    );
+
+    // Eliminar hermanos (otros registros dependientes usan ON DELETE CASCADE)
+    await db.query(
+      `DELETE FROM brothers WHERE id IN (${idsToDelete.map(() => "?").join(",")})`,
+      idsToDelete,
+    );
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Hermano eliminado exitosamente",
+        message:
+          idsToDelete.length > 1
+            ? "Matrimonio eliminado exitosamente"
+            : "Hermano eliminado exitosamente",
       }),
       {
         status: 200,

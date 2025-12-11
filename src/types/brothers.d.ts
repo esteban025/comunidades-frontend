@@ -21,6 +21,7 @@ export interface Brothers {
   id: number;
   names: string;
   civil_status: string;
+  spouse_id?: number | null;
   phone?: string;
   community: BrotherCommunity;
   parish: Parish;

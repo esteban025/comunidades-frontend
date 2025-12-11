@@ -24,6 +24,48 @@ const totalPages = Math.max(1, Math.ceil(totalItems / limit || 1));
 
 const brothers: Brothers[] = await getBrother({ limit, offset });
 
+// Agrupar matrimonios para mostrarlos en una sola fila visualmente
+const groupedBrothers: Brothers[] = (() => {
+  const byId = new Map<number, Brothers>();
+  brothers.forEach((b) => byId.set(b.id, b));
+
+  const used = new Set<number>();
+  const result: Brothers[] = [];
+
+  for (const brother of brothers) {
+    if (used.has(brother.id)) continue;
+
+    if (
+      brother.civil_status === "matrimonio" &&
+      brother.spouse_id &&
+      byId.has(brother.spouse_id)
+    ) {
+      const spouse = byId.get(brother.spouse_id)!;
+
+      // Evitar duplicar la pareja: solo agregamos cuando este id sea menor
+      if (used.has(spouse.id)) {
+        used.add(brother.id);
+        continue;
+      }
+
+      used.add(brother.id);
+      used.add(spouse.id);
+
+      const combinedName = `${brother.names} y ${spouse.names}`;
+
+      result.push({
+        ...brother,
+        names: combinedName,
+      });
+    } else {
+      used.add(brother.id);
+      result.push(brother);
+    }
+  }
+
+  return result;
+})();
+
 const from = totalItems > 0 ? offset + 1 : 0;
 const to = Math.min(offset + brothers.length, totalItems);
 
@@ -52,7 +94,7 @@ let pagination: PaginationPage = {
     <FiltersAllBrothers />
     <div class="container-table">
       {
-        brothers?.length > 0 ? (
+        groupedBrothers?.length > 0 ? (
           <table class="render-brothers-table brothres-table">
             <thead>
               <tr>
@@ -66,75 +108,114 @@ let pagination: PaginationPage = {
               </tr>
             </thead>
             <tbody>
-              {brothers.map((brother) => (
-                <tr
-                  data-parish-id={brother.parish?.id || ""}
-                  data-community-id={brother.community?.id || ""}
-                >
-                  <td class="font-medium">{brother.names}</td>
-                  <td>{brother.parish?.aka || "N/A"}</td>
-                  <td>{brother.community?.number || "N/A"}</td>
-                  <td>
-                    {brother.phone ? (
-                      <div class="phone-display">{brother.phone}</div>
-                    ) : (
-                      <span class="empty-cell">Sin teléfono</span>
-                    )}
-                  </td>
-                  <td>
-                    {brother.roles_in_own_community?.length > 0 ||
-                    brother.catechist_of_communities?.length > 0 ? (
-                      <div class="roles-container flex flex-wrap gap-1 items-center">
-                        {brother.roles_in_own_community?.map((role: string) => (
-                          <span data-rol={role} class="role-tag">
-                            {role}
-                          </span>
-                        ))}
-                        {brother.catechist_of_communities?.length > 0 && (
-                          <span
-                            data-rol="catequista"
-                            class="role-tag catequista"
+              {groupedBrothers.map((brother) => {
+                const spouse =
+                  brother.civil_status === "matrimonio" && brother.spouse_id
+                    ? brothers.find((b) => b.id === brother.spouse_id)
+                    : null;
+
+                const isMarriage = !!spouse;
+
+                return (
+                  <tr
+                    data-parish-id={brother.parish?.id || ""}
+                    data-community-id={brother.community?.id || ""}
+                    data-brother-id={brother.id}
+                    data-spouse-id={spouse?.id || ""}
+                    data-is-marriage={isMarriage ? "true" : "false"}
+                  >
+                    <td class="font-medium">{brother.names}</td>
+                    <td>{brother.parish?.aka || "N/A"}</td>
+                    <td>{brother.community?.number || "N/A"}</td>
+                    <td>
+                      {brother.phone ? (
+                        <div class="phone-display">{brother.phone}</div>
+                      ) : (
+                        <span class="empty-cell">Sin teléfono</span>
+                      )}
+                    </td>
+                    <td>
+                      {brother.roles_in_own_community?.length > 0 ||
+                      brother.catechist_of_communities?.length > 0 ? (
+                        <div class="roles-container flex flex-wrap gap-1 items-center">
+                          {brother.roles_in_own_community?.map(
+                            (role: string) => (
+                              <span data-rol={role} class="role-tag">
+                                {role}
+                              </span>
+                            ),
+                          )}
+                          {brother.catechist_of_communities?.length > 0 && (
+                            <span
+                              data-rol="catequista"
+                              class="role-tag catequista"
+                            >
+                              Catequista (
+                              {brother.catechist_of_communities.length})
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span class="empty-cell">-</span>
+                      )}
+                    </td>
+                    <td>{brother.civil_status}</td>
+                    <td>
+                      <div class="action-buttons flex justify-center gap-2">
+                        <button
+                          class="action-btn brother-view-btn"
+                          title="Ver detalles"
+                          data-action="view"
+                          data-brother-id={brother.id}
+                          data-spouse-id={spouse?.id || ""}
+                        >
+                          <EyeIcon class="w-4 h-4" />
+                        </button>
+                        <div class="relative inline-block">
+                          <button
+                            class="action-btn brother-edit-btn"
+                            title="Editar"
+                            data-action="edit"
+                            data-brother-id={brother.id}
+                            data-spouse-id={spouse?.id || ""}
                           >
-                            Catequista (
-                            {brother.catechist_of_communities.length})
-                          </span>
-                        )}
+                            <PencilIcon class="w-4 h-4" />
+                          </button>
+                          {isMarriage && spouse && (
+                            <div
+                              class="brother-menu hidden absolute top-[-20%] right-[110%] mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden z-50 min-w-36"
+                              data-menu-for={brother.id}
+                            >
+                              <button
+                                class="brother-menu-item"
+                                data-role="esposo"
+                                data-target-id={brother.id}
+                              >
+                                Esposo
+                              </button>
+                              <button
+                                class="brother-menu-item"
+                                data-role="esposa"
+                                data-target-id={spouse.id}
+                              >
+                                Esposa
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          class="action-btn"
+                          title="Más opciones"
+                          data-action="more"
+                          data-brother-id={brother.id}
+                        >
+                          <DotsVerticalIcon class="w-4 h-4" />
+                        </button>
                       </div>
-                    ) : (
-                      <span class="empty-cell">-</span>
-                    )}
-                  </td>
-                  <td>{brother.civil_status}</td>
-                  <td>
-                    <div class="action-buttons flex justify-center gap-2">
-                      <button
-                        class="action-btn"
-                        title="Ver detalles"
-                        data-action="view"
-                        data-brother-id={brother.id}
-                      >
-                        <EyeIcon class="w-4 h-4" />
-                      </button>
-                      <button
-                        class="action-btn"
-                        title="Editar"
-                        data-action="edit"
-                        data-brother-id={brother.id}
-                      >
-                        <PencilIcon class="w-4 h-4" />
-                      </button>
-                      <button
-                        class="action-btn"
-                        title="Más opciones"
-                        data-action="more"
-                        data-brother-id={brother.id}
-                      >
-                        <DotsVerticalIcon class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         ) : (
@@ -211,21 +292,6 @@ let pagination: PaginationPage = {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
-  /* .action-btn[data-action="view"]:hover {
-    border-color: #3b82f6;
-    color: #3b82f6;
-  }
-
-  .action-btn[data-action="edit"]:hover {
-    border-color: #10b981;
-    color: #10b981;
-  }
-
-  .action-btn[data-action="more"]:hover {
-    border-color: #6b7280;
-    color: #6b7280;
-  } */
-
   /* Menú de más opciones */
   .more-menu {
     position: absolute;
@@ -290,13 +356,24 @@ let pagination: PaginationPage = {
 
         if (!brotherId) return;
 
+        // Ver detalles: si hay cónyuge, mostramos menú Esposo/Esposa; si no, abrimos directo
         if (action === "view") {
-          // Abrir modal de ver detalles
+          const spouseId = (button as HTMLElement).dataset.spouseId;
+          if (spouseId) {
+            toggleBrotherMenu(button as HTMLElement, brotherId, "view");
+            return;
+          }
+
           if (typeof (window as any).openViewBrotherModal === "function") {
             (window as any).openViewBrotherModal(brotherId);
           }
         } else if (action === "edit") {
-          // Abrir modal de edición con datos precargados
+          const spouseId = (button as HTMLElement).dataset.spouseId;
+          if (spouseId) {
+            toggleBrotherMenu(button as HTMLElement, brotherId, "edit");
+            return;
+          }
+
           if (typeof (window as any).openEditBrotherModal === "function") {
             (window as any).openEditBrotherModal(brotherId);
           }
@@ -306,6 +383,59 @@ let pagination: PaginationPage = {
         }
       });
     });
+
+    function toggleBrotherMenu(
+      button: HTMLElement,
+      brotherId: string,
+      mode: "view" | "edit",
+    ) {
+      const row = button.closest("tr");
+      if (!row) return;
+
+      const menu = row.querySelector(
+        `.brother-menu[data-menu-for="${brotherId}"]`,
+      ) as HTMLElement | null;
+      if (!menu) return;
+      // Guardar el modo actual (view/edit) en un data-atributo
+      menu.dataset.mode = mode;
+
+      // Cerrar otros menús de brothers
+      document
+        .querySelectorAll(".brother-menu")
+        .forEach((m) => m.classList.add("hidden"));
+
+      // Toggle el menú actual
+      menu.classList.toggle("hidden");
+
+      // Solo agregar el listener una vez por menú
+      if (menu.dataset.bound === "true") return;
+      menu.dataset.bound = "true";
+
+      menu.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const item = (e.target as HTMLElement).closest(
+          ".brother-menu-item",
+        ) as HTMLElement | null;
+        if (!item) return;
+
+        const targetId = item.dataset.targetId;
+        if (!targetId) return;
+
+        const currentMode = (menu.dataset.mode as "view" | "edit") || "view";
+
+        if (currentMode === "view") {
+          if (typeof (window as any).openViewBrotherModal === "function") {
+            (window as any).openViewBrotherModal(targetId);
+          }
+        } else {
+          if (typeof (window as any).openEditBrotherModal === "function") {
+            (window as any).openEditBrotherModal(targetId);
+          }
+        }
+
+        menu.classList.add("hidden");
+      });
+    }
 
     function toggleMoreMenu(button: HTMLElement, brotherId: string) {
       const existingMenu = button.parentElement?.querySelector(".more-menu");

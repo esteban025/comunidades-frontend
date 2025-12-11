@@ -22,6 +22,20 @@
   --color-gray-800: #262626;
   --color-gray-900: #171717;
   --color-gray-950: #0a0a0a;
+
+  --color-thunderbird-50: #fff0f1;    
+  --color-thunderbird-100: #ffdee0;
+  --color-thunderbird-200: #ffc2c5;
+  --color-thunderbird-300: #ff989d;
+  --color-thunderbird-400: #ff5c63;
+  --color-thunderbird-500: #ff2a34;
+  --color-thunderbird-600: #f80a15;
+  --color-thunderbird-700: #c9040d;
+  --color-thunderbird-800: #ac080f;
+  --color-thunderbird-900: #8e0e14;
+  --color-thunderbird-950: #4e0105;
+
+  --color-primary: var(--color-thunderbird-700);
   
   /* Grises para bordes */
   --color-border-light: var(--color-gray-200);

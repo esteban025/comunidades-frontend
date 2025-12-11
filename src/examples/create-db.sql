@@ -27,7 +27,9 @@ CREATE TABLE brothers (
   civil_status ENUM('matrimonio', 'soltero', 'soltera') NOT NULL,
   community_id INT NOT NULL,
   phone VARCHAR(20) DEFAULT NULL,
+  spouse_id INT DEFAULT NULL,
   FOREIGN KEY (community_id) REFERENCES communities(id) ON DELETE CASCADE,
+  FOREIGN KEY (spouse_id) REFERENCES brothers(id) ON DELETE SET NULL,
   UNIQUE KEY unique_name_per_community (names, community_id)
 );
 

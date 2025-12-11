@@ -172,6 +172,7 @@ if (!tag) {
                               data-action="edit"
                               data-community-id={community.id}
                               data-community-number={community.number_community}
+                              data-level-paso={community.level_paso || ""}
                             >
                               <PencilIcon class="w-4 h-4" />
                             </button>
@@ -220,6 +221,7 @@ if (!tag) {
         const action = (button as HTMLElement).dataset.action;
         const communityId = (button as HTMLElement).dataset.communityId;
         const communityNumber = (button as HTMLElement).dataset.communityNumber;
+        const levelPaso = (button as HTMLElement).dataset.levelPaso || "";
 
         switch (action) {
           case "view":
@@ -234,11 +236,15 @@ if (!tag) {
             break;
 
           case "edit":
-            console.log(
-              `Editar comunidad ${communityNumber}, ID: ${communityId}`,
-            );
-            alert(`Editar\nComunidad: ${communityNumber}\nID: ${communityId}`);
-            // TODO: Abrir modal de edición
+            if (typeof (window as any).openEditCommunityModal === "function") {
+              (window as any).openEditCommunityModal(
+                communityId as string,
+                communityNumber as string,
+                levelPaso,
+              );
+            } else {
+              console.error("openEditCommunityModal no está disponible");
+            }
             break;
 
           case "more":

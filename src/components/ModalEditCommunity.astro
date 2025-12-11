@@ -1,0 +1,183 @@
+---
+import ModalDesign from "./ModalDesign.astro";
+---
+
+<ModalDesign
+  id="modal-edit-community"
+  title="Editar Paso de la Comunidad"
+  isForm={true}
+  idForm="form-edit-community"
+>
+  <div class="flex flex-col gap-4 w-full" slot="body">
+    <p class="text-sm text-text-muted" id="edit-community-header">Comunidad</p>
+
+    <input type="hidden" id="edit-community-id" />
+    <input type="hidden" id="edit-community-number" />
+
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="font-medium text-text-primary">Paso de la comunidad</span>
+      <input
+        id="edit-level-paso"
+        type="text"
+        class="input-text"
+        placeholder="Ej: 1º Escrutinio, 2º Escrutinio, etc."
+      />
+      <span class="text-xs text-text-muted">
+        Este es el único dato que se puede modificar desde esta pantalla.
+      </span>
+    </label>
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-secondary flex-1"
+    data-close="modal-edit-community"
+    slot="footer"
+  >
+    Cancelar
+  </button>
+  <button
+    type="submit"
+    form="form-edit-community"
+    class="btn btn-primary flex-1"
+    slot="footer"
+  >
+    Guardar cambios
+  </button>
+</ModalDesign>
+
+<style>
+  .input-text {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 9999px;
+    border: 2px solid #e5e7eb;
+    font-size: 0.875rem;
+  }
+
+  .input-text:focus {
+    outline: none;
+    border-color: var(--color-border-dark);
+    box-shadow: 0 0 0 1px var(--color-border-dark);
+  }
+</style>
+
+<script>
+  import { showNotification } from "@/scripts/notification";
+
+  document.addEventListener("astro:page-load", () => {
+    const modal = document.getElementById(
+      "modal-edit-community",
+    ) as HTMLDivElement | null;
+    const form = document.getElementById(
+      "form-edit-community",
+    ) as HTMLFormElement | null;
+    const closeButtons = document.querySelectorAll(
+      '[data-close="modal-edit-community"]',
+    );
+    const header = document.getElementById(
+      "edit-community-header",
+    ) as HTMLParagraphElement | null;
+    const inputId = document.getElementById(
+      "edit-community-id",
+    ) as HTMLInputElement | null;
+    const inputNumber = document.getElementById(
+      "edit-community-number",
+    ) as HTMLInputElement | null;
+    const inputPaso = document.getElementById(
+      "edit-level-paso",
+    ) as HTMLInputElement | null;
+
+    if (!modal || !form || !header || !inputId || !inputNumber || !inputPaso)
+      return;
+
+    function closeEditCommunityModal() {
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+      form.reset();
+    }
+
+    async function handleSubmit(event: SubmitEvent) {
+      event.preventDefault();
+
+      const id = inputId.value;
+      const number = inputNumber.value;
+      const paso = inputPaso.value.trim();
+
+      if (!id || !number) {
+        showNotification(
+          "No se pudo determinar la comunidad a actualizar.",
+          "error",
+          4000,
+        );
+        return;
+      }
+
+      if (!paso) {
+        showNotification("El paso no puede estar vacío.", "error", 4000);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/communities/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            number_community: Number(number),
+            level_paso: paso,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          showNotification(
+            data.error || "Error al actualizar la comunidad.",
+            "error",
+            5000,
+          );
+          return;
+        }
+
+        showNotification("Paso de la comunidad actualizado.", "success", 4000);
+        closeEditCommunityModal();
+        window.location.reload();
+      } catch (error) {
+        console.error("Error actualizando comunidad:", error);
+        showNotification("Error de red al actualizar la comunidad.", "error");
+      }
+    }
+
+    async function openEditCommunityModal(
+      communityId: string,
+      communityNumber: string,
+      levelPaso: string,
+    ) {
+      modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+
+      inputId.value = communityId;
+      inputNumber.value = communityNumber;
+      inputPaso.value = levelPaso || "";
+      header.textContent = `Comunidad ${communityNumber}`;
+    }
+
+    closeButtons.forEach((button) => {
+      button.addEventListener("click", closeEditCommunityModal);
+    });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeEditCommunityModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeEditCommunityModal();
+      }
+    });
+
+    form.addEventListener("submit", handleSubmit);
+
+    (window as any).openEditCommunityModal = openEditCommunityModal;
+  });
+</script>

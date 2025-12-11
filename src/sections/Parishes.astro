@@ -93,12 +93,14 @@ try {
   </div>
 </SectionContainer>
 
-<style>
-  .parish-menu.hidden {
+<style is:global>
+  .parish-menu.hidden,
+  .brother-menu.hidden {
     display: none;
   }
 
-  .parish-menu-item {
+  .parish-menu-item,
+  .brother-menu-item {
     width: 100%;
     padding: 0.625rem 1rem;
     text-align: left;

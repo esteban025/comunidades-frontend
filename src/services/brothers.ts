@@ -12,6 +12,7 @@ export const getBrother = async (param: Params) => {
         b.names,
         b.civil_status,
         b.phone,
+        b.spouse_id,
         b.community_id,
         c.number_community,
         c.level_paso,
@@ -24,7 +25,7 @@ export const getBrother = async (param: Params) => {
       INNER JOIN communities c ON b.community_id = c.id
       INNER JOIN parishes p ON c.parish_id = p.id
       LEFT JOIN brother_roles br ON b.id = br.brother_id
-      GROUP BY b.id, b.names, b.civil_status, b.phone, b.community_id, 
+      GROUP BY b.id, b.names, b.civil_status, b.phone, b.spouse_id, b.community_id, 
                c.number_community, c.level_paso, p.id, p.name, p.tag, p.aka
       ORDER BY p.name, c.number_community, b.names
       LIMIT ? OFFSET ?
@@ -57,6 +58,7 @@ export const getBrother = async (param: Params) => {
       names: row.names,
       civil_status: row.civil_status,
       phone: row.phone,
+      spouse_id: row.spouse_id,
       community: {
         id: row.community_id,
         number: row.number_community,
