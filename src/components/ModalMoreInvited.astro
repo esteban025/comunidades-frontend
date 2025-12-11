@@ -12,7 +12,13 @@ import SearchInvited from "./SearchInvited.astro";
 
     <SearchInvited />
   </section>
-  <button slot="footer" class="btn btn-secondary flex-1">Cancelar</button>
+  <button
+    slot="footer"
+    class="btn btn-secondary flex-1"
+    data-close="modal-invited-brother"
+  >
+    Cancelar
+  </button>
   <button
     slot="footer"
     class="btn btn-primary flex-1"
@@ -24,6 +30,8 @@ import SearchInvited from "./SearchInvited.astro";
 </ModalDesign>
 
 <script>
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
+
   document.addEventListener("astro:page-load", () => {
     const modal = document.getElementById(
       "modal-invited-brother",
@@ -33,10 +41,6 @@ import SearchInvited from "./SearchInvited.astro";
     ) as HTMLButtonElement | null;
 
     if (!modal || !confirmBtn) return;
-
-    const closeButtons = document.querySelectorAll(
-      '[data-close="modal-invited-brother"]',
-    );
 
     let convivenciaId: string | null = null;
 
@@ -52,22 +56,8 @@ import SearchInvited from "./SearchInvited.astro";
       document.body.style.overflow = "hidden";
     };
 
-    closeButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        closeModal();
-      });
-    });
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        closeModal();
-      }
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-        closeModal();
-      }
+    setupModalCloseHandlers("modal-invited-brother", () => {
+      closeModal();
     });
 
     confirmBtn.addEventListener("click", async () => {

@@ -198,11 +198,26 @@ export const PUT: APIRoute = async ({ params, request }) => {
     // Construir nombres según estado civil
     let names = "";
     if (civilStatus === "matrimonio") {
-      const husbandName = formData.get("husband_name") as string;
-      const wifeName = formData.get("wife_name") as string;
-      names = `${husbandName} y ${wifeName}`;
-    } else {
-      names = formData.get("full_name") as string;
+      let husbandName = (formData.get("husband_name") as string | null)?.trim() ?? "";
+      let wifeName = (formData.get("wife_name") as string | null)?.trim() ?? "";
+
+      // Quitar prefijo "y " si viniera del frontend
+      if (husbandName.toLowerCase().startsWith("y ")) {
+        husbandName = husbandName.slice(2).trim();
+      }
+      if (wifeName.toLowerCase().startsWith("y ")) {
+        wifeName = wifeName.slice(2).trim();
+      }
+
+      if (husbandName && wifeName) {
+        names = `${husbandName} y ${wifeName}`;
+      } else {
+        // Si solo viene uno, no agregamos "y"
+        names = husbandName || wifeName;
+      }
+    }
+    else {
+      names = (formData.get("full_name") as string) || "";
     }
 
     if (!names || !civilStatus || !parishId || !communityNumber) {

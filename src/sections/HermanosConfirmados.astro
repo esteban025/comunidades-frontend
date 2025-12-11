@@ -4,6 +4,7 @@ import {
   getConvivenciasForDashboard,
   getConfirmedBrothersByConvivencia,
 } from "@/services/convivencias";
+import { groupMarriagesForAttendance } from "@/utils/marriageGrouping";
 
 const { convivencias } = await getConvivenciasForDashboard();
 const currentConv =
@@ -15,38 +16,9 @@ const confirmedBrothers = currentConv
   : [];
 
 // Agrupar matrimonios para mostrarlos en una sola fila
-const groupedConfirmed = (() => {
-  const byId = new Map<number, any>();
-  confirmedBrothers.forEach((b: any) => byId.set(b.brother_id, b));
-
-  const used = new Set<number>();
-  const result: any[] = [];
-
-  for (const b of confirmedBrothers as any[]) {
-    if (used.has(b.brother_id)) continue;
-
-    if (b.spouse_id && byId.has(b.spouse_id)) {
-      const spouse = byId.get(b.spouse_id)!;
-
-      used.add(b.brother_id);
-      used.add(spouse.brother_id);
-
-      result.push({
-        ...b,
-        is_marriage: true,
-        names: `${b.names} y ${spouse.names}`,
-      });
-    } else {
-      used.add(b.brother_id);
-      result.push({
-        ...b,
-        is_marriage: false,
-      });
-    }
-  }
-
-  return result;
-})();
+const groupedConfirmed = groupMarriagesForAttendance(
+  confirmedBrothers as any[],
+);
 ---
 
 <SectionContainer

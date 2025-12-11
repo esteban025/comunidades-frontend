@@ -37,14 +37,12 @@ import ModalDesign from "./ModalDesign.astro";
 
 <script>
   import { showNotification } from "@/scripts/notification";
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
 
   document.addEventListener("astro:page-load", () => {
     const modal = document.getElementById(
       "modal-view-community",
     ) as HTMLDivElement;
-    const closeButtons = document.querySelectorAll(
-      '[data-close="modal-view-community"]',
-    );
     const contentDiv = document.getElementById(
       "community-details-content",
     ) as HTMLDivElement;
@@ -100,18 +98,8 @@ import ModalDesign from "./ModalDesign.astro";
       }
     }
 
-    closeButtons.forEach((button) => {
-      button.addEventListener("click", closeViewCommunityModal);
-    });
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeViewCommunityModal();
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-        closeViewCommunityModal();
-      }
+    setupModalCloseHandlers("modal-view-community", () => {
+      closeViewCommunityModal();
     });
 
     (window as any).openViewCommunityModal = openViewCommunityModal;

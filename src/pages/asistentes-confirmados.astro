@@ -5,6 +5,7 @@ import {
   getConvivenciasForDashboard,
   getConfirmedBrothersByConvivencia,
 } from "@/services/convivencias";
+import { groupMarriagesForAttendance } from "@/utils/marriageGrouping";
 
 const { convivencias } = await getConvivenciasForDashboard();
 
@@ -25,8 +26,17 @@ const confirmedBrothers = currentConv
   ? await getConfirmedBrothersByConvivencia(currentConv.id)
   : [];
 
-// Primero agrupamos por parroquia (usamos combinación de aka + name como clave)
-const groupedByParishRaw = confirmedBrothers.reduce(
+// Separar hermanos en comunidades propias de la convivencia vs invitados externos
+const ownCommunityBrothers = confirmedBrothers.filter((b: any) =>
+  Boolean(b.conv_community_id),
+);
+const invitedBrothers = confirmedBrothers.filter(
+  (b: any) => !b.conv_community_id,
+);
+
+// Primero agrupamos los de comunidades propias por parroquia
+// (usamos combinación de aka + name como clave)
+const groupedByParishRaw = ownCommunityBrothers.reduce(
   (acc: any, brother: any) => {
     const parishKey =
       (brother.parish_aka || brother.parish_name || "").trim() ||
@@ -44,52 +54,17 @@ const groupedByParishRaw = confirmedBrothers.reduce(
 );
 
 // Luego, dentro de cada parroquia, agrupamos matrimonios para que
-// siempre aparezcan en una sola fila (Esposo y Esposa juntos), pero
-// conservando los IDs y el estado de asistencia de cada uno.
+// siempre aparezcan en una sola fila (Esposo y Esposa juntos).
 const groupedEntries = Object.entries(groupedByParishRaw).map(
   ([parishName, brothers]) => {
-    const byId = new Map<number, any>();
-    (brothers as any[]).forEach((b: any) => byId.set(b.brother_id, b));
-
-    const used = new Set<number>();
-    const groupedBrothers: any[] = [];
-
-    for (const b of brothers as any[]) {
-      if (used.has(b.brother_id)) continue;
-
-      if (b.spouse_id && byId.has(b.spouse_id)) {
-        const spouse = byId.get(b.spouse_id)!;
-
-        used.add(b.brother_id);
-        used.add(spouse.brother_id);
-
-        groupedBrothers.push({
-          ...b,
-          // Unimos nombres para mostrar esposo y esposa juntos
-          names: `${b.names} y ${spouse.names}`,
-          // Datos individuales de cada cónyuge
-          is_marriage: true,
-          husband_id: b.brother_id,
-          wife_id: spouse.brother_id,
-          husband_name: b.names,
-          wife_name: spouse.names,
-          attended_husband: Boolean(b.attended),
-          attended_wife: Boolean(spouse.attended),
-        });
-      } else {
-        used.add(b.brother_id);
-        groupedBrothers.push({
-          ...b,
-          is_marriage: false,
-          // Para solteros mantenemos compatibilidad con el resto del código
-          brother_id: b.brother_id,
-        });
-      }
-    }
-
+    const groupedBrothers = groupMarriagesForAttendance(brothers as any[]);
     return [parishName, groupedBrothers] as [string, any[]];
   },
 );
+
+// Agrupar también matrimonios entre los invitados para mostrarlos
+// en una lista separada bajo el subtítulo "Invitados".
+const invitedGrouped = groupMarriagesForAttendance(invitedBrothers as any[]);
 
 function getTipoFromCivilStatus(status?: string | null): string {
   if (!status) return "";
@@ -231,6 +206,91 @@ function getTipoFromCivilStatus(status?: string | null): string {
               </div>
             </div>
           ))}
+
+          {invitedGrouped.length > 0 && (
+            <div class="space-y-3">
+              <header class="flex w-full pb-2 border-b border-dashed border-border-dark mt-6">
+                <h2 class="text-base font-semibold text-gray-800">Invitados</h2>
+              </header>
+              <div class="container-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Parroquia</th>
+                      <th>Comunidad</th>
+                      <th>Nombre</th>
+                      <th>Tipo</th>
+                      <th>Observación</th>
+                      <th>Hospedaje</th>
+                      <th>Num. Habit</th>
+                      <th class="no-print">Asistió</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invitedGrouped.map((brother: any) => (
+                      <tr class="border-t last:border-b-0">
+                        <td>
+                          {brother.parish_aka || brother.parish_name || "-"}
+                        </td>
+                        <td>{brother.community_number}</td>
+                        <td>{brother.names}</td>
+                        <td>{getTipoFromCivilStatus(brother.civil_status)}</td>
+                        <td>{brother.observations || "-"}</td>
+                        <td>Seminario</td>
+                        <td />
+                        <td class="no-print">
+                          {brother.is_marriage ? (
+                            <div class="relative inline-block text-left">
+                              <button
+                                type="button"
+                                class="px-2 py-1 text-xs border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                data-config-menu
+                              >
+                                Configurar
+                              </button>
+                              <div
+                                class="hidden absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-10 p-2 space-y-1"
+                                data-config-panel
+                              >
+                                <p class="text-xs font-medium text-gray-700 mb-1">
+                                  Asistencia por cónyuge
+                                </p>
+                                <label class="flex items-center gap-2 text-xs text-gray-700">
+                                  <input
+                                    type="checkbox"
+                                    class="w-4 h-4 cursor-pointer attended-checkbox"
+                                    data-brother-id={brother.husband_id}
+                                    checked={Boolean(brother.attended_husband)}
+                                  />
+                                  <span>{brother.husband_name}</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-xs text-gray-700">
+                                  <input
+                                    type="checkbox"
+                                    class="w-4 h-4 cursor-pointer attended-checkbox"
+                                    data-brother-id={brother.wife_id}
+                                    checked={Boolean(brother.attended_wife)}
+                                  />
+                                  <span>{brother.wife_name}</span>
+                                </label>
+                              </div>
+                            </div>
+                          ) : (
+                            <input
+                              type="checkbox"
+                              class="w-4 h-4 cursor-pointer attended-checkbox"
+                              data-brother-id={brother.brother_id}
+                              checked={Boolean(brother.attended)}
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           <div class="flex flex-wrap gap-3 justify-end mt-4 no-print">
             <button

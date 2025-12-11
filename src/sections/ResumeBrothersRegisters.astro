@@ -10,6 +10,8 @@ import ArrowIcon from "@/assets/ArrowIcon.astro";
 import PairsIcon from "@/assets/PairsIcon.astro";
 import { getBrother } from "@/services/brothers";
 import { db } from "@/lib/db";
+import EyesIcon from "@/assets/EyesIcon.astro";
+import { groupMarriagesById } from "@/utils/marriageGrouping";
 
 const pageParam = Astro.url.searchParams.get("page") ?? "1";
 const page = Math.max(1, Number(pageParam) || 1);
@@ -24,47 +26,9 @@ const totalPages = Math.max(1, Math.ceil(totalItems / limit || 1));
 
 const brothers: Brothers[] = await getBrother({ limit, offset });
 
-// Agrupar matrimonios para mostrarlos en una sola fila visualmente
-const groupedBrothers: Brothers[] = (() => {
-  const byId = new Map<number, Brothers>();
-  brothers.forEach((b) => byId.set(b.id, b));
-
-  const used = new Set<number>();
-  const result: Brothers[] = [];
-
-  for (const brother of brothers) {
-    if (used.has(brother.id)) continue;
-
-    if (
-      brother.civil_status === "matrimonio" &&
-      brother.spouse_id &&
-      byId.has(brother.spouse_id)
-    ) {
-      const spouse = byId.get(brother.spouse_id)!;
-
-      // Evitar duplicar la pareja: solo agregamos cuando este id sea menor
-      if (used.has(spouse.id)) {
-        used.add(brother.id);
-        continue;
-      }
-
-      used.add(brother.id);
-      used.add(spouse.id);
-
-      const combinedName = `${brother.names} y ${spouse.names}`;
-
-      result.push({
-        ...brother,
-        names: combinedName,
-      });
-    } else {
-      used.add(brother.id);
-      result.push(brother);
-    }
-  }
-
-  return result;
-})();
+// Agrupar matrimonios usando helper compartido para que
+// todas las tablas de la app tengan el mismo criterio visual.
+const groupedBrothers: Brothers[] = groupMarriagesById(brothers as Brothers[]);
 
 const from = totalItems > 0 ? offset + 1 : 0;
 const to = Math.min(offset + brothers.length, totalItems);
@@ -161,56 +125,96 @@ let pagination: PaginationPage = {
                     </td>
                     <td>{brother.civil_status}</td>
                     <td>
-                      <div class="action-buttons flex justify-center gap-2">
-                        <button
-                          class="action-btn brother-view-btn"
-                          title="Ver detalles"
-                          data-action="view"
-                          data-brother-id={brother.id}
-                          data-spouse-id={spouse?.id || ""}
-                        >
-                          <EyeIcon class="w-4 h-4" />
-                        </button>
-                        <div class="relative inline-block">
-                          <button
-                            class="action-btn brother-edit-btn"
-                            title="Editar"
-                            data-action="edit"
-                            data-brother-id={brother.id}
-                            data-spouse-id={spouse?.id || ""}
-                          >
-                            <PencilIcon class="w-4 h-4" />
-                          </button>
-                          {isMarriage && spouse && (
-                            <div
-                              class="brother-menu hidden absolute top-[-20%] right-[110%] mt-2 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden z-50 min-w-36"
-                              data-menu-for={brother.id}
-                            >
-                              <button
-                                class="brother-menu-item"
-                                data-role="esposo"
-                                data-target-id={brother.id}
+                      <div class="content-action-btns">
+                        {isMarriage && spouse ? (
+                          <>
+                            <div class="dropdown-wrapper wrapper-view">
+                              <input
+                                type="checkbox"
+                                id={`dropdown-view-${brother.id}`}
+                                class="dropdown-toggle dropdown-view"
+                              />
+                              <label
+                                for={`dropdown-view-${brother.id}`}
+                                class="dropdown-bt action-btn"
                               >
-                                Esposo
-                              </button>
-                              <button
-                                class="brother-menu-item"
-                                data-role="esposa"
-                                data-target-id={spouse.id}
-                              >
-                                Esposa
-                              </button>
+                                <span class="icon-dots">
+                                  <EyesIcon class="w-4 h-4" />
+                                </span>
+                              </label>
+                              <div class="dropdown-menu dropdown-menu-view">
+                                <button
+                                  type="button"
+                                  class="brother-menu-item dropdown-item"
+                                  data-role="esposo"
+                                  data-target-id={brother.id}
+                                >
+                                  Esposo
+                                </button>
+                                <button
+                                  type="button"
+                                  class="brother-menu-item dropdown-item"
+                                  data-role="esposa"
+                                  data-target-id={spouse.id}
+                                >
+                                  Esposa
+                                </button>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                        <button
-                          class="action-btn"
-                          title="Más opciones"
-                          data-action="more"
-                          data-brother-id={brother.id}
-                        >
-                          <DotsVerticalIcon class="w-4 h-4" />
-                        </button>
+
+                            <div class="dropdown-wrapper wrapper-edit">
+                              <input
+                                type="checkbox"
+                                id={`dropdown-edit-${brother.id}`}
+                                class="dropdown-toggle dropdown-edit"
+                              />
+                              <label
+                                for={`dropdown-edit-${brother.id}`}
+                                class="action-btn"
+                              >
+                                <PencilIcon class="w-4 h-4" />
+                              </label>
+                              <div class="dropdown-menu dropdown-menu-edit">
+                                <button
+                                  type="button"
+                                  class="brother-menu-item dropdown-item"
+                                  data-role="esposo"
+                                  data-target-id={brother.id}
+                                >
+                                  Esposo
+                                </button>
+                                <button
+                                  type="button"
+                                  class="brother-menu-item dropdown-item"
+                                  data-role="esposa"
+                                  data-target-id={spouse.id}
+                                >
+                                  Esposa
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              class="action-btn brother-view-btn"
+                              title="Ver detalles"
+                              data-brother-id={brother.id}
+                            >
+                              <EyeIcon class="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              class="action-btn brother-edit-btn"
+                              title="Editar"
+                              data-brother-id={brother.id}
+                            >
+                              <PencilIcon class="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                        {/* btn - delete */}
                       </div>
                     </td>
                   </tr>
@@ -263,78 +267,6 @@ let pagination: PaginationPage = {
   </a>
 </SectionContainer>
 
-<style>
-  /* bottoms */
-  .action-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 0.375rem;
-    border: 1px solid #e5e5e5;
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #525252;
-  }
-
-  .action-btn:hover {
-    background: #fafafa;
-    border-color: #d4d4d4;
-    color: #171717;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .action-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  }
-
-  /* Menú de más opciones */
-  .more-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 0.25rem;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    z-index: 50;
-    min-width: 160px;
-  }
-
-  .more-menu.hidden {
-    display: none;
-  }
-
-  .more-menu-item {
-    width: 100%;
-    padding: 0.625rem 1rem;
-    text-align: left;
-    background: white;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s ease;
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .more-menu-item:hover {
-    background: #f3f4f6;
-  }
-
-  .more-menu-item.delete:hover {
-    background: #fee2e2;
-    color: #dc2626;
-  }
-</style>
-
 <script>
   import { showNotification } from "@/scripts/notification";
 
@@ -346,168 +278,77 @@ let pagination: PaginationPage = {
   };
 
   document.addEventListener("astro:page-load", () => {
-    const actionButtons = document.querySelectorAll(".action-btn");
+    // Botones de ver para hermanos sin menú de matrimonio
+    const viewButtons = document.querySelectorAll(
+      ".brother-view-btn",
+    ) as NodeListOf<HTMLButtonElement>;
 
-    actionButtons.forEach((button) => {
-      button.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        const action = (button as HTMLElement).dataset.action;
-        const brotherId = (button as HTMLElement).dataset.brotherId;
+    viewButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const id = btn.getAttribute("data-brother-id");
+        if (!id) return;
 
-        if (!brotherId) return;
-
-        // Ver detalles: si hay cónyuge, mostramos menú Esposo/Esposa; si no, abrimos directo
-        if (action === "view") {
-          const spouseId = (button as HTMLElement).dataset.spouseId;
-          if (spouseId) {
-            toggleBrotherMenu(button as HTMLElement, brotherId, "view");
-            return;
-          }
-
-          if (typeof (window as any).openViewBrotherModal === "function") {
-            (window as any).openViewBrotherModal(brotherId);
-          }
-        } else if (action === "edit") {
-          const spouseId = (button as HTMLElement).dataset.spouseId;
-          if (spouseId) {
-            toggleBrotherMenu(button as HTMLElement, brotherId, "edit");
-            return;
-          }
-
-          if (typeof (window as any).openEditBrotherModal === "function") {
-            (window as any).openEditBrotherModal(brotherId);
-          }
-        } else if (action === "more") {
-          // Toggle menú de más opciones
-          toggleMoreMenu(button as HTMLElement, brotherId);
+        if (typeof (window as any).openViewBrotherModal === "function") {
+          (window as any).openViewBrotherModal(id);
         }
       });
     });
 
-    function toggleBrotherMenu(
-      button: HTMLElement,
-      brotherId: string,
-      mode: "view" | "edit",
-    ) {
-      const row = button.closest("tr");
-      if (!row) return;
+    // Botones de editar para hermanos sin menú de matrimonio
+    const editButtons = document.querySelectorAll(
+      ".brother-edit-btn",
+    ) as NodeListOf<HTMLButtonElement>;
 
-      const menu = row.querySelector(
-        `.brother-menu[data-menu-for="${brotherId}"]`,
-      ) as HTMLElement | null;
-      if (!menu) return;
-      // Guardar el modo actual (view/edit) en un data-atributo
-      menu.dataset.mode = mode;
+    editButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const id = btn.getAttribute("data-brother-id");
+        if (!id) return;
 
-      // Cerrar otros menús de brothers
-      document
-        .querySelectorAll(".brother-menu")
-        .forEach((m) => m.classList.add("hidden"));
+        if (typeof (window as any).openEditBrotherModal === "function") {
+          (window as any).openEditBrotherModal(id);
+        }
+      });
+    });
 
-      // Toggle el menú actual
-      menu.classList.toggle("hidden");
+    // Items dentro de los dropdowns de matrimonios (ver/editar esposo/esposa)
+    const dropdownItems = document.querySelectorAll(
+      ".brother-menu-item",
+    ) as NodeListOf<HTMLButtonElement>;
 
-      // Solo agregar el listener una vez por menú
-      if (menu.dataset.bound === "true") return;
-      menu.dataset.bound = "true";
+    dropdownItems.forEach((item) => {
+      item.addEventListener("click", (e) => {
+        e.preventDefault();
 
-      menu.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const item = (e.target as HTMLElement).closest(
-          ".brother-menu-item",
-        ) as HTMLElement | null;
-        if (!item) return;
-
-        const targetId = item.dataset.targetId;
+        const targetId = item.getAttribute("data-target-id");
         if (!targetId) return;
 
-        const currentMode = (menu.dataset.mode as "view" | "edit") || "view";
+        const wrapper = item.closest(".dropdown-wrapper") as HTMLElement | null;
+        if (!wrapper) return;
 
-        if (currentMode === "view") {
+        const isView = wrapper.classList.contains("wrapper-view");
+        const isEdit = wrapper.classList.contains("wrapper-edit");
+        const role = item.getAttribute("data-role") || undefined;
+
+        if (isView) {
           if (typeof (window as any).openViewBrotherModal === "function") {
             (window as any).openViewBrotherModal(targetId);
           }
-        } else {
+        } else if (isEdit) {
           if (typeof (window as any).openEditBrotherModal === "function") {
-            (window as any).openEditBrotherModal(targetId);
+            (window as any).openEditBrotherModal(targetId, role);
           }
         }
 
-        menu.classList.add("hidden");
-      });
-    }
-
-    function toggleMoreMenu(button: HTMLElement, brotherId: string) {
-      const existingMenu = button.parentElement?.querySelector(".more-menu");
-
-      if (existingMenu) {
-        existingMenu.remove();
-        return;
-      }
-
-      // Cerrar otros menús abiertos
-      document.querySelectorAll(".more-menu").forEach((menu) => menu.remove());
-
-      // Crear menú
-      const menu = document.createElement("div");
-      menu.className = "more-menu";
-      menu.innerHTML = `
-        <button class="more-menu-item delete" data-brother-id="${brotherId}">
-          🗑️ Eliminar hermano
-        </button>
-      `;
-
-      button.parentElement?.style.setProperty("position", "relative");
-      button.parentElement?.appendChild(menu);
-
-      // Event listener para eliminar
-      menu.querySelector(".delete")?.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        menu.remove();
-
-        const confirmed = confirm(
-          "¿Estás seguro de eliminar este hermano?\n\nEsta acción no se puede deshacer.",
-        );
-
-        if (confirmed) {
-          try {
-            const response = await fetch(`/api/brothers/${brotherId}`, {
-              method: "DELETE",
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-              showNotification(
-                "¡Hermano eliminado exitosamente!",
-                "success",
-                3000,
-              );
-              setTimeout(() => {
-                window.location.reload();
-              }, 500);
-            } else {
-              showNotification(
-                result.error || "Error al eliminar el hermano",
-                "error",
-                5000,
-              );
-            }
-          } catch (error) {
-            console.error("Error eliminando hermano:", error);
-            showNotification(
-              "Error de conexión al eliminar el hermano",
-              "error",
-              5000,
-            );
-          }
+        // Cerrar el dropdown desmarcando el checkbox asociado
+        const toggle = wrapper.querySelector(
+          ".dropdown-toggle",
+        ) as HTMLInputElement | null;
+        if (toggle) {
+          toggle.checked = false;
         }
       });
-    }
-
-    // Cerrar menús al hacer click fuera
-    document.addEventListener("click", () => {
-      document.querySelectorAll(".more-menu").forEach((menu) => menu.remove());
     });
   });
 </script>

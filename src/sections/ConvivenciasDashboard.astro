@@ -7,6 +7,7 @@ import {
   getInvitedBrothersByConvivencia,
 } from "@/services/convivencias";
 import PLusIcon from "@/assets/PLusIcon.astro";
+import { groupMarriagesForAttendance } from "@/utils/marriageGrouping";
 
 const { convivencias } = await getConvivenciasForDashboard();
 const currentConv =
@@ -18,46 +19,7 @@ const invitedBrothers = currentConv
   : [];
 
 // Agrupar matrimonios para mostrarlos en una sola fila en la tabla de invitados
-const groupedInvited = (() => {
-  const byId = new Map<number, any>();
-  invitedBrothers.forEach((b: any) => byId.set(b.brother_id, b));
-
-  const used = new Set<number>();
-  const result: any[] = [];
-
-  for (const b of invitedBrothers as any[]) {
-    if (used.has(b.brother_id)) continue;
-
-    if (b.spouse_id && byId.has(b.spouse_id)) {
-      const spouse = byId.get(b.spouse_id)!;
-
-      used.add(b.brother_id);
-      used.add(spouse.brother_id);
-
-      result.push({
-        ...b,
-        is_marriage: true,
-        names: `${b.names} y ${spouse.names}`,
-        husband_id: b.brother_id,
-        wife_id: spouse.brother_id,
-        husband_name: b.names,
-        wife_name: spouse.names,
-      });
-    } else {
-      used.add(b.brother_id);
-      result.push({
-        ...b,
-        is_marriage: false,
-        husband_id: null,
-        wife_id: null,
-        husband_name: null,
-        wife_name: null,
-      });
-    }
-  }
-
-  return result;
-})();
+const groupedInvited = groupMarriagesForAttendance(invitedBrothers as any[]);
 ---
 
 <SectionContainer

@@ -124,6 +124,8 @@ const parishes: Parish[] = await getParishes();
   </button>
 </ModalDesign>
 <script>
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
+
   document.addEventListener("astro:page-load", () => {
     const $id = (selector: string) => document.getElementById(selector);
     const $ = (selector: string) => document.querySelector(selector);
@@ -318,23 +320,8 @@ const parishes: Parish[] = await getParishes();
       updateInvitedList();
     }
 
-    // Cerrar con los botones de cerrar
-    closeBtns.forEach((btn) => {
-      btn.addEventListener("click", closeParishModal);
-    });
-
-    // Cerrar al hacer clic fuera del modal
-    modal?.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        closeParishModal();
-      }
-    });
-
-    // Cerrar con la tecla Escape
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal?.classList.contains("hidden")) {
-        closeParishModal();
-      }
+    setupModalCloseHandlers("modal-create-convi", () => {
+      closeParishModal();
     });
 
     if (parishSelect) {
@@ -372,18 +359,18 @@ const parishes: Parish[] = await getParishes();
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const name = (form.querySelector(
-          "#name-convi",
-        ) as HTMLInputElement | null)?.value;
-        const description = (form.querySelector(
-          "#description-convi",
-        ) as HTMLInputElement | null)?.value;
-        const startDate = (form.querySelector(
-          "#date-start",
-        ) as HTMLInputElement | null)?.value;
-        const endDate = (form.querySelector(
-          "#date-end",
-        ) as HTMLInputElement | null)?.value;
+        const name = (
+          form.querySelector("#name-convi") as HTMLInputElement | null
+        )?.value;
+        const description = (
+          form.querySelector("#description-convi") as HTMLInputElement | null
+        )?.value;
+        const startDate = (
+          form.querySelector("#date-start") as HTMLInputElement | null
+        )?.value;
+        const endDate = (
+          form.querySelector("#date-end") as HTMLInputElement | null
+        )?.value;
 
         const communityIds = Array.from(selectedCommunities.values()).map(
           (c) => c.id,
@@ -407,7 +394,10 @@ const parishes: Parish[] = await getParishes();
           });
 
           const result = await res.json();
-          console.log("[ModalAddConvivencia] Respuesta POST /api/convivencias:", result);
+          console.log(
+            "[ModalAddConvivencia] Respuesta POST /api/convivencias:",
+            result,
+          );
 
           if (result.success) {
             closeParishModal();

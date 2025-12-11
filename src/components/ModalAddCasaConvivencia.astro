@@ -1,0 +1,53 @@
+---
+import ModalDesign from "./ModalDesign.astro";
+---
+
+<ModalDesign
+  id="modal-add-cc"
+  title="Agregar Casa de Convivencia"
+  isForm
+  idForm="modal-create-cc"
+>
+  <div class="" slot="body">
+    <!-- name, location, capacidad, description -->
+    <p>hola</p>
+  </div>
+
+  <button
+    slot="footer"
+    class="btn btn-secondary flex-1"
+    type="button"
+    data-close="modal-add-cc"
+  >
+    Cancelar
+  </button>
+  <!-- Agregar o editar -->
+  <button slot="footer" class="btn btn-primary flex-1">Agregar</button>
+</ModalDesign>
+
+<script>
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
+
+  document.addEventListener("astro:page-load", () => {
+    const modal = document.getElementById(
+      "modal-add-cc",
+    ) as HTMLDivElement | null;
+    if (!modal) return;
+
+    const closeModal = () => {
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+    };
+
+    function openModalAddCasaConvi() {
+      modal?.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    setupModalCloseHandlers("modal-add-cc", () => {
+      closeModal();
+    });
+
+    (window as any).openModalAddCasaConvi = openModalAddCasaConvi;
+  });
+</script>

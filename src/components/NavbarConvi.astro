@@ -21,15 +21,12 @@ import PlusIcon from "@/assets/PLusIcon.astro";
       </div>
     </button>
 
-    <button
-      class="btn btn-secondary navbar-btn text-sm"
-      data-modal="gestion-convivencia"
-    >
+    <button class="btn btn-secondary navbar-btn text-sm" data-modal="create-cc">
       <div class="flex items-center gap-2">
         <span class="navbar-btn-icon">
           <PlusIcon class="w-4 aspect-square block" />
         </span>
-        <span class="navbar-btn-text">Gestionar convivencia</span>
+        <span class="navbar-btn-text">Agregar Casa Conv.</span>
       </div>
     </button>
   </div>
@@ -50,11 +47,11 @@ import PlusIcon from "@/assets/PLusIcon.astro";
           } else {
             console.log("openBrotherModal no está disponible");
           }
-        } else if (modalType === "parish") {
-          if (typeof (window as any).openParishModal === "function") {
-            (window as any).openParishModal();
+        } else if (modalType === "create-cc") {
+          if (typeof (window as any).openModalAddCasaConvi === "function") {
+            (window as any).openModalAddCasaConvi();
           } else {
-            console.log("openParishModal no está disponible");
+            console.log("openModalAddCasaConvi no está disponible");
           }
         }
       });

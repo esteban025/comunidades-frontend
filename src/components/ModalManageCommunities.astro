@@ -123,9 +123,14 @@ import ModalDesign from "./ModalDesign.astro";
       </div>
     </div>
   </div>
-  <button slot="footer" class="btn btn-secondary w-full" id="modal-close-btn"
-    >Cerrar</button
+  <button
+    slot="footer"
+    class="btn btn-secondary w-full"
+    id="modal-close-btn"
+    data-close="modal-manage-communities"
   >
+    Cerrar
+  </button>
   <button slot="footer" class="btn btn-primary w-full" id="modal-action-btn"
     >Fusionar Comunidades</button
   >
@@ -267,6 +272,8 @@ import ModalDesign from "./ModalDesign.astro";
 </style>
 
 <script>
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
+
   document.addEventListener("astro:page-load", () => {
     // Variables globales
     let allParishes: any[] = [];
@@ -643,34 +650,9 @@ import ModalDesign from "./ModalDesign.astro";
       }
     };
 
-    // Cerrar modal con botón de cerrar
-    document
-      .getElementById("modal-close-btn")
-      ?.addEventListener("click", closeManageCommunitiesModal);
-
-    // Cerrar modal con ESC
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        const modal = document.getElementById("modal-manage-communities");
-        if (modal && !modal.classList.contains("hidden")) {
-          closeManageCommunitiesModal();
-        }
-      }
+    setupModalCloseHandlers("modal-manage-communities", () => {
+      closeManageCommunitiesModal();
     });
-
-    // Cerrar modal al hacer click fuera
-    document
-      .getElementById("modal-manage-communities")
-      ?.addEventListener("click", (e) => {
-        if ((e.target as HTMLElement).id === "modal-manage-communities") {
-          closeManageCommunitiesModal();
-        }
-      });
-
-    // Cerrar modal con botón X del header
-    document
-      .querySelector('[data-close="modal-manage-communities"]')
-      ?.addEventListener("click", closeManageCommunitiesModal);
 
     // Cargar parroquias al cargar la página
     if (typeof window !== "undefined") {

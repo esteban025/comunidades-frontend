@@ -64,6 +64,7 @@ import ModalDesign from "./ModalDesign.astro";
 
 <script>
   import { showNotification } from "@/scripts/notification";
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
 
   document.addEventListener("astro:page-load", () => {
     const modal = document.getElementById(
@@ -72,9 +73,6 @@ import ModalDesign from "./ModalDesign.astro";
     const form = document.getElementById(
       "form-edit-community",
     ) as HTMLFormElement | null;
-    const closeButtons = document.querySelectorAll(
-      '[data-close="modal-edit-community"]',
-    );
     const header = document.getElementById(
       "edit-community-header",
     ) as HTMLParagraphElement | null;
@@ -162,18 +160,8 @@ import ModalDesign from "./ModalDesign.astro";
       header.textContent = `Comunidad ${communityNumber}`;
     }
 
-    closeButtons.forEach((button) => {
-      button.addEventListener("click", closeEditCommunityModal);
-    });
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeEditCommunityModal();
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-        closeEditCommunityModal();
-      }
+    setupModalCloseHandlers("modal-edit-community", () => {
+      closeEditCommunityModal();
     });
 
     form.addEventListener("submit", handleSubmit);

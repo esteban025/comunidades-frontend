@@ -69,6 +69,7 @@ import ModalDesign from "./ModalDesign.astro";
 <script>
   import { registerParish } from "@/scripts/registerParish";
   import { showNotification } from "@/scripts/notification";
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
 
   document.addEventListener("astro:page-load", () => {
     const $id = (selector: string) => document.getElementById(selector);
@@ -77,7 +78,6 @@ import ModalDesign from "./ModalDesign.astro";
 
     const modal = $id("modal-parish");
     const form = $id("modal-parish-form") as HTMLFormElement;
-    const closeButtons = $$('[data-close="modal-parish"]');
     const modalTitle = modal?.querySelector("h2");
     const submitButton = $id("modal-parish-submit") as HTMLButtonElement;
     const parishIdInput = $id("modal-parish-id") as HTMLInputElement;
@@ -119,23 +119,8 @@ import ModalDesign from "./ModalDesign.astro";
       form?.reset();
     }
 
-    // Cerrar con los botones de cerrar
-    closeButtons.forEach((button) => {
-      button.addEventListener("click", closeParishModal);
-    });
-
-    // Cerrar al hacer clic fuera del modal
-    modal?.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        closeParishModal();
-      }
-    });
-
-    // Cerrar con la tecla Escape
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal?.classList.contains("hidden")) {
-        closeParishModal();
-      }
+    setupModalCloseHandlers("modal-parish", () => {
+      closeParishModal();
     });
 
     // Manejar el envío del formulario

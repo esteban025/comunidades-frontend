@@ -220,6 +220,7 @@ export async function getConfirmedBrothersByConvivencia(convivenciaId: number) {
       c.number_community AS community_number,
       p.name AS parish_name,
       p.aka AS parish_aka,
+      cc.community_id AS conv_community_id,
       ca.observations,
       ca.special_needs,
       ca.attended,
@@ -228,6 +229,9 @@ export async function getConfirmedBrothersByConvivencia(convivenciaId: number) {
     INNER JOIN brothers br ON ca.brother_id = br.id
     INNER JOIN communities c ON br.community_id = c.id
     INNER JOIN parishes p ON c.parish_id = p.id
+    LEFT JOIN convivencia_communities cc
+      ON cc.convivencia_id = ca.convivencia_id
+      AND cc.community_id = c.id
     LEFT JOIN casas_convivencia casas ON ca.casa_id = casas.id
     WHERE ca.convivencia_id = ?
     ORDER BY p.name, c.number_community, br.names

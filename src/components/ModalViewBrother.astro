@@ -37,12 +37,10 @@ import ModalDesign from "./ModalDesign.astro";
 
 <script>
   import { showNotification } from "@/scripts/notification";
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
 
   document.addEventListener("astro:page-load", () => {
     const modal = document.getElementById("modal-view-brother");
-    const closeButtons = document.querySelectorAll(
-      '[data-close="modal-view-brother"]',
-    );
     const contentDiv = document.getElementById("brother-details-content");
 
     function closeViewModal() {
@@ -89,18 +87,8 @@ import ModalDesign from "./ModalDesign.astro";
       }
     }
 
-    closeButtons.forEach((button) => {
-      button.addEventListener("click", closeViewModal);
-    });
-
-    modal?.addEventListener("click", (e) => {
-      if (e.target === modal) closeViewModal();
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal?.classList.contains("hidden")) {
-        closeViewModal();
-      }
+    setupModalCloseHandlers("modal-view-brother", () => {
+      closeViewModal();
     });
 
     (window as any).openViewBrotherModal = openViewBrotherModal;

@@ -37,6 +37,8 @@ import ModalDesign from "./ModalDesign.astro";
 </ModalDesign>
 
 <script>
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
+
   document.addEventListener("astro:page-load", () => {
     const $id = (selector: string) => document.getElementById(selector);
 
@@ -48,10 +50,6 @@ import ModalDesign from "./ModalDesign.astro";
 
     if (!modal || !form || !input) return;
 
-    const closeButtons = document.querySelectorAll(
-      '[data-close="modal-confirm-attendance"]',
-    );
-
     let convivenciaId: string | null = null;
     let primaryBrotherId: string | null = null;
     let spouseId: string | null = null;
@@ -61,8 +59,8 @@ import ModalDesign from "./ModalDesign.astro";
       convId: string,
       brotherId: string,
       spouseIdParam?: string | null,
-      husbandName?: string | null,
-      wifeName?: string | null,
+      // husbandName?: string | null,
+      // wifeName?: string | null,
     ) => {
       convivenciaId = convId;
       primaryBrotherId = brotherId;
@@ -89,22 +87,8 @@ import ModalDesign from "./ModalDesign.astro";
       input.value = "";
     };
 
-    closeButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        closeConfirmAttendanceModal();
-      });
-    });
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        closeConfirmAttendanceModal();
-      }
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-        closeConfirmAttendanceModal();
-      }
+    setupModalCloseHandlers("modal-confirm-attendance", () => {
+      closeConfirmAttendanceModal();
     });
 
     form.addEventListener("submit", async (e) => {
