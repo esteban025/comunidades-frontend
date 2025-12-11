@@ -53,11 +53,21 @@ import ModalDesign from "./ModalDesign.astro";
     );
 
     let convivenciaId: string | null = null;
-    let selectedBrotherId: string | null = null;
+    let primaryBrotherId: string | null = null;
+    let spouseId: string | null = null;
+    let isMarriage = false;
 
-    const openConfirmAttendanceModal = (convId: string, brotherId: string) => {
+    const openConfirmAttendanceModal = (
+      convId: string,
+      brotherId: string,
+      spouseIdParam?: string | null,
+      husbandName?: string | null,
+      wifeName?: string | null,
+    ) => {
       convivenciaId = convId;
-      selectedBrotherId = brotherId;
+      primaryBrotherId = brotherId;
+      spouseId = spouseIdParam || null;
+      isMarriage = !!spouseId;
 
       input.value = "";
 
@@ -69,7 +79,9 @@ import ModalDesign from "./ModalDesign.astro";
 
     const closeConfirmAttendanceModal = () => {
       convivenciaId = null;
-      selectedBrotherId = null;
+      primaryBrotherId = null;
+      spouseId = null;
+      isMarriage = false;
 
       modal.classList.add("hidden");
       document.body.style.overflow = "";
@@ -99,7 +111,7 @@ import ModalDesign from "./ModalDesign.astro";
       e.preventDefault();
       e.stopPropagation();
 
-      if (!convivenciaId || !selectedBrotherId) return;
+      if (!convivenciaId || !primaryBrotherId) return;
 
       const submitButton = form.querySelector(
         'button[type="submit"]',
@@ -114,23 +126,35 @@ import ModalDesign from "./ModalDesign.astro";
         input.value.trim() !== "" ? input.value.trim() : null;
 
       try {
-        const res = await fetch(
-          `/api/convivencias/${convivenciaId}/attendees`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              brother_id: Number(selectedBrotherId),
-              observations,
-            }),
-          },
-        );
+        const idsToConfirm: string[] = [];
 
-        if (!res.ok) {
-          console.error("Error al confirmar asistencia", await res.text());
-          submitButton.disabled = false;
-          submitButton.textContent = "Confirmar asistencia";
-          return;
+        if (isMarriage && spouseId) {
+          // En esta etapa solo confirmamos que asistirán a la convivencia.
+          // Para matrimonios, siempre confirmamos a ambos esposos juntos.
+          idsToConfirm.push(primaryBrotherId!, spouseId);
+        } else {
+          idsToConfirm.push(primaryBrotherId!);
+        }
+
+        for (const id of idsToConfirm) {
+          const res = await fetch(
+            `/api/convivencias/${convivenciaId}/attendees`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                brother_id: Number(id),
+                observations,
+              }),
+            },
+          );
+
+          if (!res.ok) {
+            console.error("Error al confirmar asistencia", await res.text());
+            submitButton.disabled = false;
+            submitButton.textContent = "Confirmar asistencia";
+            return;
+          }
         }
 
         closeConfirmAttendanceModal();

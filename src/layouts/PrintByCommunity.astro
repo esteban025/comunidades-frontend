@@ -11,6 +11,7 @@ interface Props {
     nombres: string;
     observaciones: string;
     hospedaje: string;
+    cantidad?: number;
   }[];
 }
 const {
@@ -29,11 +30,9 @@ const calcularAsistentesYTotal = () => {
   let totalAsistentes = 0;
 
   hermanosAsistieron.forEach((hermano) => {
-    if (hermano.tipo === "matrimonio") {
-      totalAsistentes += 2; // Matrimonio cuenta como 2 personas
-    } else {
-      totalAsistentes += 1; // Soltero o soltera cuenta como 1
-    }
+    const cantidad =
+      hermano.cantidad ?? (hermano.tipo === "matrimonio" ? 2 : 1);
+    totalAsistentes += cantidad;
   });
 
   return {
@@ -128,17 +127,19 @@ const fechaHoy = formatTodayLong();
             <tbody>
               {
                 hermanosAsistieron.map((hermano) => {
-                  const esMatrimonio = hermano.tipo === "matrimonio";
-                  const valor = esMatrimonio
-                    ? COSTO_POR_PERSONA * 2
-                    : COSTO_POR_PERSONA;
+                  const cantidad =
+                    hermano.cantidad ?? (hermano.tipo === "matrimonio" ? 2 : 1);
+                  const esMultiple = cantidad > 1;
+                  const valor = cantidad * COSTO_POR_PERSONA;
 
                   return (
                     <tr>
                       <td class="border border-gray-300 px-4 py-2">
                         {hermano.nombres}
-                        {esMatrimonio && (
-                          <span class="text-sm text-gray-600"> (x2)</span>
+                        {esMultiple && (
+                          <span class="text-sm text-gray-600">
+                            {` (x${cantidad})`}
+                          </span>
                         )}
                       </td>
                       <td class="border border-gray-300 px-4 py-2 text-right">

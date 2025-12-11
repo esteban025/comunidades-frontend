@@ -120,6 +120,7 @@ export async function getEligibleBrothersByConvivencia(convivenciaId: number) {
     SELECT 
       br.id AS brother_id,
       br.names,
+      br.spouse_id,
       c.number_community AS community_number,
       p.name AS parish_name
     FROM convivencia_communities cc
@@ -138,6 +139,7 @@ export async function getEligibleBrothersByConvivencia(convivenciaId: number) {
   const data = rows.map((row: any) => ({
     brother_id: row.brother_id,
     names: row.names,
+    spouse_id: row.spouse_id,
     community_number: row.community_number,
     parish_name: row.parish_name,
     will_attend: false,
@@ -157,6 +159,7 @@ export async function getInvitedBrothersByConvivencia(convivenciaId: number) {
     SELECT
       br.id AS brother_id,
       br.names,
+      br.spouse_id,
       c.number_community AS community_number,
       p.name AS parish_name,
       p.aka AS parish_aka
@@ -212,6 +215,7 @@ export async function getConfirmedBrothersByConvivencia(convivenciaId: number) {
       br.id AS brother_id,
       br.names,
       br.civil_status,
+      br.spouse_id,
       c.id AS community_id,
       c.number_community AS community_number,
       p.name AS parish_name,

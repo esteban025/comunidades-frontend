@@ -32,14 +32,54 @@ if (currentConv && communityIdParam) {
   );
 }
 
+// Agrupar matrimonios dentro de la comunidad para cobros.
+// Si ambos spouses tienen attended = true para esta comunidad, se genera
+// una sola entrada con cantidad = 2 y nombres combinados.
+// Si solo uno asistió (solo aparece uno con attended = true), se genera
+// una entrada individual con cantidad = 1.
+const hermanosAgrupados = (() => {
+  const byId = new Map<number, any>();
+  comunidadAsistentes.forEach((b: any) => byId.set(b.brother_id, b));
+
+  const used = new Set<number>();
+  const result: any[] = [];
+
+  for (const b of comunidadAsistentes as any[]) {
+    if (used.has(b.brother_id)) continue;
+
+    if (b.spouse_id && byId.has(b.spouse_id)) {
+      const spouse = byId.get(b.spouse_id)!;
+
+      // Ambos están en comunidadAsistentes (ambos attended=true)
+      used.add(b.brother_id);
+      used.add(spouse.brother_id);
+
+      result.push({
+        tipo: b.civil_status, // "matrimonio"
+        nombres: `${b.names} y ${spouse.names}`,
+        observaciones: b.observations || spouse.observations || "",
+        hospedaje: b.casa_name || spouse.casa_name || "No especificado",
+        cantidad: 2,
+      });
+    } else {
+      // Hermano individual (soltero o uno solo del matrimonio que asistió)
+      used.add(b.brother_id);
+      result.push({
+        tipo: b.civil_status,
+        nombres: b.names,
+        observaciones: b.observations || "",
+        hospedaje: b.casa_name || "No especificado",
+        cantidad: 1,
+      });
+    }
+  }
+
+  return result;
+})();
+
 const first = comunidadAsistentes[0] || null;
 
-const hermanos = comunidadAsistentes.map((b: any) => ({
-  tipo: b.civil_status,
-  nombres: b.names,
-  observaciones: b.observations || "",
-  hospedaje: b.casa_name || "No especificado",
-}));
+const hermanos = hermanosAgrupados;
 
 // Por ahora no tenemos responsable en la BD; usamos un texto genérico
 // para que no aparezca el nombre del primer hermano como responsable.
