@@ -1,5 +1,6 @@
 ---
 import ModalDesign from "./ModalDesign.astro";
+import { pasosListaPlana } from "@/datos/pasos-list";
 ---
 
 <ModalDesign
@@ -14,18 +15,24 @@ import ModalDesign from "./ModalDesign.astro";
     <input type="hidden" id="edit-community-id" />
     <input type="hidden" id="edit-community-number" />
 
-    <label class="flex flex-col gap-1 text-sm">
-      <span class="font-medium text-text-primary">Paso de la comunidad</span>
-      <input
+    <div class="content-input">
+      <label for="edit-level-paso">Paso de la comunidad</label>
+      <select
+        name="edit-level-paso"
         id="edit-level-paso"
-        type="text"
-        class="input-text"
-        placeholder="Ej: 1º Escrutinio, 2º Escrutinio, etc."
-      />
-      <span class="text-xs text-text-muted">
-        Este es el único dato que se puede modificar desde esta pantalla.
-      </span>
-    </label>
+        class="select-input"
+        required
+      >
+        <option value="" disabled selected>Selecciona un paso</option>
+        {
+          pasosListaPlana.map((paso) => (
+            <option class="options-select" value={paso}>
+              {paso}
+            </option>
+          ))
+        }
+      </select>
+    </div>
   </div>
 
   <button
@@ -46,45 +53,18 @@ import ModalDesign from "./ModalDesign.astro";
   </button>
 </ModalDesign>
 
-<style>
-  .input-text {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border-radius: 9999px;
-    border: 2px solid #e5e7eb;
-    font-size: 0.875rem;
-  }
-
-  .input-text:focus {
-    outline: none;
-    border-color: var(--color-border-dark);
-    box-shadow: 0 0 0 1px var(--color-border-dark);
-  }
-</style>
-
 <script>
   import { showNotification } from "@/scripts/notification";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
 
   document.addEventListener("astro:page-load", () => {
-    const modal = document.getElementById(
-      "modal-edit-community",
-    ) as HTMLDivElement | null;
-    const form = document.getElementById(
-      "form-edit-community",
-    ) as HTMLFormElement | null;
-    const header = document.getElementById(
-      "edit-community-header",
-    ) as HTMLParagraphElement | null;
-    const inputId = document.getElementById(
-      "edit-community-id",
-    ) as HTMLInputElement | null;
-    const inputNumber = document.getElementById(
-      "edit-community-number",
-    ) as HTMLInputElement | null;
-    const inputPaso = document.getElementById(
-      "edit-level-paso",
-    ) as HTMLInputElement | null;
+    const $ = (selector: string) => document.getElementById(selector);
+    const modal = $("modal-edit-community") as HTMLDivElement;
+    const form = $("form-edit-community") as HTMLFormElement;
+    const header = $("edit-community-header") as HTMLParagraphElement;
+    const inputId = $("edit-community-id") as HTMLInputElement;
+    const inputNumber = $("edit-community-number") as HTMLInputElement;
+    const inputPaso = $("edit-level-paso") as HTMLInputElement;
 
     if (!modal || !form || !header || !inputId || !inputNumber || !inputPaso)
       return;
