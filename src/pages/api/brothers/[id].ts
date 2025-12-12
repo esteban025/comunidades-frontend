@@ -275,25 +275,26 @@ export const PUT: APIRoute = async ({ params, request }) => {
         );
       }
 
-      // Determinar cuál registro corresponde a cada nombre según datos actuales.
-      const [spouseRows]: any = await db.query(
-        "SELECT id, names FROM brothers WHERE id IN (?, ?)",
-        [parseInt(id), existingBrother.spouse_id],
-      );
-
-      const currentRow = spouseRows.find((r: any) => r.id === parseInt(id));
-      const spouseRow = spouseRows.find((r: any) => r.id === existingBrother.spouse_id);
-
-      let husbandId = parseInt(id);
-      let wifeId = existingBrother.spouse_id;
-
-      if (currentRow && currentRow.names === wifeName) {
-        wifeId = parseInt(id);
-        husbandId = existingBrother.spouse_id;
-      } else if (spouseRow && spouseRow.names === wifeName) {
-        husbandId = parseInt(id);
-        wifeId = existingBrother.spouse_id;
+      if (husbandName.toLowerCase() === wifeName.toLowerCase()) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error:
+              "Para matrimonios, el nombre del esposo y el de la esposa no pueden ser iguales.",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
+
+      // Determinar IDs de esposo/esposa de forma estable.
+      // En toda la app tratamos como esposo al registro con id menor.
+      const currentId = parseInt(id);
+      const spouseId = existingBrother.spouse_id;
+      const husbandId = Math.min(currentId, spouseId);
+      const wifeId = Math.max(currentId, spouseId);
 
       // Actualizar ambos registros (nombres y teléfonos separados)
       await db.query(

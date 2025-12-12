@@ -6,6 +6,7 @@ import {
   getConfirmedBrothersByConvivencia,
 } from "@/services/convivencias";
 import { groupMarriagesForAttendance } from "@/utils/marriageGrouping";
+import { calculateAttendanceTotals } from "@/utils/attendanceTotals";
 
 const { convivencias } = await getConvivenciasForDashboard();
 
@@ -68,8 +69,8 @@ const invitedGrouped = groupMarriagesForAttendance(invitedBrothers as any[]);
 
 function getTipoFromCivilStatus(status?: string | null): string {
   if (!status) return "";
-  if (status === "matrimonio") return "Casado";
-  if (status === "soltero" || status === "soltera") return "Soltero";
+  if (status === "matrimonio") return "casado";
+  // if (status === "soltero" || status === "soltera") return "Soltero";
   return status;
 }
 ---
@@ -122,7 +123,7 @@ function getTipoFromCivilStatus(status?: string | null): string {
       currentConv && confirmedBrothers.length > 0 && (
         <section class="space-y-6">
           {groupedEntries.map(([parishName, brothers]) => (
-            <div class="space-y-5">
+            <div class="space-y-5 print-keep-with-table">
               <header class="flex w-full pb-2 border-b-3 border-border-dark">
                 <h2 class="text-xl font-semibold text-gray-800">
                   Parroquia - {parishName}
@@ -132,25 +133,27 @@ function getTipoFromCivilStatus(status?: string | null): string {
                 <table>
                   <thead>
                     <tr>
-                      <th>Comunidad</th>
+                      <th class="min">Comunidad</th>
                       <th>Nombre</th>
                       <th>Tipo</th>
                       <th>Observación</th>
-                      <th>Hospedaje</th>
-                      <th>Num. Habit</th>
-                      <th class="no-print">Asistió</th>
+                      {/* <th>Hospedaje</th> */}
+                      <th class="min">N° Habit</th>
+                      <th class="no-print min">Asistió</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(brothers as any[]).map((brother: any) => (
                       <tr class="border-t last:border-b-0">
-                        <td>{brother.community_number}</td>
+                        <td class="min">{brother.community_number}</td>
                         <td>{brother.names}</td>
-                        <td>{getTipoFromCivilStatus(brother.civil_status)}</td>
+                        <td class="capitalize">
+                          {getTipoFromCivilStatus(brother.civil_status)}
+                        </td>
                         <td>{brother.observations || "-"}</td>
-                        <td>Seminario</td>
+                        {/* <td>Seminario</td> */}
                         <td />
-                        <td class="no-print">
+                        <td class="no-print min">
                           {brother.is_marriage ? (
                             <div class="relative inline-block text-left">
                               <button
@@ -199,46 +202,75 @@ function getTipoFromCivilStatus(status?: string | null): string {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    {(() => {
+                      const totals = calculateAttendanceTotals(
+                        brothers as any[],
+                      );
+                      return (
+                        <tr class="w-full">
+                          <th colspan="6">
+                            <div class="grid grid-cols-[1fr_2fr]">
+                              <div class="flex items-center">
+                                <span>TOTALES: {totals.totalPeople}</span>
+                              </div>
+                              <div class="flex items-center gap-6">
+                                <span>
+                                  Total de matrimonios: {totals.totalMarriages}
+                                </span>
+                                <span>
+                                  Total de solteros: {totals.totalSinglesMale}
+                                </span>
+                                <span>
+                                  Total de solteras: {totals.totalSinglesFemale}
+                                </span>
+                              </div>
+                            </div>
+                          </th>
+                        </tr>
+                      );
+                    })()}
+                  </tfoot>
                 </table>
               </div>
               <div class="marcar-todos flex justify-end items-center no-print">
-                <button class="btn btn-tertiary">Marcar Todos</button>
+                <button class="btn btn-secondary">Marcar Todos</button>
               </div>
             </div>
           ))}
 
           {invitedGrouped.length > 0 && (
-            <div class="space-y-3">
-              <header class="flex w-full pb-2 border-b border-dashed border-border-dark mt-6">
-                <h2 class="text-base font-semibold text-gray-800">Invitados</h2>
+            <div class="space-y-5 print-keep-with-table">
+              <header class="flex w-full pb-2 border-b-3 border-border-dark">
+                <h2 class="text-xl font-semibold text-gray-800">Invitados</h2>
               </header>
               <div class="container-table">
                 <table>
                   <thead>
                     <tr>
-                      <th>Parroquia</th>
-                      <th>Comunidad</th>
+                      <th class="min">Comunidad</th>
+                      <th class="truncate">Parroquia</th>
                       <th>Nombre</th>
                       <th>Tipo</th>
                       <th>Observación</th>
-                      <th>Hospedaje</th>
-                      <th>Num. Habit</th>
-                      <th class="no-print">Asistió</th>
+                      {/* <th>Hospedaje</th> */}
+                      <th class="min">N° Habit</th>
+                      <th class="no-print min">Asistió</th>
                     </tr>
                   </thead>
                   <tbody>
                     {invitedGrouped.map((brother: any) => (
                       <tr class="border-t last:border-b-0">
+                        <td class="min">{brother.community_number}</td>
                         <td>
                           {brother.parish_aka || brother.parish_name || "-"}
                         </td>
-                        <td>{brother.community_number}</td>
                         <td>{brother.names}</td>
                         <td>{getTipoFromCivilStatus(brother.civil_status)}</td>
                         <td>{brother.observations || "-"}</td>
-                        <td>Seminario</td>
-                        <td />
-                        <td class="no-print">
+                        {/* <td>Seminario</td> */}
+                        <td class="min" />
+                        <td class="no-print min">
                           {brother.is_marriage ? (
                             <div class="relative inline-block text-left">
                               <button
@@ -287,39 +319,104 @@ function getTipoFromCivilStatus(status?: string | null): string {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    {(() => {
+                      const totals = calculateAttendanceTotals(
+                        invitedGrouped as any[],
+                      );
+                      return (
+                        <tr class="w-full">
+                          <th colspan="2">TOTALES: {totals.totalPeople}</th>
+                          <th colspan="5">
+                            <div class="flex items-center gap-6">
+                              <span>
+                                Total de matrimonios: {totals.totalMarriages}
+                              </span>
+                              <span>
+                                Total de solteros: {totals.totalSinglesMale}
+                              </span>
+                              <span>
+                                Total de solteras: {totals.totalSinglesFemale}
+                              </span>
+                            </div>
+                          </th>
+                        </tr>
+                      );
+                    })()}
+                  </tfoot>
                 </table>
               </div>
             </div>
           )}
 
-          <div class="flex flex-wrap gap-3 justify-end mt-4 no-print">
-            <button
-              type="button"
-              class="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              id="btn-print-attendees"
-            >
-              Imprimir
-            </button>
-            <button
-              type="button"
-              class="px-4 py-2 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-700"
-              id="btn-save-attended"
-            >
-              Guardar asistieron realmente
-            </button>
-            <button
-              type="button"
-              class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-500"
-              id="btn-go-cobros"
-            >
-              Ir a cobros
-            </button>
-          </div>
+          <footer>
+            <div class="flex flex-wrap gap-3 justify-end mt-4 no-print">
+              <button
+                type="button"
+                class="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                id="btn-print-attendees"
+              >
+                Imprimir
+              </button>
+              <button
+                type="button"
+                class="px-4 py-2 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-700"
+                id="btn-save-attended"
+              >
+                Guardar asistieron realmente
+              </button>
+              <button
+                type="button"
+                class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-500"
+                id="btn-go-cobros"
+              >
+                Ir a cobros
+              </button>
+            </div>
+          </footer>
         </section>
       )
     }
   </main>
 </Layout>
+
+<style>
+  @media print {
+    table {
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+
+    thead {
+      display: table-header-group;
+    }
+
+    tfoot {
+      display: table-footer-group;
+    }
+
+    tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      page-break-after: auto;
+    }
+
+    .container-table {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .print-keep-with-table {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .print-keep-with-table > header {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+  }
+</style>
 
 <script>
   document.addEventListener("astro:page-load", () => {
