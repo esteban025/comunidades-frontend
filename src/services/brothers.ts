@@ -4,6 +4,49 @@ interface Params {
   limit: number;
   offset: number;
 }
+
+const mapBrotherRows = (rows: any[]) => {
+  return rows.map((row: any) => {
+    const rolesInOwnCommunity: string[] = [];
+    const catechistCommunities: number[] = [];
+
+    if (row.roles) {
+      const rolesList = row.roles.split('|');
+      rolesList.forEach((roleInfo: string) => {
+        const [role, communityId] = roleInfo.split(':');
+        const commId = parseInt(communityId);
+
+        if (commId === row.community_id) {
+          rolesInOwnCommunity.push(role);
+        } else if (role === 'catequista') {
+          catechistCommunities.push(commId);
+        }
+      });
+    }
+
+    return {
+      id: row.id,
+      names: row.names,
+      civil_status: row.civil_status,
+      phone: row.phone,
+      spouse_id: row.spouse_id,
+      community: {
+        id: row.community_id,
+        number: row.number_community,
+        level_paso: row.level_paso,
+      },
+      parish: {
+        id: row.parish_id,
+        name: row.parish_name,
+        tag: row.parish_tag,
+        aka: row.parish_aka,
+      },
+      roles_in_own_community: rolesInOwnCommunity,
+      catechist_of_communities: catechistCommunities,
+    };
+  });
+};
+
 export const getBrother = async (param: Params) => {
   const { limit, offset } = param;
   const query = `
@@ -29,50 +72,84 @@ export const getBrother = async (param: Params) => {
                c.number_community, c.level_paso, p.id, p.name, p.tag, p.aka
       ORDER BY p.name, c.number_community, b.names
       LIMIT ? OFFSET ?
-  `
+  `;
   const [rows]: any = await db.query(query, [limit, offset]);
+  return mapBrotherRows(rows as any[]);
+};
 
-  // Procesar los roles para estructurarlos mejor
-  const brothers = rows.map((row: any) => {
-    const rolesInOwnCommunity: string[] = [];
-    const catechistCommunities: number[] = [];
+export const countBrotherGroups = async () => {
+  const [countResult]: any = await db.query(
+    `
+      SELECT COUNT(DISTINCT CASE
+        WHEN b.spouse_id IS NULL THEN b.id
+        ELSE LEAST(b.id, b.spouse_id)
+      END) as total
+      FROM brothers b
+    `,
+  );
+  return (countResult as any[])[0]?.total ?? 0;
+};
 
-    if (row.roles) {
-      const rolesList = row.roles.split('|');
-      rolesList.forEach((roleInfo: string) => {
-        const [role, communityId] = roleInfo.split(':');
-        const commId = parseInt(communityId);
+export const getBrotherGroupKeysPage = async (param: Params) => {
+  const { limit, offset } = param;
+  const [groupKeyRows]: any = await db.query(
+    `
+      SELECT t.group_key
+      FROM (
+        SELECT
+          CASE
+            WHEN b.spouse_id IS NULL THEN b.id
+            ELSE LEAST(b.id, b.spouse_id)
+          END AS group_key,
+          p.name AS parish_name,
+          c.number_community AS number_community,
+          MIN(b.names) AS sort_name
+        FROM brothers b
+        INNER JOIN communities c ON b.community_id = c.id
+        INNER JOIN parishes p ON c.parish_id = p.id
+        GROUP BY group_key, parish_name, number_community
+      ) t
+      ORDER BY t.parish_name, t.number_community, t.sort_name
+      LIMIT ? OFFSET ?
+    `,
+    [limit, offset],
+  );
+  return (groupKeyRows as any[]).map((r) => r.group_key);
+};
 
-        if (commId === row.community_id) {
-          // Rol en su propia comunidad
-          rolesInOwnCommunity.push(role);
-        } else if (role === 'catequista') {
-          // Catequista de otra comunidad
-          catechistCommunities.push(commId);
-        }
-      });
-    }
+export const getBrothersByGroupKeys = async (groupKeys: Array<number>) => {
+  if (!groupKeys || groupKeys.length === 0) return [];
+  const placeholders = groupKeys.map(() => "?").join(",");
+  const [rows]: any = await db.query(
+    `
+      SELECT 
+          b.id,
+          b.names,
+          b.civil_status,
+          b.phone,
+          b.spouse_id,
+          b.community_id,
+          c.number_community,
+          c.level_paso,
+          p.id as parish_id,
+          p.name as parish_name,
+          p.tag as parish_tag,
+          p.aka as parish_aka,
+          GROUP_CONCAT(DISTINCT CONCAT(br.role, ':', br.community_id) SEPARATOR '|') as roles
+        FROM brothers b
+        INNER JOIN communities c ON b.community_id = c.id
+        INNER JOIN parishes p ON c.parish_id = p.id
+        LEFT JOIN brother_roles br ON b.id = br.brother_id
+        WHERE (CASE
+          WHEN b.spouse_id IS NULL THEN b.id
+          ELSE LEAST(b.id, b.spouse_id)
+        END) IN (${placeholders})
+        GROUP BY b.id, b.names, b.civil_status, b.phone, b.spouse_id, b.community_id, 
+                 c.number_community, c.level_paso, p.id, p.name, p.tag, p.aka
+        ORDER BY p.name, c.number_community, b.names
+    `,
+    groupKeys,
+  );
 
-    return {
-      id: row.id,
-      names: row.names,
-      civil_status: row.civil_status,
-      phone: row.phone,
-      spouse_id: row.spouse_id,
-      community: {
-        id: row.community_id,
-        number: row.number_community,
-        level_paso: row.level_paso
-      },
-      parish: {
-        id: row.parish_id,
-        name: row.parish_name,
-        tag: row.parish_tag,
-        aka: row.parish_aka
-      },
-      roles_in_own_community: rolesInOwnCommunity,
-      catechist_of_communities: catechistCommunities
-    };
-  });
-  return brothers;
-}
+  return mapBrotherRows(rows as any[]);
+};

@@ -20,10 +20,21 @@ export const GET: APIRoute = async ({ params }) => {
         p.name AS parish_name,
         p.aka AS parish_aka,
         (
-          SELECT br.names
+          SELECT
+            CASE
+              WHEN br.civil_status = 'matrimonio' AND br.spouse_id IS NOT NULL AND s.id IS NOT NULL THEN
+                CONCAT(
+                  CASE WHEN br.id < s.id THEN br.names ELSE s.names END,
+                  ' y ',
+                  CASE WHEN br.id < s.id THEN s.names ELSE br.names END
+                )
+              ELSE br.names
+            END
           FROM brothers br
           INNER JOIN brother_roles brol ON br.id = brol.brother_id
+          LEFT JOIN brothers s ON br.spouse_id = s.id
           WHERE brol.community_id = c.id AND brol.role = 'responsable'
+          ORDER BY br.id ASC
           LIMIT 1
         ) AS responsible_name,
         COUNT(b.id) AS total_brothers

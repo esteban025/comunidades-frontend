@@ -54,20 +54,31 @@ import ModalDesign from "./ModalDesign.astro";
     let primaryBrotherId: string | null = null;
     let spouseId: string | null = null;
     let isMarriage = false;
+    let mode: "confirm" | "edit" = "confirm";
 
     const openConfirmAttendanceModal = (
       convId: string,
       brotherId: string,
       spouseIdParam?: string | null,
-      // husbandName?: string | null,
-      // wifeName?: string | null,
+      initialObservations?: string | null,
+      modeParam?: "confirm" | "edit",
     ) => {
       convivenciaId = convId;
       primaryBrotherId = brotherId;
       spouseId = spouseIdParam || null;
       isMarriage = !!spouseId;
 
-      input.value = "";
+      mode = modeParam || "confirm";
+
+      input.value = initialObservations ? String(initialObservations) : "";
+
+      const submitButton = form.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement | null;
+      if (submitButton) {
+        submitButton.textContent =
+          mode === "edit" ? "Guardar" : "Confirmar asistencia";
+      }
 
       modal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
@@ -80,11 +91,20 @@ import ModalDesign from "./ModalDesign.astro";
       primaryBrotherId = null;
       spouseId = null;
       isMarriage = false;
+      mode = "confirm";
 
       modal.classList.add("hidden");
       document.body.style.overflow = "";
 
       input.value = "";
+
+      const submitButton = form.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement | null;
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Confirmar asistencia";
+      }
     };
 
     setupModalCloseHandlers("modal-confirm-attendance", () => {
@@ -104,7 +124,8 @@ import ModalDesign from "./ModalDesign.astro";
       if (!submitButton) return;
 
       submitButton.disabled = true;
-      submitButton.textContent = "Confirmando...";
+      submitButton.textContent =
+        mode === "edit" ? "Guardando..." : "Confirmando...";
 
       const observations =
         input.value.trim() !== "" ? input.value.trim() : null;
@@ -124,7 +145,7 @@ import ModalDesign from "./ModalDesign.astro";
           const res = await fetch(
             `/api/convivencias/${convivenciaId}/attendees`,
             {
-              method: "POST",
+              method: mode === "edit" ? "PUT" : "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 brother_id: Number(id),
@@ -136,7 +157,8 @@ import ModalDesign from "./ModalDesign.astro";
           if (!res.ok) {
             console.error("Error al confirmar asistencia", await res.text());
             submitButton.disabled = false;
-            submitButton.textContent = "Confirmar asistencia";
+            submitButton.textContent =
+              mode === "edit" ? "Guardar" : "Confirmar asistencia";
             return;
           }
         }

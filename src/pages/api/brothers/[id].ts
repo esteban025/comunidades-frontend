@@ -29,6 +29,7 @@ export const GET: APIRoute = async ({ params }) => {
         b.names,
         b.civil_status,
         b.phone,
+        b.spouse_id,
         b.community_id,
         c.number_community,
         c.level_paso,
@@ -69,6 +70,7 @@ export const GET: APIRoute = async ({ params }) => {
         br.role,
         br.community_id,
         c.number_community,
+        p.id as parish_id,
         p.aka as parish_aka
       FROM brother_roles br
       LEFT JOIN communities c ON br.community_id = c.id
@@ -95,17 +97,31 @@ export const GET: APIRoute = async ({ params }) => {
         catechistOfCommunities.push({
           community_id: roleRow.community_id,
           community_number: roleRow.number_community,
+          parish_id: roleRow.parish_id,
           parish_aka: roleRow.parish_aka,
         });
       }
     });
 
     // Estructurar respuesta
+    let spouseData: any = null;
+    if (brother.civil_status === "matrimonio" && brother.spouse_id) {
+      const [spouseRows]: any = await db.query(
+        `SELECT id, names, phone FROM brothers WHERE id = ?`,
+        [brother.spouse_id],
+      );
+      if (spouseRows && spouseRows.length > 0) {
+        spouseData = spouseRows[0];
+      }
+    }
+
     const brotherData = {
       id: brother.id,
       names: brother.names,
       civil_status: brother.civil_status,
       phone: brother.phone,
+      spouse_id: brother.spouse_id,
+      spouse: spouseData,
       community: {
         id: brother.community_id,
         number: brother.number_community,
@@ -169,13 +185,13 @@ export const PUT: APIRoute = async ({ params, request }) => {
       );
     }
 
-    // Verificar si el hermano existe
-    const [existingBrother] = await db.query(
-      "SELECT id FROM brothers WHERE id = ?",
+    // Verificar si el hermano existe (y si tiene spouse)
+    const [existingBrotherRows]: any = await db.query(
+      "SELECT id, spouse_id, names, civil_status FROM brothers WHERE id = ?",
       [id],
     );
 
-    if ((existingBrother as any[]).length === 0) {
+    if (!existingBrotherRows || existingBrotherRows.length === 0) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -188,39 +204,23 @@ export const PUT: APIRoute = async ({ params, request }) => {
       );
     }
 
+    const existingBrother = existingBrotherRows[0] as {
+      id: number;
+      spouse_id?: number | null;
+      names: string;
+      civil_status: string;
+    };
+
     const formData = await request.formData();
 
-    const civilStatus = formData.get("civil_status") as string;
+    const civilStatus = (formData.get("civil_status") as string) || existingBrother.civil_status;
     const phone = (formData.get("phone") as string) || null;
+    const husbandPhone = (formData.get("husband_phone") as string) || null;
+    const wifePhone = (formData.get("wife_phone") as string) || null;
     const parishId = formData.get("parish_id") as string;
     const communityNumber = formData.get("community_number") as string;
 
-    // Construir nombres según estado civil
-    let names = "";
-    if (civilStatus === "matrimonio") {
-      let husbandName = (formData.get("husband_name") as string | null)?.trim() ?? "";
-      let wifeName = (formData.get("wife_name") as string | null)?.trim() ?? "";
-
-      // Quitar prefijo "y " si viniera del frontend
-      if (husbandName.toLowerCase().startsWith("y ")) {
-        husbandName = husbandName.slice(2).trim();
-      }
-      if (wifeName.toLowerCase().startsWith("y ")) {
-        wifeName = wifeName.slice(2).trim();
-      }
-
-      if (husbandName && wifeName) {
-        names = `${husbandName} y ${wifeName}`;
-      } else {
-        // Si solo viene uno, no agregamos "y"
-        names = husbandName || wifeName;
-      }
-    }
-    else {
-      names = (formData.get("full_name") as string) || "";
-    }
-
-    if (!names || !civilStatus || !parishId || !communityNumber) {
+    if (!civilStatus || !parishId || !communityNumber) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -255,42 +255,188 @@ export const PUT: APIRoute = async ({ params, request }) => {
       communityId = result.insertId;
     }
 
-    // Actualizar datos básicos del hermano
-    await db.query(
-      `UPDATE brothers 
-       SET names = ?, civil_status = ?, phone = ?, community_id = ?
-       WHERE id = ?`,
-      [names, civilStatus, phone, communityId, id],
-    );
+    const idsToUpdate: number[] = [parseInt(id)];
+    if (existingBrother.spouse_id) idsToUpdate.push(existingBrother.spouse_id);
 
-    // Eliminar roles existentes
-    await db.query("DELETE FROM brother_roles WHERE brother_id = ?", [id]);
+    if (civilStatus === "matrimonio" && existingBrother.spouse_id) {
+      const husbandName = ((formData.get("husband_name") as string) || "").trim();
+      const wifeName = ((formData.get("wife_name") as string) || "").trim();
 
-    // Insertar roles en su propia comunidad
-    const rolesInOwnCommunity = formData.getAll("roles_in_own_community");
-    if (rolesInOwnCommunity && rolesInOwnCommunity.length > 0) {
-      for (const role of rolesInOwnCommunity) {
-        await db.query(
-          `INSERT INTO brother_roles (brother_id, community_id, role) 
-           VALUES (?, ?, ?)`,
-          [id, communityId, role],
+      if (!husbandName || !wifeName) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Para matrimonios se requieren ambos nombres",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          },
         );
       }
-    }
 
-    // Insertar roles de catequista en otras comunidades
-    const catechistCount = parseInt(
-      (formData.get("catechist_count") as string) || "0",
-    );
-    for (let i = 0; i < catechistCount; i++) {
-      const catCommunityId = formData.get(
-        `catechist_community_${i}`,
-      ) as string;
-      if (catCommunityId) {
+      // Determinar cuál registro corresponde a cada nombre según datos actuales.
+      const [spouseRows]: any = await db.query(
+        "SELECT id, names FROM brothers WHERE id IN (?, ?)",
+        [parseInt(id), existingBrother.spouse_id],
+      );
+
+      const currentRow = spouseRows.find((r: any) => r.id === parseInt(id));
+      const spouseRow = spouseRows.find((r: any) => r.id === existingBrother.spouse_id);
+
+      let husbandId = parseInt(id);
+      let wifeId = existingBrother.spouse_id;
+
+      if (currentRow && currentRow.names === wifeName) {
+        wifeId = parseInt(id);
+        husbandId = existingBrother.spouse_id;
+      } else if (spouseRow && spouseRow.names === wifeName) {
+        husbandId = parseInt(id);
+        wifeId = existingBrother.spouse_id;
+      }
+
+      // Actualizar ambos registros (nombres y teléfonos separados)
+      await db.query(
+        `UPDATE brothers 
+         SET names = ?, civil_status = ?, phone = ?, community_id = ?
+         WHERE id = ?`,
+        [husbandName, civilStatus, husbandPhone, communityId, husbandId],
+      );
+      await db.query(
+        `UPDATE brothers 
+         SET names = ?, civil_status = ?, phone = ?, community_id = ?
+         WHERE id = ?`,
+        [wifeName, civilStatus, wifePhone, communityId, wifeId],
+      );
+
+      // Eliminar roles existentes de ambos
+      await db.query(
+        `DELETE FROM brother_roles WHERE brother_id IN (${idsToUpdate
+          .map(() => "?")
+          .join(",")})`,
+        idsToUpdate,
+      );
+
+      // Insertar roles en su propia comunidad para ambos
+      const rolesInOwnCommunity = formData.getAll("roles_in_own_community");
+      if (rolesInOwnCommunity && rolesInOwnCommunity.length > 0) {
+        for (const role of rolesInOwnCommunity) {
+          await db.query(
+            `INSERT INTO brother_roles (brother_id, community_id, role) 
+             VALUES (?, ?, ?)`,
+            [husbandId, communityId, role],
+          );
+          await db.query(
+            `INSERT INTO brother_roles (brother_id, community_id, role) 
+             VALUES (?, ?, ?)`,
+            [wifeId, communityId, role],
+          );
+        }
+      }
+
+      // Insertar roles de catequista en otras comunidades para ambos
+      // Convención esperada desde el frontend: catechist_parish_i + catechist_community_i (número de comunidad)
+      const catechistCount = parseInt(
+        (formData.get("catechist_count") as string) || "0",
+      );
+      for (let i = 0; i < catechistCount; i++) {
+        const catParishId = (formData.get(`catechist_parish_${i}`) as string) || "";
+        const catCommunityNumber = (formData.get(`catechist_community_${i}`) as string) || "";
+        if (!catParishId || !catCommunityNumber) continue;
+
+        // Buscar/crear comunidad de servicio
+        const [catCommunityRows]: any = await db.query(
+          `SELECT id FROM communities WHERE parish_id = ? AND number_community = ? LIMIT 1`,
+          [catParishId, catCommunityNumber],
+        );
+
+        let servesCommunityId: number;
+        if (catCommunityRows && catCommunityRows.length > 0) {
+          servesCommunityId = catCommunityRows[0].id;
+        } else {
+          const [insertCatCommunityResult]: any = await db.query(
+            `INSERT INTO communities (parish_id, number_community, level_paso) VALUES (?, ?, NULL)`,
+            [catParishId, catCommunityNumber],
+          );
+          servesCommunityId = insertCatCommunityResult.insertId;
+        }
+
         await db.query(
-          `INSERT INTO brother_roles (brother_id, community_id, role) 
-           VALUES (?, ?, 'catequista')`,
-          [id, catCommunityId],
+          `INSERT INTO brother_roles (brother_id, community_id, role) VALUES (?, ?, 'catequista')`,
+          [husbandId, servesCommunityId],
+        );
+        await db.query(
+          `INSERT INTO brother_roles (brother_id, community_id, role) VALUES (?, ?, 'catequista')`,
+          [wifeId, servesCommunityId],
+        );
+      }
+    } else {
+      const names = (formData.get("full_name") as string) || "";
+      if (!names) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Se requiere el nombre completo",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      // Actualizar datos básicos del hermano
+      await db.query(
+        `UPDATE brothers 
+         SET names = ?, civil_status = ?, phone = ?, community_id = ?
+         WHERE id = ?`,
+        [names, civilStatus, phone, communityId, id],
+      );
+
+      // Eliminar roles existentes
+      await db.query("DELETE FROM brother_roles WHERE brother_id = ?", [id]);
+
+      // Insertar roles en su propia comunidad
+      const rolesInOwnCommunity = formData.getAll("roles_in_own_community");
+      if (rolesInOwnCommunity && rolesInOwnCommunity.length > 0) {
+        for (const role of rolesInOwnCommunity) {
+          await db.query(
+            `INSERT INTO brother_roles (brother_id, community_id, role) 
+             VALUES (?, ?, ?)`,
+            [id, communityId, role],
+          );
+        }
+      }
+
+      // Insertar roles de catequista en otras comunidades
+      // Convención esperada desde el frontend: catechist_parish_i + catechist_community_i (número de comunidad)
+      const catechistCount = parseInt(
+        (formData.get("catechist_count") as string) || "0",
+      );
+      for (let i = 0; i < catechistCount; i++) {
+        const catParishId = (formData.get(`catechist_parish_${i}`) as string) || "";
+        const catCommunityNumber = (formData.get(`catechist_community_${i}`) as string) || "";
+        if (!catParishId || !catCommunityNumber) continue;
+
+        const [catCommunityRows]: any = await db.query(
+          `SELECT id FROM communities WHERE parish_id = ? AND number_community = ? LIMIT 1`,
+          [catParishId, catCommunityNumber],
+        );
+
+        let servesCommunityId: number;
+        if (catCommunityRows && catCommunityRows.length > 0) {
+          servesCommunityId = catCommunityRows[0].id;
+        } else {
+          const [insertCatCommunityResult]: any = await db.query(
+            `INSERT INTO communities (parish_id, number_community, level_paso) VALUES (?, ?, NULL)`,
+            [catParishId, catCommunityNumber],
+          );
+          servesCommunityId = insertCatCommunityResult.insertId;
+        }
+
+        await db.query(
+          `INSERT INTO brother_roles (brother_id, community_id, role) VALUES (?, ?, 'catequista')`,
+          [id, servesCommunityId],
         );
       }
     }

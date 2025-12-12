@@ -13,12 +13,28 @@ const query = `
     c.number_community,
     c.level_paso,
     COUNT(DISTINCT b.id) as total_brothers,
-    GROUP_CONCAT(DISTINCT CASE WHEN br.role = 'Responsable' THEN resp.names END SEPARATOR ', ') as responsable_names
+    GROUP_CONCAT(
+      DISTINCT CASE
+        WHEN br.role = 'responsable' THEN
+          CASE
+            WHEN resp.civil_status = 'matrimonio' AND resp.spouse_id IS NOT NULL AND sp.id IS NOT NULL THEN
+              CONCAT(
+                CASE WHEN resp.id < sp.id THEN resp.names ELSE sp.names END,
+                ' y ',
+                CASE WHEN resp.id < sp.id THEN sp.names ELSE resp.names END
+              )
+            ELSE resp.names
+          END
+        ELSE NULL
+      END
+      SEPARATOR ', '
+    ) as responsable_names
   FROM parishes p
   LEFT JOIN communities c ON p.id = c.parish_id
   LEFT JOIN brothers b ON c.id = b.community_id
-  LEFT JOIN brother_roles br ON c.id = br.community_id AND br.role = 'Responsable'
+  LEFT JOIN brother_roles br ON c.id = br.community_id AND br.role = 'responsable'
   LEFT JOIN brothers resp ON br.brother_id = resp.id
+  LEFT JOIN brothers sp ON resp.spouse_id = sp.id
   GROUP BY p.id, p.name, p.aka, c.id, c.number_community, c.level_paso
   ORDER BY p.name, c.number_community
 `;

@@ -71,27 +71,59 @@ const parishes: Parish[] = await getParishes();
             </div>
 
             <div class="fields-row">
-              <div id="matrimonio-fields" class="content-input space-y-4">
+              <div id="matrimonio-fields" class="space-y-4">
                 <!-- Inputs esposo y esposa -->
-                <div class="husband-c">
-                  <label for="husband_name">Nombre del Esposo</label>
-                  <input
-                    type="text"
-                    name="husband_name"
-                    id="husband_name"
-                    placeholder="Ej: Juan Pérez"
-                    autocomplete="off"
-                  />
+                <div class="husband grid grid-cols-2 items-center gap-4">
+                  <div id="husband-block" class="husband-c content-input">
+                    <label for="husband_name">Nombre del Esposo</label>
+                    <input
+                      type="text"
+                      name="husband_name"
+                      id="husband_name"
+                      placeholder="Ej: Juan Pérez"
+                      autocomplete="off"
+                    />
+                  </div>
+
+                  <!-- === NUEVO INPUT PARA EL NUMERO DEL ESPOSO === -->
+
+                  <div id="husband-phone-block" class="content-input">
+                    <label for="husband_phone"
+                      >Teléfono del Esposo (Opcional)</label
+                    >
+                    <input
+                      type="tel"
+                      name="husband_phone"
+                      id="husband_phone"
+                      placeholder="Ej: 0999123456"
+                      autocomplete="off"
+                    />
+                  </div>
                 </div>
-                <div class="wife-content">
-                  <label for="wife_name">Nombre de la Esposa</label>
-                  <input
-                    type="text"
-                    name="wife_name"
-                    id="wife_name"
-                    placeholder="Ej: María López"
-                    autocomplete="off"
-                  />
+                <div class="wife grid grid-cols-2 items-center gap-4">
+                  <div id="wife-block" class="content-input">
+                    <label for="wife_name">Nombre de la Esposa</label>
+                    <input
+                      type="text"
+                      name="wife_name"
+                      id="wife_name"
+                      placeholder="Ej: María López"
+                      autocomplete="off"
+                    />
+                  </div>
+
+                  <div id="wife-phone-block" class="content-input">
+                    <label for="wife_phone"
+                      >Teléfono de la Esposa (Opcional)</label
+                    >
+                    <input
+                      type="tel"
+                      name="wife_phone"
+                      id="wife_phone"
+                      placeholder="Ej: 0999123456"
+                      autocomplete="off"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -111,12 +143,13 @@ const parishes: Parish[] = await getParishes();
         </div>
       </div>
 
-      <div class="content-input">
-        <label for="phone">Teléfono (Opcional)</label>
+      <!-- telefono en soltero/a -->
+      <div class="content-input content-single-phone">
+        <label for="phone_soltero">Teléfono (Opcional)</label>
         <input
           type="tel"
           name="phone"
-          id="phone"
+          id="phone_soltero"
           placeholder="Ej: 0999123456"
           autocomplete="off"
         />
@@ -151,6 +184,8 @@ const parishes: Parish[] = await getParishes();
         </span>
       </div>
 
+      <input type="hidden" id="parish_id_locked" name="parish_id" disabled />
+
       <div class="content-input">
         <label for="community_number">Número de Comunidad</label>
         <input
@@ -163,6 +198,13 @@ const parishes: Parish[] = await getParishes();
           autocomplete="off"
         />
       </div>
+
+      <input
+        type="hidden"
+        id="community_number_locked"
+        name="community_number"
+        disabled
+      />
 
       <div id="community-status" class="info-message hidden"></div>
 
@@ -224,7 +266,12 @@ const parishes: Parish[] = await getParishes();
           <span>Soy ostiario de mi comunidad</span>
         </label>
         <label class="checkbox-label">
-          <input type="checkbox" id="is_catechist" />
+          <input
+            type="checkbox"
+            id="is_catechist"
+            name="is_catechist"
+            value="1"
+          />
           <span>Soy catequista de otras comunidades</span>
         </label>
       </div>
@@ -332,6 +379,13 @@ const parishes: Parish[] = await getParishes();
     display: block;
     animation: aparence 300ms ease;
   }
+  .content-single-phone {
+    animation: aparence 300ms ease;
+  }
+  .container-contents-inputs:has(#ratio-matrimonio:checked)
+    ~ .content-single-phone {
+    display: none;
+  }
 </style>
 
 <script>
@@ -374,7 +428,7 @@ const parishes: Parish[] = await getParishes();
     const communityNumber = $id("community_number") as HTMLInputElement;
     const communityStatus = $id("community-status");
     const levelPasoField = $id("level-paso-field");
-    const isCatechistCheckbox = $id("is_catechist") as HTMLInputElement;
+    // const isCatechistCheckbox = $id("is_catechist") as HTMLInputElement;
     const catechistsFieldset = $id(
       "if-catechists-container",
     ) as HTMLFieldSetElement | null;
@@ -430,6 +484,25 @@ const parishes: Parish[] = await getParishes();
           .querySelectorAll("[data-catechist-item]")
           .forEach((item) => item.remove());
       }
+
+      // Restaurar edición de parroquia/comunidad (solo se bloquea en modo edición)
+      const parishSelectEl = document.getElementById(
+        "parish_id",
+      ) as HTMLSelectElement | null;
+      const communityNumberEl = document.getElementById(
+        "community_number",
+      ) as HTMLInputElement | null;
+      const parishLockedEl = document.getElementById(
+        "parish_id_locked",
+      ) as HTMLInputElement | null;
+      const communityLockedEl = document.getElementById(
+        "community_number_locked",
+      ) as HTMLInputElement | null;
+
+      if (parishSelectEl) parishSelectEl.disabled = false;
+      if (communityNumberEl) communityNumberEl.disabled = false;
+      if (parishLockedEl) parishLockedEl.disabled = true;
+      if (communityLockedEl) communityLockedEl.disabled = true;
       matrimonioFields?.classList.add("hidden");
       singleField?.classList.add("hidden");
       communityStatus?.classList.add("hidden");
@@ -575,11 +648,32 @@ const parishes: Parish[] = await getParishes();
 
         const formData = new FormData(form);
 
-        // Contar cuántas comunidades de catequista se han agregado
+        // Comunidades donde es catequista
         const catechistItems = catechistsFieldset
-          ? catechistsFieldset.querySelectorAll("[data-catechist-item]")
-          : ([] as any);
-        formData.append("catechist_count", catechistItems.length.toString());
+          ? Array.from(
+              catechistsFieldset.querySelectorAll("[data-catechist-item]"),
+            )
+          : [];
+
+        // Asegurar que siempre enviamos la misma convención que espera el backend:
+        // catechist_count + catechist_parish_i + catechist_community_i
+        formData.set("catechist_count", catechistItems.length.toString());
+
+        catechistItems.forEach((item, index) => {
+          const parishSel = item.querySelector(
+            "#parish_id_catechist",
+          ) as HTMLSelectElement | null;
+          const commInput = item.querySelector(
+            "#community_number_in_catechist",
+          ) as HTMLInputElement | null;
+
+          if (parishSel?.value) {
+            formData.set(`catechist_parish_${index}`, parishSel.value);
+          }
+          if (commInput?.value) {
+            formData.set(`catechist_community_${index}`, commInput.value);
+          }
+        });
 
         const brotherId = (
           document.getElementById("brother-id") as HTMLInputElement
@@ -641,7 +735,10 @@ const parishes: Parish[] = await getParishes();
     (window as any).openBrotherModal = openBrotherModal;
 
     // Función global para editar hermano
-    (window as any).openEditBrotherModal = async (brotherId: string) => {
+    (window as any).openEditBrotherModal = async (
+      brotherId: string,
+      role?: string,
+    ) => {
       try {
         // Obtener datos del hermano
         const response = await fetch(`/api/brothers/${brotherId}`);
@@ -689,15 +786,91 @@ const parishes: Parish[] = await getParishes();
         setTimeout(() => {
           // Llenar nombres según estado civil
           if (brother.civil_status === "matrimonio") {
-            const names = brother.names.split(" y ");
+            // Resetear nombres de matrimonio a modo editable
             const husbandInput = document.getElementById(
               "husband_name",
-            ) as HTMLInputElement;
+            ) as HTMLInputElement | null;
             const wifeInput = document.getElementById(
               "wife_name",
-            ) as HTMLInputElement;
-            if (husbandInput) husbandInput.value = names[0] || "";
-            if (wifeInput) wifeInput.value = names[1] || "";
+            ) as HTMLInputElement | null;
+
+            const husbandPhoneInput = document.getElementById(
+              "husband_phone",
+            ) as HTMLInputElement | null;
+            const wifePhoneInput = document.getElementById(
+              "wife_phone",
+            ) as HTMLInputElement | null;
+
+            const husbandBlock = document.getElementById("husband-block");
+            const husbandPhoneBlock = document.getElementById(
+              "husband-phone-block",
+            );
+            const wifeBlock = document.getElementById("wife-block");
+            const wifePhoneBlock = document.getElementById("wife-phone-block");
+
+            if (husbandInput) {
+              husbandInput.readOnly = false;
+            }
+            if (wifeInput) {
+              wifeInput.readOnly = false;
+            }
+            if (husbandPhoneInput) {
+              husbandPhoneInput.readOnly = false;
+            }
+            if (wifePhoneInput) {
+              wifePhoneInput.readOnly = false;
+            }
+
+            // Restaurar visibilidad de todos los bloques de matrimonio
+            husbandBlock?.classList.remove("hidden");
+            husbandPhoneBlock?.classList.remove("hidden");
+            wifeBlock?.classList.remove("hidden");
+            wifePhoneBlock?.classList.remove("hidden");
+
+            // Rellenar SIEMPRE ambos cónyuges (nombres + teléfonos) para que el backend
+            // no rechace el update de matrimonios. Luego ocultamos el bloque no editable.
+            const spouse = (brother as any).spouse as {
+              id: number;
+              names: string;
+              phone?: string | null;
+            } | null;
+            if (!spouse) {
+              showNotification(
+                "No se pudo cargar la información del cónyuge",
+                "error",
+                3000,
+              );
+              return;
+            }
+
+            const a = {
+              id: Number(brother.id),
+              names: String(brother.names || ""),
+              phone: (brother.phone as string | null) || "",
+            };
+            const b = {
+              id: Number(spouse.id),
+              names: String(spouse.names || ""),
+              phone: (spouse.phone as string | null) || "",
+            };
+
+            const husband = a.id <= b.id ? a : b;
+            const wife = a.id <= b.id ? b : a;
+
+            if (husbandInput) husbandInput.value = husband.names;
+            if (wifeInput) wifeInput.value = wife.names;
+            if (husbandPhoneInput)
+              husbandPhoneInput.value = husband.phone || "";
+            if (wifePhoneInput) wifePhoneInput.value = wife.phone || "";
+
+            // Por rol: ocultar el bloque del cónyuge no editado (sin disabled)
+            if (role === "esposo") {
+              wifeBlock?.classList.add("hidden");
+              wifePhoneBlock?.classList.add("hidden");
+            } else if (role === "esposa") {
+              husbandBlock?.classList.add("hidden");
+              husbandPhoneBlock?.classList.add("hidden");
+            }
           } else {
             const fullNameInput = document.getElementById(
               "full_name",
@@ -720,6 +893,23 @@ const parishes: Parish[] = await getParishes();
             parishSelect.dispatchEvent(new Event("change", { bubbles: true }));
           }
 
+          // En modo edición: bloquear cambio de parroquia/número de comunidad.
+          // Usamos inputs hidden (mismo name) para que igual se envíen al backend.
+          const parishLockedEl = document.getElementById(
+            "parish_id_locked",
+          ) as HTMLInputElement | null;
+          const communityLockedEl = document.getElementById(
+            "community_number_locked",
+          ) as HTMLInputElement | null;
+
+          if (parishSelect) {
+            parishSelect.disabled = true;
+          }
+          if (parishLockedEl && brother.parish?.id) {
+            parishLockedEl.disabled = false;
+            parishLockedEl.value = String(brother.parish.id);
+          }
+
           // Esperar a que se carguen las comunidades
           setTimeout(() => {
             // Llenar número de comunidad
@@ -733,6 +923,14 @@ const parishes: Parish[] = await getParishes();
               );
             }
 
+            if (communityInput) {
+              communityInput.disabled = true;
+            }
+            if (communityLockedEl && brother.community?.number) {
+              communityLockedEl.disabled = false;
+              communityLockedEl.value = String(brother.community.number);
+            }
+
             // Llenar roles en su propia comunidad
             if (brother.roles_in_own_community) {
               brother.roles_in_own_community.forEach((role: string) => {
@@ -744,18 +942,53 @@ const parishes: Parish[] = await getParishes();
             }
 
             // Llenar servicios de catequista
+            const isCatechistCheckbox = document.getElementById(
+              "is_catechist",
+            ) as HTMLInputElement | null;
+
+            if (isCatechistCheckbox) {
+              isCatechistCheckbox.checked =
+                !!brother.catechist_of_communities &&
+                brother.catechist_of_communities.length > 0;
+            }
+
             if (
+              catechistsFieldset &&
+              catechistTemplate &&
               brother.catechist_of_communities &&
               brother.catechist_of_communities.length > 0
             ) {
-              const isCatechistCheckbox = document.getElementById(
-                "is_catechist",
-              ) as HTMLInputElement;
-              if (isCatechistCheckbox) {
-                isCatechistCheckbox.checked = true;
-              }
+              // Limpiar items previos
+              catechistsFieldset
+                .querySelectorAll("[data-catechist-item]")
+                .forEach((item) => item.remove());
 
-              // TODO: Cargar las comunidades de catequista (requiere más lógica)
+              brother.catechist_of_communities.forEach((cat: any) => {
+                const clone = catechistTemplate.content.cloneNode(
+                  true,
+                ) as DocumentFragment;
+                catechistsFieldset.appendChild(clone);
+
+                const lastItem = catechistsFieldset.querySelector(
+                  "[data-catechist-item]:last-of-type",
+                ) as HTMLElement | null;
+
+                if (!lastItem) return;
+
+                const parishSel = lastItem.querySelector(
+                  "#parish_id_catechist",
+                ) as HTMLSelectElement | null;
+                const commInput = lastItem.querySelector(
+                  "#community_number_in_catechist",
+                ) as HTMLInputElement | null;
+
+                if (parishSel && cat.parish_id) {
+                  parishSel.value = String(cat.parish_id);
+                }
+                if (commInput && cat.community_number) {
+                  commInput.value = String(cat.community_number);
+                }
+              });
             }
           }, 300);
         }, 100);

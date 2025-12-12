@@ -12,11 +12,11 @@ const parishes: Parish[] = await getParishes();
   idForm="modal-convi-form"
   isForm
 >
-  <article slot="body" class="flex flex-col gap-4">
-    <div class="pb-6 border-b border-border-medium">
-      <h3 class="font-semibold text-lg">Informacion basica</h3>
-      <div class="content-input p-2">
-        <div class="name-content">
+  <article slot="body" class="flex flex-col gap-6">
+    <fieldset class="container-fieldset">
+      <legend class="title-container">Información básica</legend>
+      <div class="container-content flex flex-col gap-4">
+        <div class="name content-input">
           <label for="name-convi">Nombre</label>
           <input
             type="text"
@@ -26,7 +26,8 @@ const parishes: Parish[] = await getParishes();
             autocomplete="off"
           />
         </div>
-        <div class="description-content">
+
+        <div class="description content-input">
           <label for="description-convi">Description (Optional)</label>
           <input
             type="text"
@@ -37,24 +38,24 @@ const parishes: Parish[] = await getParishes();
           />
         </div>
         <div class="flex items-center gap-2">
-          <div class="date-start flex-1">
+          <div class="date-start flex-1 content-input">
             <label for="date-start">Fecha de inicio</label>
             <input type="date" name="date-start" id="date-start" />
           </div>
-          <div class="date-end flex-1">
+          <div class="date-end flex-1 content-input">
             <label for="date-end">Fecha final</label>
             <input type="date" name="date-end" id="date-end" />
           </div>
         </div>
       </div>
-    </div>
+    </fieldset>
 
     <!-- informacion de comunidades -->
-    <div class="pb-6 border-b border-border-medium">
-      <h3 class="font-semibold text-lg">Seleccion de comunidades</h3>
+    <fieldset class="container-fieldset">
+      <legend class="title-container">Selección de comunidades</legend>
       <div class="p-2 rounded-2xl space-y-4">
-        <div class="parishes-content content-input">
-          <div class="">
+        <div class="parishes-content">
+          <div class="content-input">
             <label for="parishes-select">Seleccione una parroquia</label>
             <select
               class="select-input space-y-1"
@@ -75,25 +76,31 @@ const parishes: Parish[] = await getParishes();
           </div>
         </div>
 
-        <div class="communities-available space-y-2">
-          <h4>Comunidades disponibles</h4>
+        <div class="communities-available">
+          <h4 class="similar-label">Comunidades disponibles</h4>
           <div
             id="communities-container"
-            class="comunidades grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 p-3 border border-border-medium rounded-3xl bg-gray-100 min-h-20"
+            class="comunidades grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 p-3 border relative border-border-medium rounded-3xl bg-gray-100 min-h-30"
           >
             <p
               id="communities-placeholder"
-              class="col-span-full text-center text-sm text-text-muted"
+              class="col-span-full text-sm text-text-muted flex justify-center items-center"
             >
               Seleccione primero una parroquia
             </p>
           </div>
         </div>
       </div>
-      <button id="btn-invitar-communities" class="btn btn-primary w-full">
-        ✔ Invitar
-      </button>
-    </div>
+      <div class="w-full flex justify-center items-center gap-2">
+        <button
+          id="btn-invitar-communities"
+          class="btn btn-primary flex items-center gap-2 min-w-40 justify-center"
+        >
+          <CheckIcon class="size-5 block" />
+          <span>Invitar</span>
+        </button>
+      </div>
+    </fieldset>
 
     <div id="invited-list-section" class="list-invi hidden">
       <h4>
@@ -132,7 +139,6 @@ const parishes: Parish[] = await getParishes();
     const $$ = (selector: string) => document.querySelectorAll(selector);
 
     const modal = $id("modal-create-convi");
-    const closeBtns = $$("[data-close='modal-create-convi']");
     const form = $id("modal-convi-form") as HTMLFormElement;
     const parishSelect = $id("parishes-select") as HTMLSelectElement | null;
     const communitiesContainer = $id(
@@ -230,14 +236,14 @@ const parishes: Parish[] = await getParishes();
       if (!communitiesContainer) return;
 
       communitiesContainer.innerHTML =
-        '<p class="col-span-full text-center text-sm text-text-muted">Cargando comunidades...</p>';
+        '<p class="col-span-full text-sm text-text-muted flex justify-center items-center">Cargando comunidades...</p>';
 
       fetch(`/api/communities-by-parish/${parishId}`)
         .then((res) => res.json())
         .then((result) => {
           if (!result.success || !result.data || result.data.length === 0) {
             communitiesContainer.innerHTML =
-              '<p class="col-span-full text-center text-sm text-text-muted">No hay comunidades registradas para esta parroquia</p>';
+              '<p class="col-span-full text-sm text-text-muted flex justify-center items-center">No hay comunidades registradas para esta parroquia</p>';
             return;
           }
 

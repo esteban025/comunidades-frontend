@@ -17,6 +17,10 @@ export async function registerBrother(formData: FormData) {
     if (civil_status === 'matrimonio') {
       data.husband_name = formData.get('husband_name') as string;
       data.wife_name = formData.get('wife_name') as string;
+
+      // Teléfonos por cónyuge (opcionales)
+      data.husband_phone = (formData.get('husband_phone') as string) || undefined;
+      data.wife_phone = (formData.get('wife_phone') as string) || undefined;
     } else {
       data.full_name = formData.get('full_name') as string;
     }

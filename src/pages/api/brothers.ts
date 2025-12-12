@@ -45,6 +45,8 @@ export const POST: APIRoute = async ({ request }) => {
       wife_name,
       full_name,
       phone,
+      husband_phone,
+      wife_phone,
       parish_id,
       community_number,
       level_paso,
@@ -158,7 +160,7 @@ export const POST: APIRoute = async ({ request }) => {
       // Insertar esposo
       const [husbandResult]: any = await db.query(
         'INSERT INTO brothers (names, civil_status, community_id, phone) VALUES (?, ?, ?, ?)',
-        [husband_name, civil_status, community_id, phone || null]
+        [husband_name, civil_status, community_id, husband_phone || phone || null]
       );
 
       const husband_id = husbandResult.insertId as number;
@@ -166,7 +168,7 @@ export const POST: APIRoute = async ({ request }) => {
       // Insertar esposa
       const [wifeResult]: any = await db.query(
         'INSERT INTO brothers (names, civil_status, community_id, phone) VALUES (?, ?, ?, ?)',
-        [wife_name, civil_status, community_id, phone || null]
+        [wife_name, civil_status, community_id, wife_phone || phone || null]
       );
 
       const wife_id = wifeResult.insertId as number;

@@ -2,7 +2,7 @@
 .container-table {
   background: #ffffff;
   border: 2px solid #e5e7eb;
-  border-radius: .75rem;
+  /* border-radius: .75rem; */
   /* overflow: hidden; */
   /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
   /* shadow-lg */
@@ -75,4 +75,10 @@ table .min {
   width: 1%;
   white-space: nowrap;
   text-align: center;
+}
+
+@media print {
+  .container-table {
+    box-shadow: none;
+  }
 }

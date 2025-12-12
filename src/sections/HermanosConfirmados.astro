@@ -1,5 +1,7 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
+import PencilIcon from "@/assets/PencilIcon.astro";
+import TrashIcon from "@/assets/TrashIcon.astro";
 import {
   getConvivenciasForDashboard,
   getConfirmedBrothersByConvivencia,
@@ -39,30 +41,66 @@ const groupedConfirmed = groupMarriagesForAttendance(
     {
       groupedConfirmed.length > 0 && (
         <div class="container-table">
-          <table class="min-w-full text-sm text-left text-gray-700">
-            <thead class="border-b text-xs uppercase text-gray-500">
+          <table>
+            <thead>
               <tr>
-                <th class="py-2 pr-4">Parroquia</th>
-                <th class="py-2 pr-4">Comunidad</th>
-                <th class="py-2 pr-4">Nombre del hermano</th>
-                <th class="py-2 pr-4">Observaciones</th>
-                <th class="py-2 pr-4">Necesidades</th>
-                <th class="py-2 pr-4">Casa asignada</th>
+                <th>Parroquia</th>
+                <th>Comunidad</th>
+                <th>Nombre del hermano</th>
+                <th>Observaciones</th>
+                {/* <th>Casa asignada</th> */}
+                <th>Accions</th>
               </tr>
             </thead>
             <tbody>
               {groupedConfirmed.map((brother: any) => (
                 <tr class="border-b last:border-0">
-                  <td class="py-2 pr-4">
+                  <td>
                     <span class="font-medium">{brother.parish_aka}</span>
                   </td>
-                  <td class="py-2 pr-4">
-                    Comunidad {brother.community_number}
+                  <td>Comunidad {brother.community_number}</td>
+                  <td>{brother.names}</td>
+                  <td>{brother.observations ?? "-"}</td>
+                  {/* <td>{brother.casa_name ?? "-"}</td> */}
+                  <td class="min">
+                    <div class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="action-btn edit-obsv-convi"
+                        title="Editar"
+                        data-convivencia-id={currentConv?.id ?? ""}
+                        data-brother-id={
+                          brother.is_marriage
+                            ? brother.husband_id
+                            : brother.brother_id
+                        }
+                        data-spouse-id={
+                          brother.is_marriage ? brother.wife_id : ""
+                        }
+                        data-observations={brother.observations ?? ""}
+                      >
+                        <PencilIcon class="size-4 block" />
+                      </button>
+
+                      {/* eliminar */}
+                      <button
+                        type="button"
+                        class="action-btn delete-confirm-convi"
+                        title="Eliminar"
+                        data-convivencia-id={currentConv?.id ?? ""}
+                        data-brother-id={
+                          brother.is_marriage
+                            ? brother.husband_id
+                            : brother.brother_id
+                        }
+                        data-spouse-id={
+                          brother.is_marriage ? brother.wife_id : ""
+                        }
+                      >
+                        <TrashIcon class="size-4 block" />
+                      </button>
+                    </div>
                   </td>
-                  <td class="py-2 pr-4">{brother.names}</td>
-                  <td class="py-2 pr-4">{brother.observations ?? "-"}</td>
-                  <td class="py-2 pr-4">{brother.special_needs ?? "-"}</td>
-                  <td class="py-2 pr-4">{brother.casa_name ?? "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -88,3 +126,78 @@ const groupedConfirmed = groupMarriagesForAttendance(
     )
   }
 </SectionContainer>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const buttons = document.querySelectorAll(".edit-obsv-convi");
+    const deleteButtons = document.querySelectorAll(".delete-confirm-convi");
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const el = btn as HTMLElement;
+        const convId = el.dataset.convivenciaId || "";
+        const brotherId = el.dataset.brotherId || "";
+        const spouseId = el.dataset.spouseId || "";
+        const observations = el.dataset.observations || "";
+
+        if (!convId || !brotherId) return;
+        if (typeof (window as any).openConfirmAttendanceModal !== "function")
+          return;
+
+        (window as any).openConfirmAttendanceModal(
+          convId,
+          brotherId,
+          spouseId || null,
+          observations,
+          "edit",
+        );
+      });
+    });
+
+    deleteButtons.forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const el = btn as HTMLElement;
+
+        const convId = el.dataset.convivenciaId || "";
+        const brotherId = el.dataset.brotherId || "";
+        const spouseId = el.dataset.spouseId || "";
+        const isMarriage = Boolean(spouseId);
+
+        if (!convId || !brotherId) return;
+
+        const ok = window.confirm(
+          isMarriage
+            ? "¿Revertir confirmación del matrimonio? Volverán a Invitados."
+            : "¿Revertir confirmación? Este hermano volverá a Invitados.",
+        );
+
+        if (!ok) return;
+
+        const ids = isMarriage ? [brotherId, spouseId] : [brotherId];
+
+        try {
+          for (const id of ids) {
+            const res = await fetch(`/api/convivencias/${convId}/attendees`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ brother_id: Number(id) }),
+            });
+
+            if (!res.ok) {
+              console.error("Error al revertir confirmación", await res.text());
+              return;
+            }
+          }
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 300);
+        } catch (err) {
+          console.error("Error de red al revertir confirmación", err);
+        }
+      });
+    });
+  });
+</script>

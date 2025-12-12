@@ -51,12 +51,21 @@ if (!tag) {
       if (commRows && commRows.length > 0) {
         const communityIds = commRows.map((c: any) => c.id);
         const responsablesQuery = `
-          SELECT 
+          SELECT DISTINCT
             br.community_id,
-            b.names as responsable_name
+            CASE
+              WHEN b.civil_status = 'matrimonio' AND b.spouse_id IS NOT NULL AND s.id IS NOT NULL THEN
+                CONCAT(
+                  CASE WHEN b.id < s.id THEN b.names ELSE s.names END,
+                  ' y ',
+                  CASE WHEN b.id < s.id THEN s.names ELSE b.names END
+                )
+              ELSE b.names
+            END as responsable_name
           FROM brother_roles br
           INNER JOIN brothers b ON br.brother_id = b.id
-          WHERE br.role = 'Responsable'
+          LEFT JOIN brothers s ON b.spouse_id = s.id
+          WHERE br.role = 'responsable'
             AND br.community_id IN (${communityIds.map(() => "?").join(",")})
         `;
 
@@ -65,18 +74,18 @@ if (!tag) {
           communityIds,
         );
 
-        const responsablesMap = new Map();
+        const responsablesMap = new Map<number, Set<string>>();
         responsablesRows?.forEach((r: any) => {
           if (!responsablesMap.has(r.community_id)) {
-            responsablesMap.set(r.community_id, []);
+            responsablesMap.set(r.community_id, new Set());
           }
-          responsablesMap.get(r.community_id).push(r.responsable_name);
+          responsablesMap.get(r.community_id)!.add(r.responsable_name);
         });
 
         communities = commRows.map((comm: any) => ({
           ...comm,
           responsable: responsablesMap.has(comm.id)
-            ? responsablesMap.get(comm.id).join(", ")
+            ? Array.from(responsablesMap.get(comm.id)!).join(", ")
             : null,
         }));
       } else {
