@@ -9,3 +9,21 @@
     opacity: 1;
   }
 }
+
+/* checkboxs */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 20px var(--checkbox-shadow);
+  }
+  50% {
+    transform: scale(0.9);
+    box-shadow:
+      0 0 30px var(--checkbox-shadow),
+      0 0 50px var(--checkbox-shadow);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px var(--checkbox-shadow);
+  }
+}

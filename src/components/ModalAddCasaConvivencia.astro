@@ -1,4 +1,5 @@
 ---
+import CheckIcon from "@/assets/CheckIcon.astro";
 import ModalDesign from "./ModalDesign.astro";
 ---
 
@@ -8,9 +9,74 @@ import ModalDesign from "./ModalDesign.astro";
   isForm
   idForm="modal-create-cc"
 >
-  <div class="" slot="body">
-    <!-- name, location, capacidad, description -->
-    <p>hola</p>
+  <div class="space-y-6" slot="body">
+    <!-- name, location, capacidad, description, 2 checks -->
+    <fieldset class="container-fieldset">
+      <legend class="title-container">Informacion</legend>
+      <div class="space-y-4">
+        <div class="content-input">
+          <label for="name-home">Nombre</label>
+          <input type="text" id="name-home" name="name-home" required />
+        </div>
+        <div class="content-input">
+          <label for="description-home">Descripcion</label>
+          <input
+            type="text"
+            id="description-home"
+            name="description-home"
+            required
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="container-fieldset">
+      <legend class="title-container">Detalles de casa</legend>
+      <div class="space-y-4">
+        <div class="content-input">
+          <label for="location-home">Localizacion</label>
+          <input type="text" id="location-home" name="location-home" required />
+        </div>
+        <div class="content-input">
+          <label for="capacity-home">Capacidad</label>
+          <input
+            type="number"
+            id="capacity-home"
+            name="capacity-home"
+            required
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <h3 class="similar-label">Facilidades</h3>
+          <div class="content-input-checkbox">
+            <label for="baby-facilities" class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="baby-facilities"
+                name="baby-facilities"
+              />
+              <div class="checkmark">
+                <CheckIcon class="icon-check" />
+              </div>
+              <span class="label-span">Facilidades para bebés</span>
+            </label>
+          </div>
+          <div class="content-input-checkbox">
+            <label class="checkbox-wrapper" for="ground-floar-facilities">
+              <input
+                type="checkbox"
+                id="ground-floar-facilities"
+                name="ground-floar-facilities"
+              />
+              <div class="checkmark">
+                <CheckIcon class="icon-check" />
+              </div>
+              <span class="label-span">Habitaciones en planta baja</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </fieldset>
   </div>
 
   <button

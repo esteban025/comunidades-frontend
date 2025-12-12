@@ -96,6 +96,8 @@ function getTipoFromCivilStatus(status?: string | null): string {
             <h1 class="text-3xl font-bold text-gray-800 text-balance">
               {currentConv.name}
             </h1>
+
+            {/* TAREA: Obtener la fecha de la convivencia */}
             <span class="date text-sm text-text-muted">
               Del 12 al 14 de diciembre, 2025
             </span>
@@ -133,7 +135,7 @@ function getTipoFromCivilStatus(status?: string | null): string {
                 <table>
                   <thead>
                     <tr>
-                      <th class="min">Comunidad</th>
+                      <th class="min">N°Com</th>
                       <th>Nombre</th>
                       <th>Tipo</th>
                       <th>Observación</th>
@@ -248,7 +250,7 @@ function getTipoFromCivilStatus(status?: string | null): string {
                 <table>
                   <thead>
                     <tr>
-                      <th class="min">Comunidad</th>
+                      <th class="min">N°Com</th>
                       <th class="truncate">Parroquia</th>
                       <th>Nombre</th>
                       <th>Tipo</th>

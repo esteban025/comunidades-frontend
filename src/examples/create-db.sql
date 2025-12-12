@@ -104,7 +104,7 @@ CREATE TABLE convivencia_communities (
 CREATE TABLE casas_convivencia (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
-  location VARCHAR(255),
+  location TEXT,
   capacity INT NOT NULL,
   has_ground_floor_rooms BOOLEAN DEFAULT FALSE,  -- Tiene habitaciones en planta baja
   has_baby_facilities BOOLEAN DEFAULT FALSE,     -- Tiene facilidades para bebés

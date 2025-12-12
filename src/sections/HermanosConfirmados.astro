@@ -44,26 +44,26 @@ const groupedConfirmed = groupMarriagesForAttendance(
           <table>
             <thead>
               <tr>
+                <th class="min">N°Com</th>
                 <th>Parroquia</th>
-                <th>Comunidad</th>
                 <th>Nombre del hermano</th>
                 <th>Observaciones</th>
                 {/* <th>Casa asignada</th> */}
-                <th>Accions</th>
+                <th class="min">Accions</th>
               </tr>
             </thead>
             <tbody>
               {groupedConfirmed.map((brother: any) => (
                 <tr class="border-b last:border-0">
+                  <td class="text-center min">{brother.community_number}</td>
                   <td>
                     <span class="font-medium">{brother.parish_aka}</span>
                   </td>
-                  <td>Comunidad {brother.community_number}</td>
                   <td>{brother.names}</td>
                   <td>{brother.observations ?? "-"}</td>
                   {/* <td>{brother.casa_name ?? "-"}</td> */}
                   <td class="min">
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center justify-center gap-1">
                       <button
                         type="button"
                         class="action-btn edit-obsv-convi"
