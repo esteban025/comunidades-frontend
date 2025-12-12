@@ -9,44 +9,46 @@ import ModalDesign from "./ModalDesign.astro";
   idForm="modal-parish-form"
   isForm={true}
 >
-  <div class="flex flex-col gap-5 p-6" slot="body">
+  <div class="" slot="body">
     <input type="hidden" name="parish-id" id="modal-parish-id" />
+    <fieldset class="container-fieldset">
+      <legend class="title-container">Información</legend>
+      <div class="content-input">
+        <label for="modal-parish-name">Nombre Parroquia</label>
+        <input
+          type="text"
+          name="parish-name"
+          id="modal-parish-name"
+          placeholder="San Luis de Gonzaga"
+          required
+          autocomplete="off"
+        />
+      </div>
 
-    <div class="content-input">
-      <label for="modal-parish-name">Nombre Parroquia</label>
-      <input
-        type="text"
-        name="parish-name"
-        id="modal-parish-name"
-        placeholder="San Luis de Gonzaga"
-        required
-        autocomplete="off"
-      />
-    </div>
+      <div class="content-input">
+        <label for="modal-parish-tag">Etiqueta Parroquia</label>
+        <input
+          type="text"
+          name="parish-tag"
+          id="modal-parish-tag"
+          placeholder="SLG"
+          required
+          autocomplete="off"
+        />
+      </div>
 
-    <div class="content-input">
-      <label for="modal-parish-tag">Etiqueta Parroquia</label>
-      <input
-        type="text"
-        name="parish-tag"
-        id="modal-parish-tag"
-        placeholder="SLG"
-        required
-        autocomplete="off"
-      />
-    </div>
-
-    <div class="content-input">
-      <label for="modal-parish-aka">Alias Parroquia</label>
-      <input
-        type="text"
-        name="parish-aka"
-        id="modal-parish-aka"
-        placeholder="Quinta Chica"
-        required
-        autocomplete="off"
-      />
-    </div>
+      <div class="content-input">
+        <label for="modal-parish-aka">Alias Parroquia</label>
+        <input
+          type="text"
+          name="parish-aka"
+          id="modal-parish-aka"
+          placeholder="Quinta Chica"
+          required
+          autocomplete="off"
+        />
+      </div>
+    </fieldset>
   </div>
   <button
     type="button"
