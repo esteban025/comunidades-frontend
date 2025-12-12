@@ -8,6 +8,8 @@
 
 - El input de cambiar paso de comunidad por el select con pasos.
 
+- en el buscador de registro de hermanos esta buscando solamente en la tabla actual, en la paginacion actual.
+
 
 ## sugerencias
 - algun button para confirmar a toda la lista de hermanos de invitados que si van a asistir, por default en el campo de observaciones debe ir vacio

@@ -23,7 +23,7 @@
       }
 
       & th {
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 1rem;
         font-weight: 600;
         font-size: 0.75rem;
         text-transform: uppercase;
@@ -59,7 +59,7 @@
       }
 
       & td {
-        padding: .5rem;
+        padding: .15rem .55rem;
         border-right: 1px solid #e5e7eb;
         vertical-align: middle;
       }
@@ -69,4 +69,10 @@
       }
     }
   }
+}
+
+table .min {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
 }

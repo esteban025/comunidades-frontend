@@ -64,11 +64,11 @@ let pagination: PaginationPage = {
               <tr>
                 <th>Nombre</th>
                 <th>Parroquia</th>
-                <th>Comunidad</th>
+                <th class="min">Comunidad</th>
                 <th>Teléfono</th>
                 <th>Servicio</th>
                 <th>Estado Civil</th>
-                <th>Acciones</th>
+                <th class="min">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -90,7 +90,7 @@ let pagination: PaginationPage = {
                   >
                     <td class="font-medium">{brother.names}</td>
                     <td>{brother.parish?.aka || "N/A"}</td>
-                    <td>{brother.community?.number || "N/A"}</td>
+                    <td class="min">{brother.community?.number || "N/A"}</td>
                     <td>
                       {brother.phone ? (
                         <div class="phone-display">{brother.phone}</div>
@@ -124,7 +124,7 @@ let pagination: PaginationPage = {
                       )}
                     </td>
                     <td>{brother.civil_status}</td>
-                    <td>
+                    <td class="min">
                       <div class="content-action-btns">
                         {isMarriage && spouse ? (
                           <>
