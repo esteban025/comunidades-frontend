@@ -165,7 +165,7 @@
         width: 100%;
         height: 100%;
         opacity: 0;
-        background-color: var(--color-gray-500);
+        background-color: var(--color-gray-700);
         transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         transform: scale(0) rotate(-45deg);
       }
@@ -499,8 +499,8 @@
   }
 
   /* Input con contenido */
-  input:not(:placeholder-shown),
-  textarea:not(:placeholder-shown),
+  input[placeholder]:not(:placeholder-shown),
+  textarea[placeholder]:not(:placeholder-shown),
   select:has(option:checked:not([value=""])) {
     border-color: var(--color-border-dark);
     background-color: color-mix(

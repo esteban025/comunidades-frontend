@@ -1,6 +1,13 @@
 ---
 import NavbarPage from "./NavbarPage.astro";
 import PlusIcon from "@/assets/PLusIcon.astro";
+import { getConvivenciasForDashboard } from "@/services/convivencias";
+
+const { convivencias } = await getConvivenciasForDashboard();
+const activeConv =
+  convivencias.find(
+    (c: any) => c.status === "planificada" || c.status === "en_curso",
+  ) ?? null;
 ---
 
 <NavbarPage
@@ -12,12 +19,15 @@ import PlusIcon from "@/assets/PLusIcon.astro";
     <button
       class="btn btn-primary navbar-btn text-sm"
       data-modal="create-convivencia"
+      data-active-convivencia-id={activeConv ? String(activeConv.id) : ""}
     >
       <div class="flex items-center gap-2">
         <span class="navbar-btn-icon">
           <PlusIcon class="w-4 aspect-square block" />
         </span>
-        <span class="navbar-btn-text">Nueva Convivencia</span>
+        <span class="navbar-btn-text">
+          {activeConv ? "Editar convivencia" : "Nueva Convivencia"}
+        </span>
       </div>
     </button>
 
@@ -40,12 +50,25 @@ import PlusIcon from "@/assets/PLusIcon.astro";
         const modalType = button.getAttribute("data-modal");
 
         if (modalType === "create-convivencia") {
+          const activeId = button.getAttribute("data-active-convivencia-id");
+
+          if (activeId && activeId.trim() !== "") {
+            if (
+              typeof (window as any).openEditConvivenciaModal === "function"
+            ) {
+              (window as any).openEditConvivenciaModal(activeId);
+            } else {
+              console.log("openEditConvivenciaModal no está disponible");
+            }
+            return;
+          }
+
           if (
             typeof (window as any).openCreateConvivenciaModal === "function"
           ) {
             (window as any).openCreateConvivenciaModal();
           } else {
-            console.log("openBrotherModal no está disponible");
+            console.log("openCreateConvivenciaModal no está disponible");
           }
         } else if (modalType === "create-cc") {
           if (typeof (window as any).openModalAddCasaConvi === "function") {

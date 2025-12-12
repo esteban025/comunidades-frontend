@@ -176,6 +176,163 @@ export async function getInvitedBrothersByConvivencia(convivenciaId: number) {
   return rows;
 }
 
+export async function getConvivenciaDetails(convivenciaId: number) {
+  const [convRows]: any = await db.query(
+    "SELECT id, name, description, start_date, end_date, status FROM convivencias WHERE id = ?",
+    [convivenciaId],
+  );
+
+  if (!convRows || convRows.length === 0) return null;
+
+  const conv = convRows[0];
+
+  const communitiesQuery = `
+    SELECT
+      c.id,
+      c.number_community,
+      c.level_paso,
+      p.id AS parish_id,
+      p.name AS parish_name,
+      p.aka AS parish_aka,
+      (
+        SELECT
+          CASE
+            WHEN br.civil_status = 'matrimonio'
+              AND br.spouse_id IS NOT NULL
+              AND s.id IS NOT NULL THEN
+              CONCAT(
+                CASE WHEN br.id < s.id THEN br.names ELSE s.names END,
+                ' y ',
+                CASE WHEN br.id < s.id THEN s.names ELSE br.names END
+              )
+            ELSE br.names
+          END
+        FROM brothers br
+        INNER JOIN brother_roles brol ON br.id = brol.brother_id
+        LEFT JOIN brothers s ON br.spouse_id = s.id
+        WHERE brol.community_id = c.id AND brol.role = 'responsable'
+        ORDER BY br.id ASC
+        LIMIT 1
+      ) AS responsible_name,
+      COUNT(b.id) AS total_brothers
+    FROM convivencia_communities cc
+    INNER JOIN communities c ON cc.community_id = c.id
+    INNER JOIN parishes p ON c.parish_id = p.id
+    LEFT JOIN brothers b ON c.id = b.community_id
+    WHERE cc.convivencia_id = ?
+    GROUP BY
+      c.id,
+      c.number_community,
+      c.level_paso,
+      p.id,
+      p.name,
+      p.aka
+    ORDER BY p.name, c.number_community ASC
+  `;
+
+  const [communityRows]: any = await db.query(communitiesQuery, [convivenciaId]);
+
+  return {
+    ...conv,
+    community_ids: (communityRows || []).map((c: any) => Number(c.id)),
+    communities: communityRows || [],
+  };
+}
+
+interface UpdateConvivenciaParams {
+  name: string;
+  description?: string | null;
+  start_date: string;
+  end_date: string;
+  community_ids: number[];
+}
+
+export async function updateConvivencia(
+  convivenciaId: number,
+  params: UpdateConvivenciaParams,
+) {
+  const { name, description, start_date, end_date, community_ids } = params;
+
+  if (!name || !start_date || !end_date || !Array.isArray(community_ids)) {
+    throw new Error("Faltan campos requeridos para actualizar la convivencia");
+  }
+
+  const normalizedCommunityIds = Array.from(
+    new Set(
+      community_ids
+        .map((id) => Number(id))
+        .filter((id) => !Number.isNaN(id)),
+    ),
+  );
+
+  await db.query("START TRANSACTION");
+
+  try {
+    await db.query(
+      "UPDATE convivencias SET name = ?, description = ?, start_date = ?, end_date = ? WHERE id = ?",
+      [name, description || null, start_date, end_date, convivenciaId],
+    );
+
+    const [existingRows]: any = await db.query(
+      "SELECT community_id FROM convivencia_communities WHERE convivencia_id = ?",
+      [convivenciaId],
+    );
+
+    const existingIds = new Set<number>(
+      (existingRows || []).map((r: any) => Number(r.community_id)),
+    );
+
+    const nextIds = new Set<number>(normalizedCommunityIds);
+
+    const toRemove = Array.from(existingIds).filter((id) => !nextIds.has(id));
+    const toAdd = Array.from(nextIds).filter((id) => !existingIds.has(id));
+
+    if (toRemove.length > 0) {
+      const placeholders = toRemove.map(() => "?").join(", ");
+      await db.query(
+        `DELETE FROM convivencia_communities
+         WHERE convivencia_id = ? AND community_id IN (${placeholders})`,
+        [convivenciaId, ...toRemove],
+      );
+
+      // Quitar de invitados los hermanos de comunidades removidas (sin tocar confirmados)
+      const invitedDeleteQuery = `
+        DELETE ci
+        FROM convivencia_invited ci
+        INNER JOIN brothers br ON ci.brother_id = br.id
+        WHERE ci.convivencia_id = ?
+          AND br.community_id IN (${placeholders})
+      `;
+      await db.query(invitedDeleteQuery, [convivenciaId, ...toRemove]);
+    }
+
+    if (toAdd.length > 0) {
+      const values = toAdd.map(() => "(?, ?)").join(", ");
+      const paramsArray: any[] = [];
+      toAdd.forEach((id) => paramsArray.push(convivenciaId, id));
+
+      await db.query(
+        `INSERT IGNORE INTO convivencia_communities (convivencia_id, community_id) VALUES ${values}`,
+        paramsArray,
+      );
+
+      const placeholders = toAdd.map(() => "?").join(", ");
+      const invitedInsertQuery = `
+        INSERT IGNORE INTO convivencia_invited (convivencia_id, brother_id)
+        SELECT ?, br.id
+        FROM brothers br
+        WHERE br.community_id IN (${placeholders})
+      `;
+      await db.query(invitedInsertQuery, [convivenciaId, ...toAdd]);
+    }
+
+    await db.query("COMMIT");
+  } catch (error) {
+    await db.query("ROLLBACK");
+    throw error;
+  }
+}
+
 // Auto-invitar a un hermano recién creado a la convivencia activa (planificada)
 // siempre y cuando su comunidad forme parte de esa convivencia.
 export async function autoInviteBrotherToActiveConvivencia(

@@ -8,10 +8,19 @@ import {
 export const GET: APIRoute = async () => {
   try {
     const data = await getConvivenciasForDashboard();
-    return new Response(JSON.stringify({ success: true, ...data }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+
+    const activeConv =
+      data.convivencias.find(
+        (c: any) => c.status === "planificada" || c.status === "en_curso",
+      ) ?? null;
+
+    return new Response(
+      JSON.stringify({ success: true, ...data, activeConv }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("Error en GET /api/convivencias:", error);
     return new Response(

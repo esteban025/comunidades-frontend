@@ -1,6 +1,7 @@
 ---
 import SectionContainer from "@/components/SectionContainer.astro";
 import PairsIcon from "@/assets/PairsIcon.astro";
+import CheckIcon from "@/assets/CheckIcon.astro";
 import SearchBrothers from "@/components/SearchBrothers.astro";
 import {
   getConvivenciasForDashboard,
@@ -8,6 +9,7 @@ import {
 } from "@/services/convivencias";
 import PLusIcon from "@/assets/PLusIcon.astro";
 import { groupMarriagesForAttendance } from "@/utils/marriageGrouping";
+import TrashIcon from "@/assets/TrashIcon.astro";
 
 const { convivencias } = await getConvivenciasForDashboard();
 const currentConv =
@@ -52,40 +54,56 @@ const groupedInvited = groupMarriagesForAttendance(invitedBrothers as any[]);
       {
         groupedInvited.length > 0 && (
           <div class="container-table">
-            <table class="min-w-full text-sm text-left text-gray-700">
-              <thead class="border-b text-xs uppercase text-gray-500">
+            <table>
+              <thead>
                 <tr>
-                  <th class="py-2 pr-4">Parroquia</th>
-                  <th class="py-2 pr-4">Comunidad</th>
-                  <th class="py-2 pr-4">Nombre del hermano</th>
-                  <th class="py-2 pr-4 text-right">Acciones</th>
+                  <th class="min">Comunidad</th>
+                  <th>Parroquia</th>
+                  <th>Nombre del hermano</th>
+                  <th class="min">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {groupedInvited.map((brother: any) => (
-                  <tr class="border-b last:border-0">
-                    <td class="py-2 pr-4">
+                  <tr>
+                    <td class="text-center">{brother.community_number}</td>
+                    <td>
                       <span class="font-medium">{brother.parish_aka}</span>
                     </td>
-                    <td class="py-2 pr-4">
-                      Comunidad {brother.community_number}
-                    </td>
-                    <td class="py-2 pr-4">{brother.names}</td>
-                    <td class="py-2 pr-0 text-right">
-                      <button
-                        type="button"
-                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-                        data-brother-id={brother.brother_id}
-                        data-is-marriage={
-                          brother.is_marriage ? "true" : "false"
-                        }
-                        data-husband-id={brother.husband_id || ""}
-                        data-wife-id={brother.wife_id || ""}
-                        data-husband-name={brother.husband_name || ""}
-                        data-wife-name={brother.wife_name || ""}
-                      >
-                        Confirmar asistencia
-                      </button>
+                    <td>{brother.names}</td>
+                    <td>
+                      <div class="flex items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          class="action-btn"
+                          data-action="confirm"
+                          data-brother-id={brother.brother_id}
+                          data-is-marriage={
+                            brother.is_marriage ? "true" : "false"
+                          }
+                          data-husband-id={brother.husband_id || ""}
+                          data-wife-id={brother.wife_id || ""}
+                          data-husband-name={brother.husband_name || ""}
+                          data-wife-name={brother.wife_name || ""}
+                          title="confirmar asistencia"
+                        >
+                          <CheckIcon class="size-4 block" />
+                        </button>
+                        <button
+                          type="button"
+                          class="action-btn"
+                          data-action="uninvite"
+                          data-brother-id={brother.brother_id}
+                          data-is-marriage={
+                            brother.is_marriage ? "true" : "false"
+                          }
+                          data-husband-id={brother.husband_id || ""}
+                          data-wife-id={brother.wife_id || ""}
+                          title="Dejar de invitar"
+                        >
+                          <TrashIcon class="size-4 block" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -127,6 +145,8 @@ const groupedInvited = groupMarriagesForAttendance(invitedBrothers as any[]);
 
     buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
+        const action = btn.getAttribute("data-action") || "confirm";
+
         const brotherId = btn.getAttribute("data-brother-id");
         if (!brotherId) return;
 
@@ -135,6 +155,46 @@ const groupedInvited = groupMarriagesForAttendance(invitedBrothers as any[]);
         const wifeId = btn.getAttribute("data-wife-id");
         const husbandName = btn.getAttribute("data-husband-name");
         const wifeName = btn.getAttribute("data-wife-name");
+
+        if (action === "uninvite") {
+          const confirmed = confirm(
+            "Seguro que deseas eliminar esta invitacion?",
+          );
+          if (!confirmed) return;
+
+          const idsToRemove: number[] = [];
+          if (isMarriage && husbandId && wifeId) {
+            idsToRemove.push(Number(husbandId), Number(wifeId));
+          } else {
+            idsToRemove.push(Number(brotherId));
+          }
+
+          const validIds = idsToRemove.filter((id) => !Number.isNaN(id));
+          if (validIds.length === 0) return;
+
+          btn.disabled = true;
+
+          fetch(`/api/convivencias/${convivenciaId}/invited`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ brother_ids: validIds }),
+          })
+            .then(async (res) => {
+              if (!res.ok) {
+                console.error("Error al dejar de invitar", await res.text());
+                btn.disabled = false;
+                return;
+              }
+
+              window.location.reload();
+            })
+            .catch((err) => {
+              console.error("Error de red al dejar de invitar", err);
+              btn.disabled = false;
+            });
+
+          return;
+        }
 
         if (typeof (window as any).openConfirmAttendanceModal === "function") {
           if (isMarriage && husbandId && wifeId) {

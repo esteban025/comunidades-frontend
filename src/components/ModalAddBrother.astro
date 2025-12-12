@@ -5,6 +5,7 @@ import { pasosListaPlana } from "@/datos/pasos-list";
 import type { Parish } from "@/types/parishes";
 import { getParishes } from "@/services/parishes";
 import PLusIcon from "@/assets/PLusIcon.astro";
+import CheckIcon from "@/assets/CheckIcon.astro";
 const parishes: Parish[] = await getParishes();
 // const civilStatus = ["matrimonio", "soltero", "soltera"];
 ---
@@ -233,15 +234,82 @@ const parishes: Parish[] = await getParishes();
       <legend class="title-container">Roles (Opcional)</legend>
 
       <div class="checkbox-group">
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            name="roles_in_own_community"
-            value="responsable"
-          />
-          <span>Soy responsable de mi comunidad</span>
-        </label>
-        <label class="checkbox-label">
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-leader">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="responsable"
+              id="i-leader"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy responsable de mi comunidad</span>
+          </label>
+        </div>
+
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-coleader">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="corresponsable"
+              id="i-coleader"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy corresponsable de mi comunidad</span>
+          </label>
+        </div>
+
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-didascala">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="didascala"
+              id="i-didascala"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy didascala de mi comunidad</span>
+          </label>
+        </div>
+
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-ostiario">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="ostiario"
+              id="i-ostiario"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy ostiario de mi comunidad</span>
+          </label>
+        </div>
+
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-catequista">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="catequista"
+              id="i-catequista"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy catequista de mi comunidad</span>
+          </label>
+        </div>
+
+        <!-- <label class="checkbox-label">
           <input
             type="checkbox"
             name="roles_in_own_community"
@@ -273,7 +341,7 @@ const parishes: Parish[] = await getParishes();
             value="1"
           />
           <span>Soy catequista de otras comunidades</span>
-        </label>
+        </label> -->
       </div>
     </fieldset>
 

@@ -155,6 +155,14 @@ const parishes: Parish[] = await getParishes();
       "btn-invitar-communities",
     ) as HTMLButtonElement | null;
 
+    const modalTitle = modal?.querySelector(
+      ".modal-title",
+    ) as HTMLHeadingElement | null;
+    const submitButton = $id("modal-parish-submit") as HTMLButtonElement | null;
+
+    let mode: "create" | "edit" = "create";
+    let editingConvivenciaId: string | null = null;
+
     type CommunityItem = {
       id: number;
       number_community: number;
@@ -308,12 +316,88 @@ const parishes: Parish[] = await getParishes();
 
     function openCreateConvivenciaModal() {
       // isEditMode = false;
+      mode = "create";
+      editingConvivenciaId = null;
+
+      if (modalTitle) modalTitle.textContent = "Crear nueva convivencia";
+      if (submitButton) submitButton.textContent = "Crear Convivencia";
+
       form?.reset();
       selectedCommunities.clear();
       resetCommunitiesUI();
       updateInvitedList();
       modal?.classList.remove("hidden");
       document.body.style.overflow = "hidden";
+    }
+
+    async function openEditConvivenciaModal(convId: string) {
+      mode = "edit";
+      editingConvivenciaId = convId;
+
+      if (modalTitle) modalTitle.textContent = "Editar convivencia";
+      if (submitButton) submitButton.textContent = "Guardar cambios";
+
+      form?.reset();
+      selectedCommunities.clear();
+      resetCommunitiesUI();
+      updateInvitedList();
+
+      try {
+        const res = await fetch(`/api/convivencias/${convId}`);
+        const result = await res.json();
+
+        if (!res.ok || !result.success || !result.data) {
+          console.error("Error al cargar convivencia", result);
+          alert(result?.error || "No se pudo cargar la convivencia");
+          return;
+        }
+
+        const data = result.data;
+
+        const nameInput = form?.querySelector(
+          "#name-convi",
+        ) as HTMLInputElement | null;
+        const descInput = form?.querySelector(
+          "#description-convi",
+        ) as HTMLInputElement | null;
+        const startInput = form?.querySelector(
+          "#date-start",
+        ) as HTMLInputElement | null;
+        const endInput = form?.querySelector(
+          "#date-end",
+        ) as HTMLInputElement | null;
+
+        if (nameInput) nameInput.value = data.name || "";
+        if (descInput) descInput.value = data.description || "";
+
+        // Asegurar formato YYYY-MM-DD
+        if (startInput) startInput.value = String(data.start_date).slice(0, 10);
+        if (endInput) endInput.value = String(data.end_date).slice(0, 10);
+
+        if (Array.isArray(data.communities)) {
+          data.communities.forEach((c: any) => {
+            if (!c?.id) return;
+            selectedCommunities.set(Number(c.id), {
+              id: Number(c.id),
+              number_community: Number(c.number_community),
+              level_paso: c.level_paso ?? null,
+              total_brothers: Number(c.total_brothers || 0),
+              parish_id: Number(c.parish_id),
+              parish_name: c.parish_name,
+              parish_aka: c.parish_aka,
+              responsible_name: c.responsible_name,
+            });
+          });
+        }
+
+        updateInvitedList();
+
+        modal?.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+      } catch (err) {
+        console.error("Error cargando convivencia", err);
+        alert("Error de conexión al cargar la convivencia");
+      }
     }
 
     // Función para cerrar el modal
@@ -324,6 +408,11 @@ const parishes: Parish[] = await getParishes();
       selectedCommunities.clear();
       resetCommunitiesUI();
       updateInvitedList();
+
+      mode = "create";
+      editingConvivenciaId = null;
+      if (modalTitle) modalTitle.textContent = "Crear nueva convivencia";
+      if (submitButton) submitButton.textContent = "Crear Convivencia";
     }
 
     setupModalCloseHandlers("modal-create-convi", () => {
@@ -391,8 +480,14 @@ const parishes: Parish[] = await getParishes();
         };
 
         try {
-          const res = await fetch("/api/convivencias", {
-            method: "POST",
+          const url =
+            mode === "edit" && editingConvivenciaId
+              ? `/api/convivencias/${editingConvivenciaId}`
+              : "/api/convivencias";
+          const method = mode === "edit" ? "PUT" : "POST";
+
+          const res = await fetch(url, {
+            method,
             headers: {
               "Content-Type": "application/json",
             },
@@ -400,10 +495,7 @@ const parishes: Parish[] = await getParishes();
           });
 
           const result = await res.json();
-          console.log(
-            "[ModalAddConvivencia] Respuesta POST /api/convivencias:",
-            result,
-          );
+          console.log("[ModalAddConvivencia] Respuesta:", result);
 
           if (result.success) {
             closeParishModal();
@@ -411,15 +503,25 @@ const parishes: Parish[] = await getParishes();
               window.location.reload();
             }, 500);
           } else {
-            alert(result.error || "Error al crear la convivencia");
+            alert(
+              result.error ||
+                (mode === "edit"
+                  ? "Error al actualizar la convivencia"
+                  : "Error al crear la convivencia"),
+            );
           }
         } catch (error) {
           console.error("Error enviando convivencia:", error);
-          alert("Error de conexión al crear la convivencia");
+          alert(
+            mode === "edit"
+              ? "Error de conexión al actualizar la convivencia"
+              : "Error de conexión al crear la convivencia",
+          );
         }
       });
     }
 
     (window as any).openCreateConvivenciaModal = openCreateConvivenciaModal;
+    (window as any).openEditConvivenciaModal = openEditConvivenciaModal;
   });
 </script>
