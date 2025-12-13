@@ -3,10 +3,17 @@ import type { Parish } from "@/types/parishes";
 
 // Obtener todas las parroquias
 export const getParishes = async (): Promise<Parish[]> => {
-  const query = "SELECT id, name, tag, aka FROM parishes ORDER BY name ASC";
+  const query = "SELECT * FROM parishes ORDER BY name ASC";
   const [rows] = await db.query(query)
   const data: Parish[] = rows as Parish[];
   return data;
+}
+
+export const getParishByTag = async (tag: string): Promise<Parish[]> => {
+  const query = `SELECT id, name, tag, aka FROM parishes WHERE tag = ?`
+  const [rows] = await db.query(query, [tag])
+  const data: Parish[] = rows as Parish[]
+  return data
 }
 
 

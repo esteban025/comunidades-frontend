@@ -1,6 +1,7 @@
 ---
 import { db } from "@/lib/db";
 import BrotherDetailsContent from "@/components/BrotherDetailsContent.astro";
+import { getPersonalBrother } from "@/services/brothers";
 
 const { id } = Astro.params;
 
@@ -16,24 +17,14 @@ let error = null;
 
 try {
   // Query principal
-  const brotherQuery = `
-    SELECT 
-      b.id, b.names, b.civil_status, b.phone, b.community_id,
-      c.number_community, c.level_paso,
-      p.id as parish_id, p.name as parish_name,
-      p.tag as parish_tag, p.aka as parish_aka
-    FROM brothers b
-    LEFT JOIN communities c ON b.community_id = c.id
-    LEFT JOIN parishes p ON c.parish_id = p.id
-    WHERE b.id = ?
-  `;
-
-  const [brotherRows]: any = await db.query(brotherQuery, [id]);
+  // modificar query para traer el nombre del conyugue y no el id
+  const brotherRows = await getPersonalBrother(id);
 
   if (!brotherRows || brotherRows.length === 0) {
     error = "Hermano no encontrado";
   } else {
     const brotherData = brotherRows[0];
+    console.log(brotherData);
 
     // Obtener roles
     const rolesQuery = `
@@ -66,6 +57,7 @@ try {
     brother = {
       id: brotherData.id,
       names: brotherData.names,
+      spouse_name: brotherData.spouse_name,
       civil_status: brotherData.civil_status,
       phone: brotherData.phone,
       community: {

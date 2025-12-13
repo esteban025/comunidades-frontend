@@ -27,8 +27,6 @@ const totalPages = Math.max(1, Math.ceil(totalItems / limit || 1));
 const groupKeys = await getBrotherGroupKeysPage({ limit, offset });
 const brothers: Brothers[] = (await getBrothersByGroupKeys(groupKeys)) as any;
 
-// Agrupar matrimonios usando helper compartido para que
-// todas las tablas de la app tengan el mismo criterio visual.
 const groupedBrothers: Brothers[] = groupMarriagesById(brothers as Brothers[]);
 
 const from = totalItems > 0 ? offset + 1 : 0;
@@ -283,12 +281,13 @@ let pagination: PaginationPage = {
   (window as any).refreshBrothers = () => {
     setTimeout(() => {
       window.location.reload();
-    }, 1000);
+    }, 1500);
   };
+  import { $, $$ } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    // Botones de ver para hermanos sin menú de matrimonio
-    const viewButtons = document.querySelectorAll(
+    // === BOTONES PARA SOLTEROS ===
+    const viewButtons = $$(
       ".brother-view-btn",
     ) as NodeListOf<HTMLButtonElement>;
 

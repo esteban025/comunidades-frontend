@@ -15,25 +15,8 @@ interface Props {
 }
 
 const { brother } = Astro.props;
+// console.log(brother);
 
-function formatRole(role: string): string {
-  const roles: Record<string, string> = {
-    responsable: "Responsable",
-    corresponsable: "Corresponsable",
-    didascala: "Didascala",
-    ostiario: "Ostiario",
-  };
-  return roles[role] || role;
-}
-
-function formatCivilStatus(status: string): string {
-  const statuses: Record<string, string> = {
-    matrimonio: "Matrimonio",
-    soltero: "Soltero",
-    soltera: "Soltera",
-  };
-  return statuses[status] || status;
-}
 const classIcons = "w-5 aspect-square text-text-muted";
 const existRolesOrCatechist =
   brother.roles_in_own_community?.length > 0 ||
@@ -72,8 +55,8 @@ const existRolesOrCatechist =
             <span class="uppercase font-medium text-sm text-text-muted"
               >Estado Civil</span
             >
-            <span class="text-text-primary"
-              >{formatCivilStatus(brother.civil_status)}</span
+            <span class="text-text-primary capitalize"
+              >{brother.civil_status}</span
             >
           </div>
         </div>
@@ -92,6 +75,24 @@ const existRolesOrCatechist =
             </span>
           </div>
         </div>
+
+        <!-- si es matrimonio, traemos el nombre del esposo/a -->
+
+        {
+          brother.spouse_name && (
+            <div class="flex items-start gap-4">
+              <span>
+                <SingleIcon class={classIcons} />
+              </span>
+              <div class="flex flex-col">
+                <span class="uppercase font-medium text-sm text-text-muted">
+                  Conyugue
+                </span>
+                <span class="text-text-primary">{brother.spouse_name}</span>
+              </div>
+            </div>
+          )
+        }
       </div>
     </ParishCardWithHeader>
 
@@ -152,7 +153,7 @@ const existRolesOrCatechist =
               <div class="flex flex-wrap gap-1 items-center">
                 {brother.roles_in_own_community?.map((role: string) => (
                   <span data-rol={role} class="role-tag">
-                    {formatRole(role)}
+                    {role}
                   </span>
                 ))}
                 {brother.catechist_of_communities?.length > 0 && (

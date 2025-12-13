@@ -153,3 +153,24 @@ export const getBrothersByGroupKeys = async (groupKeys: Array<number>) => {
 
   return mapBrotherRows(rows as any[]);
 };
+
+export const getPersonalBrother = async (id: string) => {
+  const query = `
+    SELECT 
+      b.id, b.names, b.civil_status, b.phone, b.community_id,
+      s.names as spouse_name,
+      c.number_community, c.level_paso,
+      p.id as parish_id, p.name as parish_name,
+      p.tag as parish_tag, p.aka as parish_aka
+    FROM brothers b
+    LEFT JOIN brothers s ON b.spouse_id = s.id
+    LEFT JOIN communities c ON b.community_id = c.id
+    LEFT JOIN parishes p ON c.parish_id = p.id
+    WHERE b.id = ?
+  `
+  const [rows] = await db.query(query, [id])
+  const data: any = rows as any[]
+  return data
+
+  // podemos hacer la siguiente query de obtencion de info
+}

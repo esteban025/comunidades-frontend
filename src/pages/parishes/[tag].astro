@@ -6,83 +6,54 @@ import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
 
-import { db } from "@/lib/db";
+import { getParishByTag } from "@/services/parishes";
+import {
+  getCommunityByIdParis,
+  getResponsablesByCommunity,
+} from "@/services/communities";
+
+import type { Parish } from "@/types/parishes";
+import type { CommunityByIdParish } from "@/types/community";
 
 const { tag } = Astro.params;
 
 // Obtener información de la parroquia por tag
-let parishData: any = null;
-let communities: any[] = [];
+interface Communities extends CommunityByIdParish {
+  responsable: string | null;
+}
+let parishData: Parish | null = null;
+let communities: Communities[] = [];
 let error = false;
 
 if (!tag) {
   error = true;
 } else {
   try {
-    // 1. Obtener datos de la parroquia
-    const parishQuery = `
-      SELECT id, name, tag, aka 
-      FROM parishes 
-      WHERE tag = ?
-    `;
-
-    const [parishRows]: any = await db.query(parishQuery, [tag]);
+    // 1. Obtenemos la informaicon de la parroquia por tag
+    const parishRows = await getParishByTag(tag);
 
     if (parishRows && parishRows.length > 0) {
       parishData = parishRows[0];
 
       // 2. Obtener comunidades con conteo de hermanos
-      const communitiesQuery = `
-        SELECT 
-          c.id,
-          c.number_community,
-          c.level_paso,
-          COUNT(DISTINCT b.id) as brothers_count
-        FROM communities c
-        LEFT JOIN brothers b ON c.id = b.community_id
-        WHERE c.parish_id = ?
-        GROUP BY c.id, c.number_community, c.level_paso
-        ORDER BY c.number_community ASC
-      `;
-
-      const [commRows]: any = await db.query(communitiesQuery, [parishData.id]);
+      const commRows = await getCommunityByIdParis(parishData.id);
 
       // 3. Obtener responsables de cada comunidad
       if (commRows && commRows.length > 0) {
-        const communityIds = commRows.map((c: any) => c.id);
-        const responsablesQuery = `
-          SELECT DISTINCT
-            br.community_id,
-            CASE
-              WHEN b.civil_status = 'matrimonio' AND b.spouse_id IS NOT NULL AND s.id IS NOT NULL THEN
-                CONCAT(
-                  CASE WHEN b.id < s.id THEN b.names ELSE s.names END,
-                  ' y ',
-                  CASE WHEN b.id < s.id THEN s.names ELSE b.names END
-                )
-              ELSE b.names
-            END as responsable_name
-          FROM brother_roles br
-          INNER JOIN brothers b ON br.brother_id = b.id
-          LEFT JOIN brothers s ON b.spouse_id = s.id
-          WHERE br.role = 'responsable'
-            AND br.community_id IN (${communityIds.map(() => "?").join(",")})
-        `;
+        const communityIds = commRows.map((c: CommunityByIdParish) => c.id);
 
-        const [responsablesRows]: any = await db.query(
-          responsablesQuery,
-          communityIds,
-        );
+        const responsablesRows = await getResponsablesByCommunity(communityIds);
 
         const responsablesMap = new Map<number, Set<string>>();
-        responsablesRows?.forEach((r: any) => {
+
+        responsablesRows?.forEach((r) => {
           if (!responsablesMap.has(r.community_id)) {
             responsablesMap.set(r.community_id, new Set());
           }
           responsablesMap.get(r.community_id)!.add(r.responsable_name);
         });
 
-        communities = commRows.map((comm: any) => ({
+        communities = commRows.map((comm) => ({
           ...comm,
           responsable: responsablesMap.has(comm.id)
             ? Array.from(responsablesMap.get(comm.id)!).join(", ")
@@ -107,7 +78,7 @@ if (!tag) {
       error ? (
         <SectionContainer
           transition:name="parishes-section"
-          title={parishData ? parishData.name : "Parroquia No Encontrada"}
+          title={parishData?.name ?? "Parroquia No Encontrada"}
           description="Detalles de la parroquia y sus comunidades."
         >
           {parishData ? (
@@ -139,8 +110,8 @@ if (!tag) {
         // San Juan Pablo II • Tag: SJPII • 2 comunidades
         <SectionContainer
           transition:name="parishes-section"
-          title={parishData.name}
-          description={`${parishData.name} • Tag: ${parishData.tag} • ${communities.length} comunidades`}
+          title={parishData?.name ?? ""}
+          description={`${parishData?.name ?? ""} • Tag: ${parishData?.tag ?? ""} • ${communities.length} comunidades`}
         >
           <div slot="body">
             <div class="container-table">
@@ -148,17 +119,19 @@ if (!tag) {
                 <table>
                   <thead>
                     <tr>
-                      <th>Número</th>
+                      <th class="min">N°Com</th>
                       <th>Responsable</th>
                       <th>Paso</th>
                       <th>Total</th>
-                      <th>Acciones</th>
+                      <th class="min">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {communities.map((community) => (
                       <tr>
-                        <td class="cell-main">{community.number_community}</td>
+                        <td class="text-center">
+                          {community.number_community}
+                        </td>
                         <td>
                           {community.responsable || "Responsable no registrado"}
                         </td>
@@ -217,11 +190,12 @@ if (!tag) {
 </Layout>
 
 <script>
+  import { $, $$ } from "@/utils/selectElementsDom";
   document.addEventListener("astro:page-load", () => {
-    const actionButtons = document.querySelectorAll(".action-btn[data-action]");
+    const actionButtons = $$(".action-btn[data-action]");
 
     // Obtener nombre de la parroquia del header
-    const parishNameEl = document.querySelector("header h1");
+    const parishNameEl = $("header h1");
     const parishName = parishNameEl?.textContent || "Parroquia";
 
     actionButtons.forEach((button) => {

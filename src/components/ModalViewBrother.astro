@@ -3,7 +3,7 @@ import ModalDesign from "./ModalDesign.astro";
 ---
 
 <ModalDesign id="modal-view-brother" title="Detalles del Hermano" idForm="">
-  <div
+  <section
     class="flex flex-col gap-6 w-full"
     slot="body"
     id="brother-details-content"
@@ -11,7 +11,7 @@ import ModalDesign from "./ModalDesign.astro";
     <div class="flex items-center justify-center">
       <div class="loading-spinner">Cargando...</div>
     </div>
-  </div>
+  </section>
   <button
     type="button"
     class="btn btn-secondary flex-1"
@@ -38,10 +38,11 @@ import ModalDesign from "./ModalDesign.astro";
 <script>
   import { showNotification } from "@/scripts/notification";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
+  import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const modal = document.getElementById("modal-view-brother");
-    const contentDiv = document.getElementById("brother-details-content");
+    const modal = $id("modal-view-brother");
+    const contentDiv = $id("brother-details-content");
 
     function closeViewModal() {
       modal?.classList.add("hidden");
@@ -53,7 +54,7 @@ import ModalDesign from "./ModalDesign.astro";
     }
 
     async function openViewBrotherModal(brotherId: string) {
-      console.log("Abriendo modal para hermano:", brotherId);
+      // console.log("Abriendo modal para hermano:", brotherId);
       modal?.classList.remove("hidden");
       document.body.style.overflow = "hidden";
 

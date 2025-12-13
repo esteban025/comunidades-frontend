@@ -40,12 +40,9 @@ import ModalDesign from "./ModalDesign.astro";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
 
   document.addEventListener("astro:page-load", () => {
-    const modal = document.getElementById(
-      "modal-view-community",
-    ) as HTMLDivElement;
-    const contentDiv = document.getElementById(
-      "community-details-content",
-    ) as HTMLDivElement;
+    const $ = (selector: string) => document.querySelector(selector);
+    const modal = $("#modal-view-community") as HTMLDivElement;
+    const contentDiv = $("#community-details-content") as HTMLDivElement;
 
     if (!modal || !contentDiv) return;
 

@@ -6,21 +6,8 @@ import HomeIcon from "@/assets/HomeIcon.astro";
 import LevelIcon from "@/assets/LevelIcon.astro";
 import LibraryIcon from "@/assets/LibraryIcon.astro";
 
-interface Props {
-  community: any;
-}
-
 const { community } = Astro.props;
 
-function formatRole(role: string): string {
-  const roles: Record<string, string> = {
-    responsable: "Responsable",
-    corresponsable: "Corresponsable",
-    didascala: "Didascala",
-    ostiario: "Ostiario",
-  };
-  return roles[role] || role;
-}
 const generalInfo = [
   { label: "Parroquia", value: community.parish_name, icon: ChurchIcon },
   { label: "Paso", value: community.level_paso, icon: LevelIcon },
@@ -31,34 +18,14 @@ const generalInfo = [
   },
   {
     label: "Total de Hermanos",
-    value: community.brothers_count,
+    value: community.total_brothers,
     icon: PairsIcon,
   },
 ];
-function getGroupLeadersInfo(community: any) {
-  const groupLeaders = [];
-
-  if (community.responsables && community.responsables.length > 0) {
-    groupLeaders.push({
-      type: "Responsables",
-      members: community.responsables,
-    });
-  }
-
-  if (community.corresponsables && community.corresponsables.length > 0) {
-    groupLeaders.push({
-      type: "Corresponsables",
-      members: community.corresponsables,
-    });
-  }
-
-  return groupLeaders;
-}
-const groupLeadersInfo = getGroupLeadersInfo(community);
 const classIcons = "w-5 aspect-square text-text-muted";
 ---
 
-<div class="flex flex-col gap-4 p-4">
+<div class="flex flex-col gap-4">
   <!-- Información básica -->
   <ParishCardWithHeader title="Informacion general" icon={LibraryIcon}>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -160,11 +127,11 @@ const classIcons = "w-5 aspect-square text-text-muted";
 
   <!-- Otros hermanos con roles -->
   {
-    community.other_brothers && community.other_brothers.length > 0 && (
+    community.other_roles && community.other_roles.length > 0 && (
       <ParishCardWithHeader title="Otros servicios" icon={PairsIcon}>
         <div class="flex flex-col gap-2">
           <div class="space-y-2">
-            {community.other_brothers.map((r: any) => (
+            {community.other_roles.map((r: any) => (
               <div class="flex items-center gap-4 p-4 bg-linear-to-r from-gray-50 to-gray-100 rounded-lg border-l-4 border-gray-300 relative">
                 <div class="w-10 aspect-square bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-semibold">
                   {r.names.charAt(0)}
@@ -177,7 +144,7 @@ const classIcons = "w-5 aspect-square text-text-muted";
                 </div>
                 <div class="absolute top-2 right-2 z-10">
                   <span class="role-tag" data-rol={r.role}>
-                    {r.roles}
+                    {r.role}
                   </span>
                 </div>
               </div>
