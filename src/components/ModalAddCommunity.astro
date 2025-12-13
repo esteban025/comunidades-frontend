@@ -1,0 +1,162 @@
+---
+import ModalDesign from "./ModalDesign.astro";
+import { pasosListaPlana } from "@/datos/pasos-list";
+---
+
+<ModalDesign
+  title="Datos de la comunidad"
+  id="modal-add-community"
+  isForm
+  idForm="form-add-community"
+>
+  <div class="ss" slot="body">
+    <fieldset class="container-fieldset">
+      <legend class="title-container">Datos de comunidad</legend>
+      <div class="space-y-6">
+        <!-- input con la id de la parroquia -->
+        <input type="hidden" name="parish-id" id="modal-community-parish-id" />
+
+        <div class="content-input">
+          <label for="number-comm">Numero de comunidad</label>
+          <input type="number" name="number-comm" id="number-comm" required />
+        </div>
+        <div class="content-input">
+          <label for="level-comm">Paso actual</label>
+          <select name="level-comm" id="level-comm" class="select-input">
+            <option value="" disabled selected>Selecciona un paso</option>
+            {
+              pasosListaPlana.map((paso) => (
+                <option class="options-select" value={paso}>
+                  {paso}
+                </option>
+              ))
+            }
+          </select>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+  <!-- <div class="flex w-full"> -->
+  <button
+    slot="footer"
+    type="button"
+    class="btn btn-secondary w-full"
+    data-close="modal-add-community"
+  >
+    Cancelar
+  </button>
+  <button
+    slot="footer"
+    type="submit"
+    class="btn btn-primary w-full"
+    id="modal-add-community-submit"
+  >
+    Agregar
+  </button>
+  <!-- </div> -->
+</ModalDesign>
+
+<script>
+  import { $id } from "@/utils/selectElementsDom";
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
+  import { showNotification } from "@/scripts/notification";
+
+  document.addEventListener("astro:page-load", () => {
+    const $modal = $id("modal-add-community") as HTMLDivElement | null;
+    const $form = $id("form-add-community") as HTMLFormElement | null;
+    const $submit = $id(
+      "modal-add-community-submit",
+    ) as HTMLButtonElement | null;
+    const $parishId = $id(
+      "modal-community-parish-id",
+    ) as HTMLInputElement | null;
+
+    function openModalAddComm(parishId?: number | string) {
+      if ($parishId && parishId !== undefined && parishId !== null) {
+        $parishId.value = String(parishId);
+      }
+      $modal?.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModalAddComm() {
+      $modal?.classList.add("hidden");
+      document.body.style.overflow = "";
+      $form?.reset();
+      if ($parishId) $parishId.value = "";
+      if ($submit) {
+        $submit.disabled = false;
+        $submit.textContent = "Agregar";
+      }
+    }
+
+    setupModalCloseHandlers("modal-add-community", () => {
+      closeModalAddComm();
+    });
+
+    if ($form) {
+      $form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const formData = new FormData($form);
+        const parishId = formData.get("parish-id");
+        const numberCommunity = formData.get("number-comm");
+        const levelPaso = formData.get("level-comm");
+
+        if (!parishId || !numberCommunity || !levelPaso) {
+          showNotification("Completa todos los campos", "error", 4500);
+          return;
+        }
+
+        if ($submit) {
+          $submit.disabled = true;
+          $submit.textContent = "Guardando...";
+        }
+
+        try {
+          const res = await fetch("/api/communities", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              parish_id: Number(parishId),
+              number_community: Number(numberCommunity),
+              level_paso: String(levelPaso),
+            }),
+          });
+
+          const result = await res.json();
+
+          closeModalAddComm();
+
+          if (result?.success) {
+            showNotification(
+              "¡Comunidad agregada exitosamente!",
+              "success",
+              3000,
+            );
+            setTimeout(() => window.location.reload(), 500);
+          } else {
+            showNotification(
+              result?.error || "Error al agregar comunidad",
+              "error",
+              5000,
+            );
+          }
+        } catch (err) {
+          closeModalAddComm();
+          showNotification(
+            "Error de conexión al agregar comunidad",
+            "error",
+            5000,
+          );
+        }
+      });
+    }
+
+    (window as any).openModalAddComm = openModalAddComm;
+  });
+</script>

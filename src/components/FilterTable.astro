@@ -1,0 +1,90 @@
+---
+import ArrowShortIcon from "@/assets/ArrowShortIcon.astro";
+import PLusIcon from "@/assets/PLusIcon.astro";
+import RefreshIcon from "@/assets/RefreshIcon.astro";
+import SearchIcon from "@/assets/SearchIcon.astro";
+const roles = ["responsable", "corresponsable", "didascala", "ostiario"];
+---
+
+<section class="flex justify-end items-center">
+  <div class="grid grid-cols-3 gap-2">
+    <!-- buscador -->
+    <div class="relative flex items-center w-full">
+      <SearchIcon
+        class="absolute left-4 w-5 aspect-square block text-text-secondary pointer-events-none"
+      />
+      <div class="content-input w-full">
+        <input
+          type="text"
+          id="search-brothers-input"
+          placeholder="Buscar hermano..."
+          class="search-input"
+          autocomplete="off"
+        />
+      </div>
+      <button
+        class="absolute right-4 w-8 aspect-square border-none bg-gray-200 rounded-full items-center justify-center cursor-pointer text-text-secondary transition-all duration-200 hover:bg-gray-300 hover:text-text-purple-500 hidden clear-search-btn"
+        id="clear-search-btn"
+        title="Limpiar búsqueda"
+      >
+        <PLusIcon class="size-4 transform rotate-45" />
+      </button>
+    </div>
+
+    <!-- roles -->
+    <div class="roles w-full relative">
+      <select
+        name="roles-select"
+        id="roles-brother-select"
+        class="select-input"
+      >
+        <option class="options-select" value="">Todos los servicios</option>
+        {
+          roles.map((role) => (
+            <option class="options-select" value={role}>
+              {role}
+            </option>
+          ))
+        }
+      </select>
+      <ArrowShortIcon class="size-4 block icon-select" />
+    </div>
+    <button
+      id="clean-filters"
+      class="btn btn-primary flex items-center gap-2 justify-center"
+    >
+      <RefreshIcon class="size-4 block" />
+      <span>Limpiar filtros</span>
+    </button>
+  </div>
+</section>
+
+<style>
+  .search-input {
+    padding: 0.75rem 3rem 0.75rem 3rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 9999px;
+    font-size: 0.95rem;
+    color: #374151;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+
+    &:focus {
+      border-color: var(--color-border-dark);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    &::placeholder {
+      color: var(--color-text-light);
+    }
+  }
+
+  .clear-search-btn {
+    display: flex;
+  }
+
+  .clear-search-btn.hidden {
+    display: none;
+  }
+</style>

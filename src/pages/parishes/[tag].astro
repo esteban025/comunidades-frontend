@@ -14,6 +14,7 @@ import {
 
 import type { Parish } from "@/types/parishes";
 import type { CommunityByIdParish } from "@/types/community";
+import PLusIcon from "@/assets/PLusIcon.astro";
 
 const { tag } = Astro.params;
 
@@ -73,130 +74,147 @@ if (!tag) {
 ---
 
 <Layout>
-  <div class="flex flex-col gap-10">
-    {
-      error ? (
-        <SectionContainer
-          transition:name="parishes-section"
-          title={parishData?.name ?? "Parroquia No Encontrada"}
-          description="Detalles de la parroquia y sus comunidades."
-        >
-          {parishData ? (
-            <div
-              class="bg-gray-100 border border-gray-300 rounded-full px-6 py-4 text-center text-gray-600"
-              slot="body"
-            >
-              Error al cargar las comunidades de la parroquia
-            </div>
-          ) : (
-            <div
-              class="bg-white border border-border-light rounded-lg p-6 text-center text-gray-600"
-              slot="body"
-            >
-              <h3 class="text-2xl font-semibold text-text-primary">
-                La parroquia con tag "{tag}" no fue encontrada.
-              </h3>
-              <p class="mt-2 text-sm text-text-muted">
-                Verifica que el enlace sea correcto o regresa a la lista de
-                parroquias.
-              </p>
-              <a href="/#section-parishes" class="mt-6 block hover:underline">
-                ← Volver a comunidades
-              </a>
-            </div>
-          )}
-        </SectionContainer>
-      ) : (
-        // San Juan Pablo II • Tag: SJPII • 2 comunidades
-        <SectionContainer
-          transition:name="parishes-section"
-          title={parishData?.name ?? ""}
-          description={`${parishData?.name ?? ""} • Tag: ${parishData?.tag ?? ""} • ${communities.length} comunidades`}
-        >
-          <div slot="body">
-            <div class="container-table">
-              {communities.length > 0 ? (
-                <table>
-                  <thead>
-                    <tr>
-                      <th class="min">N°Com</th>
-                      <th>Responsable</th>
-                      <th>Paso</th>
-                      <th>Total</th>
-                      <th class="min">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {communities.map((community) => (
-                      <tr>
-                        <td class="text-center">
-                          {community.number_community}
-                        </td>
-                        <td>
-                          {community.responsable || "Responsable no registrado"}
-                        </td>
-                        <td>{community.level_paso || "Sin especificar"}</td>
-                        <td class="cell-value">{community.brothers_count}</td>
-                        <td>
-                          <div class="action-buttons flex justify-center gap-2">
-                            <button
-                              class="action-btn"
-                              title="Ver detalles"
-                              data-action="view"
-                              data-community-id={community.id}
-                              data-community-number={community.number_community}
-                            >
-                              <EyeIcon class="w-4 h-4" />
-                            </button>
-                            <button
-                              class="action-btn"
-                              title="Editar"
-                              data-action="edit"
-                              data-community-id={community.id}
-                              data-community-number={community.number_community}
-                              data-level-paso={community.level_paso || ""}
-                            >
-                              <PencilIcon class="w-4 h-4" />
-                            </button>
-                            <button
-                              class="action-btn"
-                              title="Más opciones"
-                              data-action="more"
-                              data-community-id={community.id}
-                              data-community-number={community.number_community}
-                            >
-                              <DotsVerticalIcon class="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div class="text-center text-gray-500 py-8">
-                  No hay comunidades registradas en esta parroquia
-                </div>
-              )}
-            </div>
+  {
+    error ? (
+      <SectionContainer
+        transition:name="parishes-section"
+        title={parishData?.name ?? "Parroquia No Encontrada"}
+        description="Detalles de la parroquia y sus comunidades."
+      >
+        {parishData ? (
+          <div
+            class="bg-gray-100 border border-gray-300 rounded-full px-6 py-4 text-center text-gray-600"
+            slot="body"
+          >
+            Error al cargar las comunidades de la parroquia
           </div>
-          <a href="/" class="hover:underline" slot="footer-link">
-            ← Volver a comunidades
-          </a>
-        </SectionContainer>
-      )
-    }
-  </div>
+        ) : (
+          <div
+            class="bg-white border border-border-light rounded-lg p-6 text-center text-gray-600"
+            slot="body"
+          >
+            <h3 class="text-2xl font-semibold text-text-primary">
+              La parroquia con tag "{tag}" no fue encontrada.
+            </h3>
+            <p class="mt-2 text-sm text-text-muted">
+              Verifica que el enlace sea correcto o regresa a la lista de
+              parroquias.
+            </p>
+            <a href="/#section-parishes" class="mt-6 block hover:underline">
+              ← Volver a comunidades
+            </a>
+          </div>
+        )}
+      </SectionContainer>
+    ) : (
+      // San Juan Pablo II • Tag: SJPII • 2 comunidades
+      <SectionContainer
+        transition:name="parishes-section"
+        title={parishData?.name ?? ""}
+        description={`${parishData?.name ?? ""} • Tag: ${parishData?.tag ?? ""} • ${communities.length} comunidades`}
+      >
+        <div class="flex gap-2 items-center" slot="nav-links">
+          <button
+            id="btn-add-comm"
+            data-parish-id={parishData?.id}
+            class="btn btn-primary flex items-center justify-center gap-2"
+          >
+            <PLusIcon class="size-4 block" />
+            <span>Agregar Comunidad</span>
+          </button>
+        </div>
+        <div slot="body">
+          <div class="container-table">
+            {communities.length > 0 ? (
+              <table>
+                <thead>
+                  <tr>
+                    <th class="min">N°Com</th>
+                    <th>Responsable</th>
+                    <th>Paso</th>
+                    <th>Total</th>
+                    <th class="min">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {communities.map((community) => (
+                    <tr>
+                      <td class="text-center">{community.number_community}</td>
+                      <td>
+                        {community.responsable || "Responsable no registrado"}
+                      </td>
+                      <td>{community.level_paso || "Sin especificar"}</td>
+                      <td class="cell-value">{community.brothers_count}</td>
+                      <td>
+                        <div class="action-buttons flex justify-center gap-2">
+                          <button
+                            class="action-btn"
+                            title="Ver detalles"
+                            data-action="view"
+                            data-community-id={community.id}
+                            data-community-number={community.number_community}
+                          >
+                            <EyeIcon class="w-4 h-4" />
+                          </button>
+                          <button
+                            class="action-btn"
+                            title="Editar"
+                            data-action="edit"
+                            data-community-id={community.id}
+                            data-community-number={community.number_community}
+                            data-level-paso={community.level_paso || ""}
+                          >
+                            <PencilIcon class="w-4 h-4" />
+                          </button>
+                          <a
+                            class="action-btn"
+                            title="Más Detalles"
+                            href={`/details-community/${community.id}`}
+                          >
+                            <DotsVerticalIcon class="w-4 h-4" />
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div class="text-center text-gray-500 py-8">
+                No hay comunidades registradas en esta parroquia
+              </div>
+            )}
+          </div>
+        </div>
+        <a href="/" class="hover:underline" slot="footer-link">
+          ← Volver a comunidades
+        </a>
+      </SectionContainer>
+    )
+  }
 </Layout>
 
 <script>
-  import { $, $$ } from "@/utils/selectElementsDom";
+  import { $, $$, $id } from "@/utils/selectElementsDom";
   document.addEventListener("astro:page-load", () => {
     const actionButtons = $$(".action-btn[data-action]");
+    const $modal = $id("modal-add-community");
+    const $openModal = $id("btn-add-comm");
 
     // Obtener nombre de la parroquia del header
     const parishNameEl = $("header h1");
     const parishName = parishNameEl?.textContent || "Parroquia";
+
+    $openModal?.addEventListener("click", () => {
+      if ($modal) {
+        if (typeof (window as any).openModalAddComm === "function") {
+          const parishId = ($openModal as HTMLElement | null)?.dataset.parishId;
+          (window as any).openModalAddComm(parishId);
+        } else {
+          console.log("openModalAddComm no está disponible");
+        }
+      }
+    });
 
     actionButtons.forEach((button) => {
       button.addEventListener("click", (e) => {

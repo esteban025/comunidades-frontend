@@ -174,3 +174,43 @@ export const getPersonalBrother = async (id: string) => {
 
   // podemos hacer la siguiente query de obtencion de info
 }
+
+export const getBrothersByCommunityId = async (id: string) => {
+  const query = `
+    SELECT
+      b.id,
+      b.names,
+      b.civil_status,
+      b.community_id,
+      b.phone,
+      b.spouse_id,
+      COALESCE(GROUP_CONCAT(DISTINCT br.role ORDER BY br.role SEPARATOR ','), '') AS roles
+    FROM brothers b
+    LEFT JOIN brother_roles br
+      ON br.brother_id = b.id AND br.community_id = b.community_id
+    WHERE b.community_id = ?
+    GROUP BY
+      b.id,
+      b.names,
+      b.civil_status,
+      b.community_id,
+      b.phone,
+      b.spouse_id
+  `
+  const [rows] = await db.query(query, [id])
+
+  const data = (rows as Array<{
+    id: number;
+    names: string;
+    civil_status: string;
+    community_id: number;
+    phone: string | null;
+    spouse_id: number | null;
+    roles: string;
+  }>).map((r) => ({
+    ...r,
+    roles: r.roles ? r.roles.split(",").filter(Boolean) : [],
+  }))
+
+  return data
+}

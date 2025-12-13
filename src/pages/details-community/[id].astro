@@ -1,0 +1,148 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import SectionContainer from "@/components/SectionContainer.astro";
+import FilterTable from "@/components/FilterTable.astro";
+import { getCommunityById } from "@/services/communities";
+import { getBrothersByCommunityId } from "@/services/brothers";
+import PLusIcon from "@/assets/PLusIcon.astro";
+
+const { id } = Astro.params;
+
+let error = false;
+
+if (!id) {
+  error = true;
+  return Astro.redirect("/");
+}
+
+const data = await getCommunityById(id);
+const title = `${data[0].parish_name} - Comunidad ${data[0].number_community}`;
+const brothers = await getBrothersByCommunityId(id);
+console.log(brothers);
+---
+
+<Layout>
+  <SectionContainer title={title} transition:name="parish-section">
+    <div class="ss" slot="nav-links">
+      <button class="btn btn-primary flex itmes-center gap-2">
+        <PLusIcon class="size-4 block" />
+        <span>Agregar hermano</span>
+      </button>
+    </div>
+
+    {
+      brothers.length === 0 ? (
+        <div class="" slot="body">
+          <section class="w-full min-h-30 border border-border-medium rounded-xl bg-white flex justify-center items-center">
+            <span class="text-text-muted text-sm">No se encuentra aun registrado ningun hermano en esta comunidad, puedes empezar ya a agregar hermanos a <strong>esta comunidad</strong></span>
+          </section>
+        </div>
+      ) : (
+        <div class="flex flex-col gap-5" slot="body">
+            <FilterTable />
+            <section class="container-table">
+              <table>
+                <thead>
+                  <tr>
+                    <!-- <th class="min print hidden">N°Com</th> -->
+                    <!-- <th class="min print hidden">Parroquia</th> -->
+                    <th>Nombres</th>
+                    <th>Estado</th>
+                    <th>Roles</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    brothers.map((bro) => (
+                      <tr
+                        data-brother-row
+                        data-name={bro.names}
+                        data-roles={bro.roles.join(",")}
+                      >
+                        <td>{bro.names}</td>
+                        <td class="capitalize">{bro.civil_status}</td>
+                        <td>
+                          {bro.roles.map((role) => (
+                            <span class="role-tag" data-rol={role}>
+                              {role}
+                            </span>
+                          ))}
+                        </td>
+                        <td />
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </section>
+          </div>
+      )
+    }
+
+    <button
+      slot="footer-link"
+      class="btn btn-primary min-w-30"
+      onclick="history.back()">Atras</button
+    >
+  </SectionContainer>
+</Layout>
+
+<script>
+  import { $id } from "@/utils/selectElementsDom";
+  document.addEventListener("astro:page-load", () => {
+    const $searchInput = $id("search-brothers-input") as HTMLInputElement;
+    const $selectInput = $id("roles-brother-select") as HTMLSelectElement;
+    const $cleanBtn = $id("clean-filters");
+    const $clearSearchBtn = $id("clear-search-btn") as HTMLButtonElement;
+
+    const getRows = () =>
+      Array.from(
+        document.querySelectorAll<HTMLTableRowElement>("tr[data-brother-row]"),
+      );
+
+    const normalize = (value: string) => value.trim().toLowerCase();
+
+    const applyFilters = () => {
+      const q = normalize($searchInput?.value ?? "");
+      const selectedRole = normalize($selectInput?.value ?? "");
+      const rows = getRows();
+
+      rows.forEach((row) => {
+        const name = normalize(row.dataset.name ?? "");
+        const roles = normalize(row.dataset.roles ?? "");
+
+        const matchesName = !q || name.includes(q);
+        const matchesRole =
+          !selectedRole || roles.split(",").includes(selectedRole);
+
+        row.style.display = matchesName && matchesRole ? "" : "none";
+      });
+
+      if ($clearSearchBtn) {
+        $clearSearchBtn.classList.toggle(
+          "hidden",
+          !($searchInput?.value ?? "").length,
+        );
+      }
+    };
+
+    $cleanBtn?.addEventListener("click", () => {
+      $searchInput.value = "";
+      $selectInput.value = "";
+      applyFilters();
+    });
+
+    $clearSearchBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      $searchInput.value = "";
+      applyFilters();
+      $searchInput.focus();
+    });
+
+    $searchInput?.addEventListener("input", applyFilters);
+    $selectInput?.addEventListener("change", applyFilters);
+
+    applyFilters();
+  });
+</script>
