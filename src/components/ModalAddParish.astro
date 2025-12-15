@@ -72,12 +72,9 @@ import ModalDesign from "./ModalDesign.astro";
   import { registerParish } from "@/scripts/registerParish";
   import { showNotification } from "@/scripts/notification";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
+  import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const $id = (selector: string) => document.getElementById(selector);
-    const $ = (selector: string) => document.querySelector(selector);
-    const $$ = (selector: string) => document.querySelectorAll(selector);
-
     const modal = $id("modal-parish");
     const form = $id("modal-parish-form") as HTMLFormElement;
     const modalTitle = modal?.querySelector("h2");

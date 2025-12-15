@@ -12,9 +12,8 @@ import { db } from "@/lib/db";
  * 
  * Proceso:
  * 1. Transfiere todos los hermanos de las comunidades fuente a la comunidad destino
- * 2. Transfiere todos los roles a la comunidad destino
+ * 2. Elimina todos los roles (brother_roles) tanto de la comunidad destino como de las comunidades fuente
  * 3. Elimina las comunidades fuente
- * 4. Opcionalmente reorganiza los números de las comunidades restantes
  */
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -97,23 +96,10 @@ export const POST: APIRoute = async ({ request }) => {
         [targetCommunityId, ...sourceCommunityIds],
       );
 
-      // 2. Transferir roles de las comunidades fuente a la comunidad destino
-      // Primero, eliminar roles duplicados que puedan existir en la comunidad destino
+      // 2. Eliminar roles de la comunidad destino y de las comunidades fuente
+      // Regla de negocio: después de la fusión, no debe quedar ningún rol asignado.
       await db.query(
-        `DELETE br1 FROM brother_roles br1
-         INNER JOIN brother_roles br2 
-         ON br1.brother_id = br2.brother_id 
-         AND br1.role = br2.role
-         WHERE br1.community_id IN (${sourceIdsPlaceholders})
-         AND br2.community_id = ?`,
-        [...sourceCommunityIds, targetCommunityId],
-      );
-
-      // Luego, transferir los roles restantes
-      await db.query(
-        `UPDATE brother_roles 
-         SET community_id = ? 
-         WHERE community_id IN (${sourceIdsPlaceholders})`,
+        `DELETE FROM brother_roles WHERE community_id = ? OR community_id IN (${sourceIdsPlaceholders})`,
         [targetCommunityId, ...sourceCommunityIds],
       );
 

@@ -226,6 +226,20 @@ if (!tag) {
       }
     });
 
+    (window as any).openManageCommunitiesModal = () => {
+      const pid = ($openModal as HTMLElement | null)?.dataset.parishId;
+      if (
+        typeof (window as any).openManageCommunitiesModalWithParishId ===
+        "function"
+      ) {
+        (window as any).openManageCommunitiesModalWithParishId(pid);
+      } else {
+        console.error(
+          "openManageCommunitiesModalWithParishId no está disponible",
+        );
+      }
+    };
+
     actionButtons.forEach((button) => {
       button.addEventListener("click", (e) => {
         e.stopPropagation();

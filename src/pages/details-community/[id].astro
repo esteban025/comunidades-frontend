@@ -1,15 +1,20 @@
 ---
+// COMPONENTS
 import Layout from "@/layouts/Layout.astro";
 import SectionContainer from "@/components/SectionContainer.astro";
 import FilterTable from "@/components/FilterTable.astro";
-import { getCommunityById } from "@/services/communities";
-import { getBrothersByCommunityId } from "@/services/brothers";
+
+// ICONS
 import PLusIcon from "@/assets/PLusIcon.astro";
-import ConfigIcon from "@/assets/ConfigIcon.astro";
+// import ConfigIcon from "@/assets/ConfigIcon.astro";
 import EyesIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import TrashIcon from "@/assets/TrashIcon.astro";
+
+// SERVICES
 import { groupMarriagesById } from "@/utils/marriageGrouping";
+import { getCommunityById } from "@/services/communities";
+import { getBrothersByCommunityId } from "@/services/brothers";
 
 const { id } = Astro.params;
 
@@ -29,12 +34,11 @@ const groupedBrothers = groupMarriagesById(brothers as any);
 
 <Layout>
   <SectionContainer title={title} transition:name="parish-section">
-    <div class="" slot="nav-links">
-      <button id="btn-add-brotherc" data-community-id={id} class="btn btn-primary flex itmes-center gap-2">
+    <div class="flex items-center gap-2" slot="nav-links">
+      <button id="btn-add-brotherc" data-community-id={id} class="btn btn-primary flex items-center gap-2">
         <PLusIcon class="size-4 block" />
         <span>Agregar hermano</span>
       </button>
-      
     </div>
 
     {

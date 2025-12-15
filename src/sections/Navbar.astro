@@ -9,48 +9,31 @@ import PlusIcon from "@/assets/PLusIcon.astro";
   description="Sistema de Registro"
 >
   <div class="flex flex-wrap gap-2 transition-all duration-500" slot="actions">
-    <button class="btn btn-primary navbar-btn text-sm" data-modal="brother">
-      <div class="flex items-center gap-2">
-        <span class="navbar-btn-icon">
-          <PlusIcon class="w-4 aspect-square block" />
-        </span>
-        <span class="navbar-btn-text">Agregar Hermano</span>
-      </div>
-    </button>
-
-    <button class="btn btn-secondary navbar-btn text-sm" data-modal="parish">
-      <div class="flex items-center gap-2">
-        <span class="navbar-btn-icon">
-          <PlusIcon class="w-4 aspect-square block" />
-        </span>
-        <span class="navbar-btn-text">Agregar Parroquia</span>
-      </div>
+    <button
+      id="open-modal-parish"
+      class="btn btn-primary flex items-center gap-2"
+      data-modal="parish"
+    >
+      <PlusIcon class="size-4 block" />
+      <span>Agregar Parroquia</span>
     </button>
   </div>
 </NavbarPage>
 
 <script>
+  import { $id } from "@/utils/selectElementsDom";
   document.addEventListener("astro:page-load", () => {
-    const navbarButtons = document.querySelectorAll(".navbar-btn");
+    const $openModalBtn = $id("open-modal-parish") as HTMLButtonElement;
+    const $modal = $id("modal-parish") as HTMLElement;
 
-    navbarButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const modalType = button.getAttribute("data-modal");
-
-        if (modalType === "brother") {
-          if (typeof (window as any).openBrotherModal === "function") {
-            (window as any).openBrotherModal();
-          } else {
-            console.log("openBrotherModal no está disponible");
-          }
-        } else if (modalType === "parish") {
-          if (typeof (window as any).openParishModal === "function") {
-            (window as any).openParishModal();
-          } else {
-            console.log("openParishModal no está disponible");
-          }
+    $openModalBtn.addEventListener("click", () => {
+      if ($modal) {
+        if (typeof (window as any).openParishModal === "function") {
+          (window as any).openParishModal();
+        } else {
+          console.log("openParishModal no está disponible");
         }
-      });
+      }
     });
   });
 </script>
