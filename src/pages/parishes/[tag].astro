@@ -5,6 +5,7 @@ import SectionContainer from "@/components/SectionContainer.astro";
 import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
 import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
+import ConfigIcon from "@/assets/ConfigIcon.astro";
 
 import { getParishByTag } from "@/services/parishes";
 import {
@@ -121,6 +122,14 @@ if (!tag) {
           >
             <PLusIcon class="size-4 block" />
             <span>Agregar Comunidad</span>
+          </button>
+          <button
+            onclick="openManageCommunitiesModal()"
+            slot="nav-links"
+            class="btn btn-secondary flex items-center gap-2"
+          >
+            <ConfigIcon class="w-6 aspect-square block" />
+            <span>Fusion/Reorganizar</span>
           </button>
         </div>
         <div slot="body">

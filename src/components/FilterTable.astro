@@ -23,7 +23,7 @@ const roles = ["responsable", "corresponsable", "didascala", "ostiario"];
         />
       </div>
       <button
-        class="absolute right-4 w-8 aspect-square border-none bg-gray-200 rounded-full items-center justify-center cursor-pointer text-text-secondary transition-all duration-200 hover:bg-gray-300 hover:text-text-purple-500 hidden clear-search-btn"
+        class="absolute right-4 w-8 aspect-square border-none bg-gray-200 rounded-full items-center justify-center cursor-pointer text-text-secondary transition-all duration-200 hover:bg-gray-300 hover:text-text-purple-500 clear-search-btn"
         id="clear-search-btn"
         title="Limpiar búsqueda"
       >
@@ -81,10 +81,10 @@ const roles = ["responsable", "corresponsable", "didascala", "ostiario"];
   }
 
   .clear-search-btn {
-    display: flex;
-  }
-
-  .clear-search-btn.hidden {
     display: none;
+  }
+  .content-input:has(.search-input:not(:placeholder-shown))
+    ~ .clear-search-btn {
+    display: flex;
   }
 </style>

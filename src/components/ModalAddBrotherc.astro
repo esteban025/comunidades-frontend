@@ -1,0 +1,353 @@
+---
+// Modal para agregar hermano
+import ModalDesign from "./ModalDesign.astro";
+import type { Parish } from "@/types/parishes";
+import { getParishes } from "@/services/parishes";
+import PLusIcon from "@/assets/PLusIcon.astro";
+import CheckIcon from "@/assets/CheckIcon.astro";
+const parishes: Parish[] = await getParishes();
+// const civilStatus = ["matrimonio", "soltero", "soltera"];
+---
+
+<ModalDesign
+  id="modal-add-brotherc"
+  title="Registrar Hermano"
+  idForm="modal-brotherc-form"
+  isForm={true}
+>
+  <div class="flex flex-col gap-6" slot="body">
+    <!-- Campo oculto para el ID (usado en edición) -->
+    <!-- <input type="hidden" id="brother-id" name="brother_id" /> -->
+
+    <!-- Sección 1: Datos Personales -->
+    <fieldset class="container-fieldset">
+      <legend class="title-container">Datos Personales</legend>
+
+      <div class="container-contents-inputs">
+        <div class="space-y-2">
+          <h3>Estado civil</h3>
+          <div class="wrapper space-y-4">
+            <div class="ratios-row">
+              <div class="ss">
+                <input
+                  type="radio"
+                  name="civil_status"
+                  id="ratio-matrimonio"
+                  value="matrimonio"
+                  class="checks-btns"
+                  data-index="0"
+                />
+                <label for="ratio-matrimonio" class="radio-label"
+                  >Matrimonio</label
+                >
+              </div>
+              <div class="ss">
+                <input
+                  type="radio"
+                  name="civil_status"
+                  id="ratio-soltero"
+                  value="soltero"
+                  class="checks-btns"
+                  checked
+                  data-index="1"
+                />
+                <label for="ratio-soltero" class="radio-label">Soltero</label>
+              </div>
+              <div class="ss">
+                <input
+                  type="radio"
+                  name="civil_status"
+                  id="ratio-soltera"
+                  class="checks-btns"
+                  value="soltera"
+                  data-index="2"
+                />
+                <label for="ratio-soltera" class="radio-label">Soltera</label>
+              </div>
+              <div
+                class="absolute bg-bg-primary rounded-full border border-border-light inset-0 w-1/3 h-full shadow-md transition-all duration-300 pointer-events-none civil-indicator"
+              >
+              </div>
+            </div>
+
+            <div class="fields-row">
+              <div id="matrimonio-fields" class="space-y-4">
+                <!-- Inputs esposo y esposa -->
+                <div class="husband grid grid-cols-2 items-center gap-4">
+                  <div id="husband-block" class="husband-c content-input">
+                    <label for="husband_name">Nombre del Esposo</label>
+                    <input
+                      type="text"
+                      name="husband_name"
+                      id="husband_name"
+                      placeholder="Ej: Juan Pérez"
+                      autocomplete="off"
+                    />
+                  </div>
+
+                  <!-- === NUEVO INPUT PARA EL NUMERO DEL ESPOSO === -->
+
+                  <div id="husband-phone-block" class="content-input">
+                    <label for="husband_phone"
+                      >Teléfono del Esposo (Opcional)</label
+                    >
+                    <input
+                      type="tel"
+                      name="husband_phone"
+                      id="husband_phone"
+                      placeholder="Ej: 0999123456"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+                <div class="wife grid grid-cols-2 items-center gap-4">
+                  <div id="wife-block" class="content-input">
+                    <label for="wife_name">Nombre de la Esposa</label>
+                    <input
+                      type="text"
+                      name="wife_name"
+                      id="wife_name"
+                      placeholder="Ej: María López"
+                      autocomplete="off"
+                    />
+                  </div>
+
+                  <div id="wife-phone-block" class="content-input">
+                    <label for="wife_phone"
+                      >Teléfono de la Esposa (Opcional)</label
+                    >
+                    <input
+                      type="tel"
+                      name="wife_phone"
+                      id="wife_phone"
+                      placeholder="Ej: 0999123456"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div id="single-field" class="content-input">
+                <!-- Input soltero/soltera -->
+                <label for="full_name">Nombre Completo</label>
+                <input
+                  type="text"
+                  name="full_name"
+                  id="full_name"
+                  placeholder="Ej: Pedro García"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- telefono en soltero/a -->
+      <div class="content-input content-single-phone">
+        <label for="phone_soltero">Teléfono (Opcional)</label>
+        <input
+          type="tel"
+          name="phone"
+          id="phone_soltero"
+          placeholder="Ej: 0999123456"
+          autocomplete="off"
+        />
+      </div>
+    </fieldset>
+
+    <!-- Sección 3: Roles -->
+    <fieldset class="container-fieldset" id="roles-brothers">
+      <legend class="title-container">Roles (Opcional)</legend>
+
+      <div class="checkbox-group">
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-leader">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="responsable"
+              id="i-leader"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy responsable de mi comunidad</span>
+          </label>
+        </div>
+
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-coleader">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="corresponsable"
+              id="i-coleader"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy corresponsable de mi comunidad</span>
+          </label>
+        </div>
+
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-didascala">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="didascala"
+              id="i-didascala"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy didascala de mi comunidad</span>
+          </label>
+        </div>
+
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-ostiario">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="ostiario"
+              id="i-ostiario"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy ostiario de mi comunidad</span>
+          </label>
+        </div>
+
+        <div class="content-input-checkbox">
+          <label class="checkbox-wrapper" for="i-catequista">
+            <input
+              type="checkbox"
+              name="roles_in_own_community"
+              value="catequista"
+              id="i-catequista"
+            />
+            <div class="checkmark">
+              <CheckIcon class="icon-check" />
+            </div>
+            <span class="label-span">Soy catequista de mi comunidad</span>
+          </label>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- === ESTO YA APARECE CUANDO SE HACE CHECK EN SI CATEQUISTA SIN JS === -->
+    <!-- en el caso de ser catequistas -->
+    <fieldset id="if-catechists-container" class="container-fieldset hidden">
+      <legend class="title-container">Comunidades de servicio</legend>
+      <div class="flex justify-end" id="add-new-service-catechist">
+        <button
+          id="add-catechist-community"
+          class="btn btn-secondary flex justify-center items-center gap-2"
+          type="button"
+        >
+          <PLusIcon class="size-5 block" />
+          <span>Agregar</span>
+        </button>
+      </div>
+      <template id="tmpl-catechist">
+        <div
+          class="grid grid-cols-[1fr_auto] bg-gray-100 p-4 rounded-xl border border-dashed border-border-dark"
+          data-catechist-item
+        >
+          <div class="space-y-4">
+            <div class="content-input">
+              <label for="parish_id_catechist">Parroquia</label>
+              <select
+                name="parish_id_catechist"
+                id="parish_id_catechist"
+                required
+                class="select-input space-y-1"
+              >
+                <option class="options-select" value="" disabled selected>
+                  Selecciona una parroquia
+                </option>
+                {
+                  parishes?.map((parish) => (
+                    <option class="options-select" value={parish.id}>
+                      {parish.aka} ({parish.tag})
+                    </option>
+                  ))
+                }
+              </select>
+              <span class="text-xs text-red-400 messsage">
+                Si tu parroquia no aparece, registrala primero antes de
+                registrarte*
+              </span>
+            </div>
+            <div class="content-input">
+              <label for="community_number_in_catechist"
+                >Número de Comunidad</label
+              >
+              <input
+                type="number"
+                name="community_number_in_catechist"
+                id="community_number_in_catechist"
+                placeholder="Ej: 3"
+                min="1"
+                required
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <div class="">
+            <button
+              type="button"
+              class="p-2 border border-red-400 bg-red-200 text-red-500 rounded-full cursor-pointer"
+              data-remove-catechist
+            >
+              <PLusIcon class="block size-5 transform rotate-45" />
+            </button>
+          </div>
+        </div>
+      </template>
+    </fieldset>
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-secondary flex-1"
+    data-close="modal-add-brotherc"
+    slot="footer"
+  >
+    Cancelar
+  </button>
+
+  <button type="submit" class="btn btn-primary flex-1" slot="footer">
+    Registrar Hermano
+  </button>
+</ModalDesign>
+
+<script>
+  import { setupModalCloseHandlers } from "@/scripts/modalClose";
+  import { $id } from "@/utils/selectElementsDom";
+  document.addEventListener("click", () => {
+    const $modal = $id("modal-add-brotherc") as HTMLElement;
+
+    // Función para abrir el modal (crear)
+    function openBrotherchModal() {
+      $modal?.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModalAddBrotherc() {
+      $modal?.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+
+    setupModalCloseHandlers("modal-add-brotherc", () => {
+      closeModalAddBrotherc();
+    });
+
+    (window as any).openBrotherchModal = openBrotherchModal;
+    (window as any).closeModalAddBrotherc = closeModalAddBrotherc;
+  });
+</script>
