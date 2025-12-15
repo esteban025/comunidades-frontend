@@ -145,10 +145,8 @@ import ModalDesign from "./ModalDesign.astro";
 
         const result = await registerParish(formData, isEditMode);
 
-        // Cerrar el modal siempre (éxito o error)
-        closeParishModal();
-
         if (result.success) {
+          closeParishModal();
           showNotification(
             isEditMode
               ? "¡Parroquia actualizada exitosamente!"
@@ -160,6 +158,11 @@ import ModalDesign from "./ModalDesign.astro";
           // Actualizar la lista sin recargar la página
           if (typeof (window as any).refreshParishes === "function") {
             await (window as any).refreshParishes();
+          } else {
+            setTimeout(() => {
+              window.location.href = "/#section-parishes";
+              window.location.reload();
+            }, 300);
           }
         } else {
           showNotification(

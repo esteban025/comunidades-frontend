@@ -159,6 +159,17 @@
   transition: all 0.3s ease;
   z-index: 1000;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.brother-menu-item {
+  padding: .35rem 0;
+  transition: all 200ms ease;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-gray-50);
+  }
 }
 
 /* Mostrar el menú cuando el checkbox está checked */

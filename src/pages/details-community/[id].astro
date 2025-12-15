@@ -6,6 +6,10 @@ import { getCommunityById } from "@/services/communities";
 import { getBrothersByCommunityId } from "@/services/brothers";
 import PLusIcon from "@/assets/PLusIcon.astro";
 import ConfigIcon from "@/assets/ConfigIcon.astro";
+import EyesIcon from "@/assets/EyesIcon.astro";
+import PencilIcon from "@/assets/PencilIcon.astro";
+import TrashIcon from "@/assets/TrashIcon.astro";
+import { groupMarriagesById } from "@/utils/marriageGrouping";
 
 const { id } = Astro.params;
 
@@ -19,12 +23,14 @@ if (!id) {
 const data = await getCommunityById(id);
 const title = `${data[0].parish_name} - Comunidad ${data[0].number_community}`;
 const brothers = await getBrothersByCommunityId(id);
+
+const groupedBrothers = groupMarriagesById(brothers as any);
 ---
 
 <Layout>
   <SectionContainer title={title} transition:name="parish-section">
     <div class="" slot="nav-links">
-      <button id="btn-add-brotherc" class="btn btn-primary flex itmes-center gap-2">
+      <button id="btn-add-brotherc" data-community-id={id} class="btn btn-primary flex itmes-center gap-2">
         <PLusIcon class="size-4 block" />
         <span>Agregar hermano</span>
       </button>
@@ -50,29 +56,153 @@ const brothers = await getBrothersByCommunityId(id);
                     <th>Nombres</th>
                     <th>Estado</th>
                     <th>Roles</th>
-                    <th>Acciones</th>
+                    <th class="min" >Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {
-                    brothers.map((bro) => (
-                      <tr
-                        data-brother-row
-                        data-name={bro.names}
-                        data-roles={bro.roles.join(",")}
-                      >
-                        <td>{bro.names}</td>
-                        <td class="capitalize">{bro.civil_status}</td>
-                        <td>
-                          {bro.roles.map((role) => (
-                            <span class="role-tag" data-rol={role}>
-                              {role}
-                            </span>
-                          ))}
-                        </td>
-                        <td />
-                      </tr>
-                    ))
+                    groupedBrothers.map((bro: any) => {
+                      const spouse =
+                        bro.civil_status === "matrimonio" && bro.spouse_id
+                          ? brothers.find((b: any) => b.id === bro.spouse_id)
+                          : null;
+
+                      const isMarriage = !!spouse;
+                      const combinedRoles = Array.from(
+                        new Set([
+                          ...(bro.roles || []),
+                          ...((spouse?.roles as string[]) || []),
+                        ]),
+                      );
+
+                      return (
+                        <tr
+                          data-brother-row
+                          data-name={bro.names}
+                          data-roles={combinedRoles.join(",")}
+                          data-brother-id={bro.id}
+                          data-spouse-id={spouse?.id || ""}
+                          data-is-marriage={isMarriage ? "true" : "false"}
+                        >
+                          <td>{bro.names}</td>
+                          <td class="capitalize">{bro.civil_status}</td>
+                          <td>
+                            {combinedRoles.map((role) => (
+                              <span class="role-tag" data-rol={role}>
+                                {role}
+                              </span>
+                            ))}
+                          </td>
+                          <td>
+                            <div class="content-action-btns">
+                              {isMarriage && spouse ? (
+                                <>
+                                  <div class="dropdown-wrapper wrapper-view">
+                                    <input
+                                      type="checkbox"
+                                      id={`dropdown-view-${bro.id}`}
+                                      class="dropdown-toggle dropdown-view"
+                                    />
+                                    <label
+                                      for={`dropdown-view-${bro.id}`}
+                                      class="dropdown-bt action-btn"
+                                      title="Ver detalles"
+                                    >
+                                      <span class="icon-dots">
+                                        <EyesIcon class="size-4 block" />
+                                      </span>
+                                    </label>
+                                    <div class="dropdown-menu dropdown-menu-view">
+                                      <button
+                                        type="button"
+                                        class="brother-menu-item dropdown-item"
+                                        data-action="view"
+                                        data-role="esposo"
+                                        data-target-id={bro.id}
+                                      >
+                                        Esposo
+                                      </button>
+                                      <button
+                                        type="button"
+                                        class="brother-menu-item dropdown-item"
+                                        data-action="view"
+                                        data-role="esposa"
+                                        data-target-id={spouse.id}
+                                      >
+                                        Esposa
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <div class="dropdown-wrapper wrapper-edit">
+                                    <input
+                                      type="checkbox"
+                                      id={`dropdown-edit-${bro.id}`}
+                                      class="dropdown-toggle dropdown-edit"
+                                    />
+                                    <label
+                                      for={`dropdown-edit-${bro.id}`}
+                                      class="action-btn"
+                                      title="Editar"
+                                    >
+                                      <PencilIcon class="size-4 block" />
+                                    </label>
+                                    <div class="dropdown-menu dropdown-menu-edit">
+                                      <button
+                                        type="button"
+                                        class="brother-menu-item dropdown-item"
+                                        data-action="edit"
+                                        data-role="esposo"
+                                        data-target-id={bro.id}
+                                      >
+                                        Esposo
+                                      </button>
+                                      <button
+                                        type="button"
+                                        class="brother-menu-item dropdown-item"
+                                        data-action="edit"
+                                        data-role="esposa"
+                                        data-target-id={spouse.id}
+                                      >
+                                        Esposa
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    class="action-btn brother-view-btn"
+                                    title="Ver detalles"
+                                    data-brother-id={bro.id}
+                                  >
+                                    <EyesIcon class="size-4 block" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="action-btn brother-edit-btn"
+                                    title="Editar"
+                                    data-brother-id={bro.id}
+                                  >
+                                    <PencilIcon class="size-4 block" />
+                                  </button>
+                                </>
+                              )}
+
+                              <button
+                                type="button"
+                                class="action-btn brother-delete-btn"
+                                title="Eliminar"
+                                data-brother-id={bro.id}
+                              >
+                                <TrashIcon class="size-4 block" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   }
                 </tbody>
               </table>
@@ -83,13 +213,14 @@ const brothers = await getBrothersByCommunityId(id);
 
     <button
       slot="footer-link"
-      class="btn btn-primary min-w-30"
-      onclick="history.back()">Atras</button
+      class="hover:underline cursor-pointer"
+      onclick="history.back()">← Atras</button
     >
   </SectionContainer>
 </Layout>
 
 <script>
+  import { showNotification } from "@/scripts/notification";
   import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
@@ -97,14 +228,37 @@ const brothers = await getBrothersByCommunityId(id);
     const $modal = $id('modal-add-brotherc')
 
     const $searchInput = $id("search-brothers-input") as HTMLInputElement;
-    const $selectInput = $id("roles-brother-select") as HTMLInputElement;
+    const $selectInput = $id("roles-brother-select") as HTMLSelectElement;
     const $cleanBtn = $id("clean-filters");
     const $clearSearchBtn = $id("clear-search-btn");
+
+    const $rows = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-brother-row]")
+    );
+
+    const applyFilters = () => {
+      const search = ($searchInput?.value ?? "").trim().toLowerCase();
+      const role = ($selectInput?.value ?? "").trim().toLowerCase();
+
+      for (const $row of $rows) {
+        const name = ($row.dataset.name ?? "").toLowerCase();
+        const roles = ($row.dataset.roles ?? "")
+          .split(",")
+          .map((r) => r.trim().toLowerCase())
+          .filter(Boolean);
+
+        const matchesSearch = !search || name.includes(search);
+        const matchesRole = !role || roles.includes(role);
+
+        $row.style.display = matchesSearch && matchesRole ? "" : "none";
+      }
+    };
 
     $openAddBrother?.addEventListener("click", () => {
       if ($modal) {
         if (typeof (window as any).openBrotherchModal === "function") {
-          (window as any).openBrotherchModal();
+          const communityId = $openAddBrother?.getAttribute("data-community-id");
+          (window as any).openBrotherchModal(communityId);
         } else {
           console.log("openBrotherchModal no está disponible");
         }
@@ -114,14 +268,142 @@ const brothers = await getBrothersByCommunityId(id);
     $cleanBtn?.addEventListener('click', () => {
       $searchInput.value = ''
       $selectInput.value = ''
+      applyFilters();
     })
 
     $clearSearchBtn?.addEventListener('click', () => {
       $searchInput.value = ''
+      applyFilters();
     })
 
     // habilitar filtros
 
+    $searchInput?.addEventListener("input", applyFilters);
+    $selectInput?.addEventListener("change", applyFilters);
+    applyFilters();
 
+    // acciones: ver detalles (solteros)
+    const viewButtons = document.querySelectorAll(
+      ".brother-view-btn",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    viewButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const id = btn.getAttribute("data-brother-id");
+        if (!id) return;
+
+        if (typeof (window as any).openViewBrotherModal === "function") {
+          (window as any).openViewBrotherModal(id);
+        }
+      });
+    });
+
+    // acciones: editar (solteros)
+    const editButtons = document.querySelectorAll(
+      ".brother-edit-btn",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    editButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const id = btn.getAttribute("data-brother-id");
+        if (!id) return;
+
+        if (typeof (window as any).openEditBrotherModal === "function") {
+          (window as any).openEditBrotherModal(id);
+        } else {
+          console.log("openEditBrotherModal no está disponible");
+        }
+      });
+    });
+
+    // dropdown de matrimonios (ver/editar esposo/esposa)
+    const dropdownItems = document.querySelectorAll(
+      ".brother-menu-item",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    dropdownItems.forEach((item) => {
+      item.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        const targetId = item.getAttribute("data-target-id");
+        if (!targetId) return;
+
+        const action = item.getAttribute("data-action") || "view";
+        const role = item.getAttribute("data-role") || undefined;
+
+        if (action === "edit") {
+          if (typeof (window as any).openEditBrotherModal === "function") {
+            (window as any).openEditBrotherModal(targetId, role);
+          } else {
+            console.log("openEditBrotherModal no está disponible");
+          }
+        } else {
+          if (typeof (window as any).openViewBrotherModal === "function") {
+            (window as any).openViewBrotherModal(targetId);
+          }
+        }
+
+        const wrapper = item.closest(".dropdown-wrapper") as HTMLElement | null;
+        const toggle = wrapper?.querySelector(
+          ".dropdown-toggle",
+        ) as HTMLInputElement | null;
+        if (toggle) {
+          toggle.checked = false;
+        }
+      });
+    });
+
+    // eliminar (soltero o matrimonio)
+    const deleteButtons = document.querySelectorAll(
+      ".brother-delete-btn",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    deleteButtons.forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const id = btn.getAttribute("data-brother-id");
+        if (!id) return;
+
+        const row = btn.closest("tr") as HTMLTableRowElement | null;
+        const isMarriage = row?.dataset.isMarriage === "true";
+
+        const message = isMarriage
+          ? "Vas a eliminar este MATRIMONIO. Se eliminarán ambos (esposo y esposa), sus roles y todas sus conexiones. ¿Deseas continuar?"
+          : "Vas a eliminar este hermano. Se eliminarán sus roles y todas sus conexiones. ¿Deseas continuar?";
+
+        const confirmed = window.confirm(message);
+        if (!confirmed) return;
+
+        try {
+          const response = await fetch(`/api/brothers/${id}`, {
+            method: "DELETE",
+          });
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            showNotification(
+              result.message || "Eliminado exitosamente",
+              "success",
+              3000,
+            );
+            setTimeout(() => {
+              window.location.reload();
+            }, 800);
+          } else {
+            showNotification(
+              result.error || "Error al eliminar",
+              "error",
+              5000,
+            );
+          }
+        } catch (error) {
+          console.error("Error eliminando hermano:", error);
+          showNotification("Error de conexión al eliminar", "error", 5000);
+        }
+      });
+    });
   });
 </script>

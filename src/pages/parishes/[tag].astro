@@ -16,6 +16,7 @@ import {
 import type { Parish } from "@/types/parishes";
 import type { CommunityByIdParish } from "@/types/community";
 import PLusIcon from "@/assets/PLusIcon.astro";
+import CursorIcon from "@/assets/CursorIcon.astro";
 
 const { tag } = Astro.params;
 
@@ -101,8 +102,8 @@ if (!tag) {
               Verifica que el enlace sea correcto o regresa a la lista de
               parroquias.
             </p>
-            <a href="/#section-parishes" class="mt-6 block hover:underline">
-              ← Volver a comunidades
+            <a href="/" class="mt-6 block hover:underline">
+              ← Volver a parroquias
             </a>
           </div>
         )}
@@ -163,7 +164,7 @@ if (!tag) {
                             data-community-id={community.id}
                             data-community-number={community.number_community}
                           >
-                            <EyeIcon class="w-4 h-4" />
+                            <EyeIcon class="size-4 block" />
                           </button>
                           <button
                             class="action-btn"
@@ -173,14 +174,14 @@ if (!tag) {
                             data-community-number={community.number_community}
                             data-level-paso={community.level_paso || ""}
                           >
-                            <PencilIcon class="w-4 h-4" />
+                            <PencilIcon class="size-4 block" />
                           </button>
                           <a
                             class="action-btn"
                             title="Más Detalles"
                             href={`/details-community/${community.id}`}
                           >
-                            <DotsVerticalIcon class="w-4 h-4" />
+                            <CursorIcon class="size-4 block transform rotate-90" />
                           </a>
                         </div>
                       </td>
@@ -196,7 +197,7 @@ if (!tag) {
           </div>
         </div>
         <a href="/" class="hover:underline" slot="footer-link">
-          ← Volver a comunidades
+          ← Volver a parroquias
         </a>
       </SectionContainer>
     )
