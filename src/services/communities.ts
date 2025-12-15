@@ -66,8 +66,7 @@ export const getCommunityById = async (id: string) => {
 
 // id, name, phone
 export type BrotherContact = Pick<Brothers, "id" | "names" | "phone">;
-export const getBrotherContact = async (communityId: string, rol: string) => {
-  const rols = rol || 'responsable'
+export const getBrotherContact = async (communityId: string, rol: string = 'responsable') => {
   const query = `
     SELECT DISTINCT b.id, b.names, b.phone
       FROM brothers b
@@ -75,7 +74,7 @@ export const getBrotherContact = async (communityId: string, rol: string) => {
         ON b.id = br.brother_id
       WHERE br.community_id = ? AND LOWER(br.role) = LOWER(?)
   `
-  const [rows] = await db.query(query, [communityId, rols])
+  const [rows] = await db.query(query, [communityId, rol])
   const data: BrotherContact[] = rows as BrotherContact[]
   return data
 }
@@ -128,4 +127,9 @@ export const getDataGroupResponsables = async (
     // didascalas: other.didascalas,
     // ostiarios: other.ostiarios,
   }
+}
+
+export const getCommByIdPlusResponsables = async (communityId: string) => {
+  const query = ``
+  const data = await db.query(query, [communityId])
 }

@@ -109,6 +109,35 @@ export const POST: APIRoute = async ({ request }) => {
         sourceCommunityIds,
       );
 
+      // 4. Reorganizar números de comunidades restantes en la parroquia (1..N sin saltos)
+      // Se hace en el servidor para mantener el cliente simple.
+      const [remainingRows]: any = await db.query(
+        "SELECT id, number_community FROM communities WHERE parish_id = ? ORDER BY number_community ASC",
+        [parishId],
+      );
+
+      // Para evitar colisiones por índice único (si existe), renumeramos en 2 fases:
+      // 1) asignar un rango temporal alto
+      // 2) asignar el rango final 1..N
+      if (Array.isArray(remainingRows) && remainingRows.length > 0) {
+        const tempBase = 100000;
+        for (let i = 0; i < remainingRows.length; i++) {
+          const row = remainingRows[i];
+          await db.query(
+            "UPDATE communities SET number_community = ? WHERE id = ?",
+            [tempBase + i, row.id],
+          );
+        }
+
+        for (let i = 0; i < remainingRows.length; i++) {
+          const row = remainingRows[i];
+          await db.query(
+            "UPDATE communities SET number_community = ? WHERE id = ?",
+            [i + 1, row.id],
+          );
+        }
+      }
+
       // Confirmar transacción
       await db.query("COMMIT");
 

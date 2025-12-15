@@ -1,0 +1,60 @@
+---
+const { parishId, communities } = Astro.props as {
+  parishId: number;
+  communities: Array<{
+    id: number;
+    number_community: number;
+    level_paso?: string | null;
+    brothers_count?: number;
+    responsable: string;
+  }>;
+};
+---
+
+<div class="w-full flex flex-col gap-3" data-parish-id={parishId}>
+  <div class="text-sm text-text-muted">
+    Selecciona las comunidades a fusionar
+  </div>
+
+  <div
+    class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"
+    id="manage-communities-list"
+  >
+    {
+      communities.map((c) => (
+        <label class="relative">
+          <input
+            class="check-community absolute inset-0 opacity-0 cursor-pointer"
+            type="checkbox"
+            data-community-id={c.id}
+            data-community-number={c.number_community}
+          />
+          <div class="design-card border-2 border-border-medium p-2 rounded-xl duration-300">
+            <div class="flex items-center justify-between pb-2 border-b border-border-medium ">
+              <p class="text-text-secondary text-sm">Comunidad</p>
+              <span class="size-10 flex items-center justify-center p-1 rounded-full bg-gray-400 text-white aspect-square content-number duration-300">
+                {c.number_community}
+              </span>
+            </div>
+            <div class="datos mt-2">
+              <h4 class="similar-label">{c.responsable}</h4>
+              <p class="text-text-muted text-xs">{c.level_paso}</p>
+            </div>
+          </div>
+        </label>
+      ))
+    }
+  </div>
+
+  <div id="manage-communities-summary" class="text-sm text-neutral-700"></div>
+</div>
+
+<style>
+  .check-community:checked ~ .design-card {
+    border-color: var(--color-gray-800);
+
+    & .content-number {
+      background-color: var(--color-gray-800);
+    }
+  }
+</style>

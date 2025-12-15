@@ -1,0 +1,66 @@
+---
+import ManageCommunitiesContent from "@/components/ManageCommunitiesContent.astro";
+import {
+  getCommunityByIdParis,
+  getResponsablesByCommunity,
+} from "@/services/communities";
+
+const { id } = Astro.params;
+
+if (!id) {
+  return new Response(JSON.stringify({ error: "ID no proporcionado" }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+const parishId = Number(id);
+if (Number.isNaN(parishId) || parishId <= 0) {
+  return new Response(JSON.stringify({ error: "ID inválido" }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+let communities: any[] = [];
+let error: string | null = null;
+
+try {
+  const communitiess = await getCommunityByIdParis(parishId);
+
+  if (communitiess && communitiess.length > 0) {
+    const commIds = communitiess.map((com) => com.id);
+    const responsables = await getResponsablesByCommunity(commIds);
+    const responsablesMap = new Map<number, Set<string>>();
+    responsables?.forEach((r) => {
+      if (!responsablesMap.has(r.community_id)) {
+        responsablesMap.set(r.community_id, new Set());
+      }
+      responsablesMap.get(r.community_id)!.add(r.responsable_name);
+    });
+
+    communities = communitiess.map((comm) => ({
+      ...comm,
+      responsable: responsablesMap.has(comm.id)
+        ? Array.from(responsablesMap.get(comm.id)!).join(", ")
+        : null,
+    }));
+  } else {
+    communities = [];
+  }
+} catch (e) {
+  console.error("Error en /gestionar-comunidades/[id]:", e);
+  error = "Error al cargar los datos";
+}
+---
+
+{
+  error ? (
+    <div class="error-message text-center py-8 text-red-600">
+      <p class="font-semibold">{error}</p>
+      <p class="text-sm mt-2">Por favor, intenta nuevamente</p>
+    </div>
+  ) : (
+    <ManageCommunitiesContent parishId={parishId} communities={communities} />
+  )
+}

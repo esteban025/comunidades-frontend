@@ -8,25 +8,12 @@ import ModalDesign from "./ModalDesign.astro";
   title="Gestionar Comunidades"
   isForm={false}
 >
-  <div class="p-4 flex flex-col gap-4 w-full" slot="body">
-    <!-- === NUEVA FUNCIONALIDAD EN ESTA MODAL === -->
-    <!-- estilos minimos con tailwind -->
+  <div class="flex flex-col w-full" slot="body">
+    <!-- <div class="message-i">fgbg</div> -->
 
-    <div class="message-i">
-      <!-- servira para dar a conocer lo que hara esta funcion -->
-    </div>
-
-    <div class="w-full flex flex-col gap-3">
-      <div class="text-sm text-neutral-600">
-        Selecciona 2 o más comunidades para fusionar. La comunidad con número
-        menor será la principal.
-      </div>
-      <div
-        id="manage-communities-list"
-        class="w-full grid grid-cols-1 md:grid-cols-2 gap-2"
-      >
-      </div>
-      <div id="manage-communities-summary" class="text-sm text-neutral-700">
+    <div id="manage-communities-content" class="w-full flex flex-col gap-3">
+      <div class="flex items-center justify-center">
+        <div class="text-sm text-neutral-500">Cargando...</div>
       </div>
     </div>
   </div>
@@ -50,30 +37,12 @@ import ModalDesign from "./ModalDesign.astro";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
   import { showNotification } from "@/scripts/notification";
 
-  // IMPLEMENTACION DE NUEVA LOGICA
-
-  // TOMAMOS UN EJEMPLO DE QUE SE VA A FUSIONAR LA COMUNIDAD 4 Y 5 DE ESTA PARROQUIA
-
-  // 1. Para realizar la fusion de comunidad se podra hacer en la parroquia actual en la que estamos
-
-  // 2. pediremos escoger las comunidades que se quieren fusionar
-
-  // 3. la comunidad con el numero de comunidad menor es la que va a ser la principal siempre, ejemplo si se une la 4 y 5, entonces ahora seran la comunidad 4.
-
-  // 4. todos los hermanos pertenecientes a la comunidad 5 se enviara a la comunidad 4.
-
-  // 5. Todos los roles se van a eliminar, tanto para la comunidad 4 como para la comunidad 5.
-
-  // 6. Como la fusion hace que la comunidad 5 se elimine entonces quedaria comunidades 1, 2, 3, 4, 6, 7...., entonces tendremos que aplicar alguna funcionalidad para que las comunidades posteriores, cambien el numero de comunidad a un numero menor para no quede ese salto, de 4 a 6.
-
   document.addEventListener("astro:page-load", () => {
     const $modal = $id("modal-manage-communities") as HTMLDivElement | null;
-    const $list = $id("manage-communities-list") as HTMLDivElement | null;
-    const $summary = $id("manage-communities-summary") as HTMLDivElement | null;
+    const $content = $id("manage-communities-content") as HTMLDivElement | null;
     const $action = $id("modal-action-btn") as HTMLButtonElement | null;
 
     let parishId: number | null = null;
-    let communities: Array<{ id: number; number_community: number }> = [];
     const selected = new Set<number>();
 
     const setBusy = (busy: boolean) => {
@@ -82,60 +51,71 @@ import ModalDesign from "./ModalDesign.astro";
       $action.textContent = busy ? "Fusionando..." : "Fusionar Comunidades";
     };
 
-    const renderSummary = () => {
-      if (!$summary) return;
-      const chosen = communities
-        .filter((c) => selected.has(c.id))
-        .sort((a, b) => a.number_community - b.number_community);
+    const wireContentInteractions = () => {
+      if (!$content) return;
 
-      if (chosen.length < 2) {
-        $summary.textContent = "Selecciona al menos 2 comunidades.";
-        return;
-      }
+      selected.clear();
 
-      const target = chosen[0];
-      const sources = chosen.slice(1);
-      $summary.textContent = `Principal: #${target.number_community}. Se fusionarán: ${sources
-        .map((s) => `#${s.number_community}`)
-        .join(", ")}.`;
-    };
+      const summary = $content.querySelector(
+        "#manage-communities-summary",
+      ) as HTMLDivElement | null;
 
-    const renderList = () => {
-      if (!$list) return;
-      $list.innerHTML = communities
-        .map((c) => {
-          const checked = selected.has(c.id) ? "checked" : "";
-          return `
-            <label class="flex items-center gap-2 border border-neutral-200 rounded-lg px-3 py-2 hover:bg-neutral-50">
-              <input type="checkbox" data-community-id="${c.id}" ${checked} />
-              <span class="font-medium">Comunidad #${c.number_community}</span>
-            </label>
-          `;
-        })
-        .join("");
+      const updateSummary = () => {
+        if (!summary) return;
+        const checks = Array.from(
+          $content.querySelectorAll(
+            "input[type=checkbox][data-community-id][data-community-number]",
+          ),
+        ) as HTMLInputElement[];
 
-      $list
-        .querySelectorAll("input[type=checkbox][data-community-id]")
-        .forEach((el) => {
-          el.addEventListener("change", () => {
-            const id = Number((el as HTMLInputElement).dataset.communityId);
-            if ((el as HTMLInputElement).checked) selected.add(id);
-            else selected.delete(id);
-            renderSummary();
-          });
+        const chosen = checks
+          .filter((c) => c.checked)
+          .map((c) => ({
+            id: Number(c.dataset.communityId),
+            number_community: Number(c.dataset.communityNumber),
+          }))
+          .sort((a, b) => a.number_community - b.number_community);
+
+        if (chosen.length < 2) {
+          summary.textContent = "Selecciona al menos 2 comunidades.";
+          return;
+        }
+
+        const target = chosen[0];
+        const sources = chosen.slice(1);
+        summary.textContent = `Principal: #${target.number_community}. Se fusionarán: ${sources
+          .map((s) => `#${s.number_community}`)
+          .join(", ")}.`;
+      };
+
+      const checks = $content.querySelectorAll(
+        "input[type=checkbox][data-community-id]",
+      );
+      checks.forEach((el) => {
+        el.addEventListener("change", () => {
+          const input = el as HTMLInputElement;
+          const id = Number(input.dataset.communityId);
+          if (input.checked) selected.add(id);
+          else selected.delete(id);
+          updateSummary();
         });
+      });
 
-      renderSummary();
+      updateSummary();
     };
 
     const closeModal = () => {
       $modal?.classList.add("hidden");
       document.body.style.overflow = "";
       parishId = null;
-      communities = [];
       selected.clear();
-      if ($list) $list.innerHTML = "";
-      if ($summary) $summary.textContent = "";
+      if ($content) {
+        $content.innerHTML = `
+          <div class="flex items-center justify-center">
+            <div class="text-sm text-neutral-500">Cargando...</div>
+          </div>
+        `;
+      }
       setBusy(false);
     };
 
@@ -143,31 +123,24 @@ import ModalDesign from "./ModalDesign.astro";
       closeModal();
     });
 
-    const computeReorganizeUpdates = (
-      items: Array<{ id: number; number_community: number }>,
-    ): Array<{ communityId: number; newNumber: number }> => {
-      const sorted = [...items].sort(
-        (a, b) => a.number_community - b.number_community,
-      );
-      const updates: Array<{ communityId: number; newNumber: number }> = [];
-      let expected = 1;
-      for (const c of sorted) {
-        if (c.number_community !== expected) {
-          updates.push({ communityId: c.id, newNumber: expected });
-        }
-        expected += 1;
-      }
-      return updates;
-    };
-
     const runMerge = async () => {
       if (!parishId) {
         showNotification("Parroquia no válida", "error", 4500);
         return;
       }
 
-      const chosen = communities
-        .filter((c) => selected.has(c.id))
+      const checks = Array.from(
+        ($content?.querySelectorAll(
+          "input[type=checkbox][data-community-id][data-community-number]",
+        ) ?? []) as any,
+      ) as HTMLInputElement[];
+
+      const chosen = checks
+        .filter((c) => c.checked)
+        .map((c) => ({
+          id: Number(c.dataset.communityId),
+          number_community: Number(c.dataset.communityNumber),
+        }))
         .sort((a, b) => a.number_community - b.number_community);
 
       if (chosen.length < 2) {
@@ -200,40 +173,6 @@ import ModalDesign from "./ModalDesign.astro";
           throw new Error(
             mergeResult?.error || "Error al fusionar comunidades",
           );
-        }
-
-        const refreshRes = await fetch(
-          `/api/communities-by-parish/${parishId}`,
-        );
-        const refreshResult = await refreshRes.json();
-        if (!refreshResult?.success) {
-          throw new Error(
-            refreshResult?.error ||
-              "Error al obtener comunidades para reorganizar",
-          );
-        }
-
-        const afterMerge: Array<{ id: number; number_community: number }> = (
-          refreshResult?.data || []
-        ).map((r: any) => ({
-          id: Number(r.id),
-          number_community: Number(r.number_community),
-        }));
-
-        const updates = computeReorganizeUpdates(afterMerge);
-        if (updates.length > 0) {
-          const reorgRes = await fetch("/api/communities/reorganize", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ parishId, updates }),
-          });
-          const reorgResult = await reorgRes.json();
-          if (!reorgResult?.success) {
-            throw new Error(
-              reorgResult?.error ||
-                "Error al reorganizar números de comunidades",
-            );
-          }
         }
 
         closeModal();
@@ -275,25 +214,40 @@ import ModalDesign from "./ModalDesign.astro";
       setBusy(false);
 
       try {
-        const res = await fetch(`/api/communities-by-parish/${parishId}`);
-        const result = await res.json();
-
-        if (!result?.success) {
-          throw new Error(result?.error || "Error al obtener comunidades");
+        if ($content) {
+          $content.innerHTML = `
+            <div class="flex items-center justify-center">
+              <div class="text-sm text-neutral-500">Cargando comunidades...</div>
+            </div>
+          `;
         }
 
-        communities = (result?.data || []).map((r: any) => ({
-          id: Number(r.id),
-          number_community: Number(r.number_community),
-        }));
+        const response = await fetch(`/gestionar-comunidades/${parishId}`);
+        if (!response.ok) {
+          throw new Error("Error al cargar los datos");
+        }
 
-        renderList();
+        const html = await response.text();
+        if ($content) {
+          $content.innerHTML = html;
+        }
+
+        wireContentInteractions();
       } catch (e: any) {
         showNotification(
           e?.message || "Error al obtener comunidades",
           "error",
           5000,
         );
+
+        if ($content) {
+          $content.innerHTML = `
+            <div class="text-center py-8 text-red-600">
+              <p class="font-semibold">Error al cargar los datos</p>
+              <p class="text-sm mt-2">Por favor, intenta nuevamente</p>
+            </div>
+          `;
+        }
       }
     }
 
