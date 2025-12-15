@@ -46,6 +46,68 @@ export const getResponsablesByCommunity = async (idsComunnities: number[]) => {
   return data
 }
 
+export type PrimaryResponsableByCommunity = {
+  community_id: number;
+  responsable_name: string;
+  responsable_id: number;
+};
+
+export const getPrimaryResponsableByCommunity = async (
+  idsComunnities: number[],
+): Promise<PrimaryResponsableByCommunity[]> => {
+  if (!idsComunnities || idsComunnities.length === 0) return [];
+
+  const placeholders = idsComunnities.map(() => "?").join(",");
+
+  const query = `
+    SELECT x.community_id, x.responsable_name, x.responsable_id
+    FROM (
+      SELECT
+        br.community_id,
+        CASE
+          WHEN b.civil_status = 'matrimonio' AND b.spouse_id IS NOT NULL AND s.id IS NOT NULL THEN
+            CASE WHEN b.id < s.id THEN b.names ELSE s.names END
+          ELSE b.names
+        END AS responsable_name,
+        CASE
+          WHEN b.civil_status = 'matrimonio' AND b.spouse_id IS NOT NULL AND s.id IS NOT NULL THEN
+            LEAST(b.id, s.id)
+          ELSE b.id
+        END AS responsable_id
+      FROM brother_roles br
+      INNER JOIN brothers b ON br.brother_id = b.id
+      LEFT JOIN brothers s ON b.spouse_id = s.id
+      WHERE br.role = 'responsable'
+        AND br.community_id IN (${placeholders})
+    ) x
+    INNER JOIN (
+      SELECT community_id, MIN(responsable_id) AS min_id
+      FROM (
+        SELECT
+          br.community_id,
+          CASE
+            WHEN b.civil_status = 'matrimonio' AND b.spouse_id IS NOT NULL AND s.id IS NOT NULL THEN
+              LEAST(b.id, s.id)
+            ELSE b.id
+          END AS responsable_id
+        FROM brother_roles br
+        INNER JOIN brothers b ON br.brother_id = b.id
+        LEFT JOIN brothers s ON b.spouse_id = s.id
+        WHERE br.role = 'responsable'
+          AND br.community_id IN (${placeholders})
+      ) y
+      GROUP BY community_id
+    ) m
+      ON m.community_id = x.community_id
+      AND m.min_id = x.responsable_id
+    ORDER BY x.community_id
+  `;
+
+  const params = [...idsComunnities, ...idsComunnities];
+  const [rows]: any = await db.query(query, params);
+  return rows as PrimaryResponsableByCommunity[];
+}
+
 export const getCommunityById = async (id: string) => {
   const query = `
     SELECT 
@@ -130,6 +192,14 @@ export const getDataGroupResponsables = async (
 }
 
 export const getCommByIdPlusResponsables = async (communityId: string) => {
-  const query = ``
-  const data = await db.query(query, [communityId])
+  const query = `
+    SELECT c.id, c.number_community, c.level_paso, p.name as parish_name
+    FROM communities c
+    LEFT JOIN parishes p ON c.parish_id = p.id
+    WHERE c.id = ?
+    LIMIT 1
+  `
+  const [rows] = await db.query(query, [communityId])
+  const data = (rows as any[])[0] ?? null
+  return data
 }

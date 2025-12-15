@@ -1,0 +1,117 @@
+---
+// SERVICES
+import { getParishByTag } from "@/services/parishes";
+import Layout from "@/layouts/Layout.astro";
+import {
+  getCommunityByIdParis,
+  getPrimaryResponsableByCommunity,
+} from "@/services/communities";
+import type { CommunityByIdParish } from "@/types/community";
+import type { Parish } from "@/types/parishes";
+
+const { id } = Astro.params;
+interface Communities extends CommunityByIdParish {
+  responsable: string | null;
+}
+
+let parishData: Parish | null = null;
+let communities: Communities[] = [];
+let error = false;
+
+if (!id) {
+  error = true;
+} else {
+  try {
+    // 1. Obtenemos la informaicon de la parroquia por tag
+    const parishRows = await getParishByTag(id);
+
+    if (parishRows && parishRows.length > 0) {
+      parishData = parishRows[0];
+
+      // 2. Obtener comunidades con conteo de hermanos
+      const commRows = await getCommunityByIdParis(parishData.id);
+
+      // 3. Obtener responsables de cada comunidad
+      if (commRows && commRows.length > 0) {
+        const communityIds = commRows.map((c: CommunityByIdParish) => c.id);
+
+        const responsablesRows =
+          await getPrimaryResponsableByCommunity(communityIds);
+
+        const responsablesMap = new Map<number, string>();
+
+        responsablesRows?.forEach((r) => {
+          responsablesMap.set(r.community_id, r.responsable_name);
+        });
+
+        communities = commRows.map((comm) => ({
+          ...comm,
+          responsable: responsablesMap.get(comm.id) ?? null,
+        }));
+      } else {
+        communities = [];
+      }
+    } else {
+      error = true;
+    }
+  } catch (e) {
+    console.error("Error obteniendo datos de parroquia:", e);
+    error = true;
+  }
+}
+---
+
+<Layout>
+  <main class="max-w-5xl mx-auto px-8 py-10">
+    <header class="border-b border-gray-200 pb-6 mb-6">
+      <h1 class="text-2xl font-semibold tracking-tight text-center uppercase">
+        Comunidades parroquia {parishData?.name ?? "No registrado"}
+      </h1>
+      <p class="mt-2 text-sm text-gray-600 text-center">
+        Actualizado a DIC, 2025
+      </p>
+    </header>
+
+    {
+      error ? (
+        <div class="text-center py-10 text-red-700">
+          <p class="font-semibold">Error al cargar los datos</p>
+          <p class="text-sm mt-2">Por favor, intenta nuevamente</p>
+        </div>
+      ) : (
+        <section class="mt-6">
+          <div class="container-table">
+            <table>
+              <thead>
+                <tr>
+                  <th class="min">N°Com</th>
+                  <th>Responsables</th>
+                  <th class="no-print">Paso</th>
+                </tr>
+              </thead>
+              <tbody>
+                {communities.map((c) => (
+                  <tr>
+                    <td>{c.number_community}</td>
+                    <td class="uppercase">
+                      {c.responsable || "Responsable no registrado"}
+                    </td>
+                    <td class="no-print">
+                      {c.level_paso || "Sin especificar"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {communities.length === 0 && (
+            <p class="text-sm text-gray-600 mt-4">
+              No hay comunidades registradas en esta parroquia.
+            </p>
+          )}
+        </section>
+      )
+    }
+  </main>
+</Layout>

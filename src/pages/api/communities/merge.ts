@@ -87,8 +87,57 @@ export const POST: APIRoute = async ({ request }) => {
         }
       }
 
-      // 1. Transferir hermanos de las comunidades fuente a la comunidad destino
+      // 0. Evitar colisiones por UNIQUE KEY (names, community_id) al mover hermanos
+      // Si en la comunidad destino ya existe un hermano con el mismo nombre, o si
+      // entre las comunidades fuente hay nombres repetidos, el UPDATE de community_id
+      // fallará. Solución: renombrar solo a los hermanos de las comunidades fuente
+      // que colisionen, agregando un sufijo determinístico con el id.
       const sourceIdsPlaceholders = sourceCommunityIds.map(() => "?").join(",");
+
+      const [targetNamesRows]: any = await db.query(
+        "SELECT names FROM brothers WHERE community_id = ?",
+        [targetCommunityId],
+      );
+      const targetNames = new Set<string>(
+        (targetNamesRows || []).map((r: any) => String(r.names)),
+      );
+
+      const [movingRows]: any = await db.query(
+        `SELECT id, names FROM brothers WHERE community_id IN (${sourceIdsPlaceholders})`,
+        sourceCommunityIds,
+      );
+
+      // Contar ocurrencias de nombres en el set que se va a fusionar (fuentes)
+      const movingNameCount = new Map<string, number>();
+      for (const r of movingRows || []) {
+        const n = String(r.names);
+        movingNameCount.set(n, (movingNameCount.get(n) || 0) + 1);
+      }
+
+      for (const r of movingRows || []) {
+        const brotherId = Number(r.id);
+        const originalName = String(r.names);
+
+        const duplicatesInSources = (movingNameCount.get(originalName) || 0) > 1;
+        const duplicatesWithTarget = targetNames.has(originalName);
+
+        if (!duplicatesInSources && !duplicatesWithTarget) continue;
+
+        const suffix = ` (${brotherId})`;
+        const maxLen = 200;
+        const base =
+          originalName.length + suffix.length <= maxLen
+            ? originalName
+            : originalName.slice(0, Math.max(1, maxLen - suffix.length));
+        const newName = `${base}${suffix}`;
+
+        await db.query("UPDATE brothers SET names = ? WHERE id = ?", [
+          newName,
+          brotherId,
+        ]);
+      }
+
+      // 1. Transferir hermanos de las comunidades fuente a la comunidad destino
       await db.query(
         `UPDATE brothers 
          SET community_id = ? 

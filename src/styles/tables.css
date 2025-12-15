@@ -1,9 +1,9 @@
 /* Estilos globales para tablas */
 .container-table {
-  background: #ffffff;
+  /* background: #ffffff; */
   /* border: 2px solid #e5e7eb; */
-  /* border-radius: .75rem; */
-  /* overflow: hidden; */
+  border-radius: .75rem;
+  overflow: hidden;
   /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
   /* shadow-lg */
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
@@ -41,11 +41,14 @@
 
       & tr {
         transition: background-color 0.2s ease;
-   
+        
+        &:nth-child(even) {
+          background-color: var(--color-gray-100);
+        }
       }
 
       & tr:hover {
-        background-color: #f9fafb;
+        background-color: var(--color-gray-200);
       }
 
       & td {
