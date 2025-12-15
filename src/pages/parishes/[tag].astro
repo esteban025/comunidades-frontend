@@ -8,24 +8,17 @@ import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
 import ConfigIcon from "@/assets/ConfigIcon.astro";
 
 import { getParishByTag } from "@/services/parishes";
-import {
-  getCommunityByIdParis,
-  getResponsablesByCommunity,
-} from "@/services/communities";
+import { getCommunitiesWithPrimaryResponsableByParishId } from "@/services/communities";
 
 import type { Parish } from "@/types/parishes";
-import type { CommunityByIdParish } from "@/types/community";
 import PLusIcon from "@/assets/PLusIcon.astro";
 import CursorIcon from "@/assets/CursorIcon.astro";
 
 const { tag } = Astro.params;
 
-// Obtener información de la parroquia por tag
-interface Communities extends CommunityByIdParish {
-  responsable: string | null;
-}
 let parishData: Parish | null = null;
-let communities: Communities[] = [];
+let communities: import("@/services/communities").CommunityWithResponsable[] =
+  [];
 let error = false;
 
 if (!tag) {
@@ -38,33 +31,10 @@ if (!tag) {
     if (parishRows && parishRows.length > 0) {
       parishData = parishRows[0];
 
-      // 2. Obtener comunidades con conteo de hermanos
-      const commRows = await getCommunityByIdParis(parishData.id);
-
-      // 3. Obtener responsables de cada comunidad
-      if (commRows && commRows.length > 0) {
-        const communityIds = commRows.map((c: CommunityByIdParish) => c.id);
-
-        const responsablesRows = await getResponsablesByCommunity(communityIds);
-
-        const responsablesMap = new Map<number, Set<string>>();
-
-        responsablesRows?.forEach((r) => {
-          if (!responsablesMap.has(r.community_id)) {
-            responsablesMap.set(r.community_id, new Set());
-          }
-          responsablesMap.get(r.community_id)!.add(r.responsable_name);
-        });
-
-        communities = commRows.map((comm) => ({
-          ...comm,
-          responsable: responsablesMap.has(comm.id)
-            ? Array.from(responsablesMap.get(comm.id)!).join(", ")
-            : null,
-        }));
-      } else {
-        communities = [];
-      }
+      // 2. Obtener comunidades + responsable principal (helper compartido)
+      communities = await getCommunitiesWithPrimaryResponsableByParishId(
+        parishData.id,
+      );
     } else {
       error = true;
     }
@@ -136,7 +106,7 @@ if (!tag) {
         <div slot="body">
           <div class="container-table">
             {communities.length > 0 ? (
-              <table>
+              <table transition:name={`table-${parishData?.id}`}>
                 <thead>
                   <tr>
                     <th class="min">N°Com</th>
@@ -196,7 +166,11 @@ if (!tag) {
             )}
           </div>
         </div>
-        <a href={`/print/${tag}`} class="hover:underline" slot="footer-link">
+        <a
+          href={parishData ? `/print/${parishData.id}` : `/print/${tag}`}
+          class="hover:underline"
+          slot="footer-link"
+        >
           Imprimir
         </a>
         <a href="/" class="hover:underline" slot="footer-link">

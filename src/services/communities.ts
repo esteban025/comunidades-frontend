@@ -20,6 +20,31 @@ export const getCommunityByIdParis = async (id: number) => {
   return data
 }
 
+export interface CommunityWithResponsable extends CommunityByIdParish {
+  responsable: string | null;
+}
+
+export const getCommunitiesWithPrimaryResponsableByParishId = async (
+  parishId: number,
+): Promise<CommunityWithResponsable[]> => {
+  const commRows = await getCommunityByIdParis(parishId)
+
+  if (!commRows || commRows.length === 0) return []
+
+  const communityIds = commRows.map((c) => c.id)
+  const responsablesRows = await getPrimaryResponsableByCommunity(communityIds)
+
+  const responsablesMap = new Map<number, string>()
+  responsablesRows?.forEach((r) => {
+    responsablesMap.set(r.community_id, r.responsable_name)
+  })
+
+  return commRows.map((comm) => ({
+    ...comm,
+    responsable: responsablesMap.get(comm.id) ?? null,
+  }))
+}
+
 // internas de la comunidad
 
 export const getResponsablesByCommunity = async (idsComunnities: number[]) => {

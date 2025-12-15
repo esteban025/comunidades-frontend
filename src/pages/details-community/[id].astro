@@ -52,7 +52,7 @@ const groupedBrothers = groupMarriagesById(brothers as any);
         <div class="flex flex-col gap-5" slot="body">
             <FilterTable />
             <section class="container-table">
-              <table>
+              <table transition:name={`table-${data[0]?.id}`}>
                 <thead>
                   <tr>
                     <!-- <th class="min print hidden">N°Com</th> -->

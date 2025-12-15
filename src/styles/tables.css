@@ -2,8 +2,8 @@
 .container-table {
   /* background: #ffffff; */
   /* border: 2px solid #e5e7eb; */
-  border-radius: .75rem;
-  overflow: hidden;
+  /* border-radius: .75rem; */
+  /* overflow-x: hidden; */
   /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
   /* shadow-lg */
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
@@ -75,7 +75,8 @@ table .min {
 @media print {
   .container-table {
     box-shadow: none;
-    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
 
     & table {
       font-size: 12px;

@@ -16,6 +16,12 @@ export const getParishByTag = async (tag: string): Promise<Parish[]> => {
   return data
 }
 
+export const getParishById = async (id: number): Promise<Parish[]> => {
+  const query = `SELECT id, name, tag, aka FROM parishes WHERE id = ?`
+  const [rows] = await db.query(query, [id])
+  const data: Parish[] = rows as Parish[]
+  return data
+}
 
 // Crear una nueva parroquia
 interface Params {
