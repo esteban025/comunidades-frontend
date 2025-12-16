@@ -1,8 +1,9 @@
 ---
+// COMPONENTS
 import ModalDesign from "./ModalDesign.astro";
 ---
 
-<ModalDesign id="modal-view-brother" title="Detalles del Hermano" idForm="">
+<ModalDesign id="modal-view-brother" title="Detalles del Hermano">
   <section
     class="flex flex-col gap-6 w-full"
     slot="body"
@@ -41,21 +42,20 @@ import ModalDesign from "./ModalDesign.astro";
   import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const modal = $id("modal-view-brother");
-    const contentDiv = $id("brother-details-content");
+    const $modal = $id("modal-view-brother") as HTMLElement;
+    const $contentDiv = $id("brother-details-content") as HTMLElement;
+
+    if (!$modal || !$contentDiv) return;
 
     function closeViewModal() {
-      modal?.classList.add("hidden");
+      $modal.classList.add("hidden");
       document.body.style.overflow = "";
-      if (contentDiv) {
-        contentDiv.innerHTML =
-          '<div class="flex items-center justify-center"><div class="loading-spinner">Cargando...</div></div>';
-      }
+      $contentDiv.innerHTML =
+        '<div class="flex items-center justify-center"><div class="loading-spinner">Cargando...</div></div>';
     }
 
     async function openViewBrotherModal(brotherId: string) {
-      // console.log("Abriendo modal para hermano:", brotherId);
-      modal?.classList.remove("hidden");
+      $modal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
 
       try {
@@ -64,26 +64,20 @@ import ModalDesign from "./ModalDesign.astro";
 
         if (response.ok) {
           const html = await response.text();
-          if (contentDiv) {
-            contentDiv.innerHTML = html;
-          }
+          $contentDiv.innerHTML = html;
         } else {
           const result = await response.json();
-          if (contentDiv) {
-            contentDiv.innerHTML = `<div class="error-message">Error: ${result.error || "Error al cargar los detalles"}</div>`;
-          }
+          $contentDiv.innerHTML = `<div class="error-message">Error: ${result.error || "Error al cargar los detalles"}</div>`;
           showNotification(
             result.error || "Error al cargar los detalles",
             "error",
-            5000,
+            1500,
           );
         }
       } catch (error) {
         console.error("Error cargando detalles del hermano:", error);
-        if (contentDiv) {
-          contentDiv.innerHTML =
-            '<div class="error-message">Error de conexión con el servidor</div>';
-        }
+        $contentDiv.innerHTML =
+          '<div class="error-message">Error de conexión con el servidor</div>';
         showNotification("Error de conexión con el servidor", "error", 5000);
       }
     }

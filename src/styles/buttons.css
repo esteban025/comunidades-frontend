@@ -7,6 +7,7 @@
   transition: all 0.3s ease;
   outline: none;
   border: 1px solid;
+  overflow: hidden;
 }
 
 /* primario */

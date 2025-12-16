@@ -19,6 +19,9 @@ import { getBrothersByCommunityId } from "@/services/brothers";
 const { id } = Astro.params;
 
 let error = false;
+let title = "";
+let description = "";
+let message = "";
 
 if (!id) {
   error = true;
@@ -27,17 +30,29 @@ if (!id) {
 
 const community = await getCommunityById(id);
 const parishCommunity = community[0];
-const title = `${parishCommunity.parish_name} - Comunidad ${parishCommunity.number_community}`;
 const brothers = await getBrothersByCommunityId(id);
+const groupedBrothers = groupMarriagesById(brothers);
 
-const groupedBrothers = groupMarriagesById(brothers as any);
+if (error || community.length === 0) {
+  title = "No existe comunidad con esa id";
+  description = "No podemos mostrar informacion de esta comunidad";
+  message = "No puede interactuar con esta comunidad desconocida";
+} else {
+  title = `${parishCommunity.parish_name} - Comunidad ${parishCommunity.number_community}`;
+  description = `Comunidad ${community[0].number_community} • ${brothers[0].names} • ${community[0].parish_aka}`;
+}
 ---
 
 <Layout>
-  <SectionContainer title={title} transition:name="parish-section">
+  <SectionContainer
+    title={title}
+    transition:name="parish-section"
+    description={description}
+  >
     <div class="flex items-center gap-2" slot="nav-links">
       <button
         id="btn-add-brotherc"
+        disabled={error || community.length === 0}
         data-community-id={id}
         class="btn btn-primary flex items-center gap-2"
       >
@@ -47,25 +62,22 @@ const groupedBrothers = groupMarriagesById(brothers as any);
     </div>
 
     {
-      brothers.length === 0 ? (
+      brothers.length === 0 && (
         <div class="" slot="body">
           <section class="w-full min-h-30 border border-border-medium rounded-xl bg-white flex justify-center items-center">
-            <span class="text-text-muted text-sm">
-              No se encuentra aun registrado ningun hermano en esta comunidad,
-              puedes empezar ya a agregar hermanos a{" "}
-              <strong>esta comunidad</strong>
-            </span>
+            <span class="text-text-muted text-sm">{message}</span>
           </section>
         </div>
-      ) : (
+      )
+    }
+    {
+      brothers.length > 0 && (
         <div class="flex flex-col gap-5" slot="body">
           <FilterTable />
           <section class="container-table">
             <table transition:name={`table-parish-${parishCommunity.id}`}>
               <thead>
                 <tr>
-                  {/* <th class="min print hidden">N°Com</th> */}
-                  {/* <th class="min print hidden">Parroquia</th> */}
                   <th>Nombres</th>
                   <th>Estado</th>
                   <th>Roles</th>
@@ -73,10 +85,10 @@ const groupedBrothers = groupMarriagesById(brothers as any);
                 </tr>
               </thead>
               <tbody>
-                {groupedBrothers.map((bro: any) => {
+                {groupedBrothers.map((bro) => {
                   const spouse =
                     bro.civil_status === "matrimonio" && bro.spouse_id
-                      ? brothers.find((b: any) => b.id === bro.spouse_id)
+                      ? brothers.find((b) => b.id === bro.spouse_id)
                       : null;
 
                   const isMarriage = !!spouse;
@@ -290,13 +302,12 @@ const groupedBrothers = groupMarriagesById(brothers as any);
     });
 
     // habilitar filtros
-
-    $searchInput?.addEventListener("input", applyFilters);
-    $selectInput?.addEventListener("change", applyFilters);
+    $searchInput.addEventListener("input", applyFilters);
+    $selectInput.addEventListener("change", applyFilters);
     applyFilters();
 
     // acciones: ver detalles (solteros)
-    const viewButtons = document.querySelectorAll(
+    const viewButtons = $$(
       ".brother-view-btn",
     ) as NodeListOf<HTMLButtonElement>;
 
@@ -313,7 +324,7 @@ const groupedBrothers = groupMarriagesById(brothers as any);
     });
 
     // acciones: editar (solteros)
-    const editButtons = document.querySelectorAll(
+    const editButtons = $$(
       ".brother-edit-btn",
     ) as NodeListOf<HTMLButtonElement>;
 
@@ -332,7 +343,7 @@ const groupedBrothers = groupMarriagesById(brothers as any);
     });
 
     // dropdown de matrimonios (ver/editar esposo/esposa)
-    const dropdownItems = document.querySelectorAll(
+    const dropdownItems = $$(
       ".brother-menu-item",
     ) as NodeListOf<HTMLButtonElement>;
 
@@ -369,7 +380,7 @@ const groupedBrothers = groupMarriagesById(brothers as any);
     });
 
     // eliminar (soltero o matrimonio)
-    const deleteButtons = document.querySelectorAll(
+    const deleteButtons = $$(
       ".brother-delete-btn",
     ) as NodeListOf<HTMLButtonElement>;
 
@@ -404,17 +415,17 @@ const groupedBrothers = groupMarriagesById(brothers as any);
             );
             setTimeout(() => {
               window.location.reload();
-            }, 800);
+            }, 1500);
           } else {
             showNotification(
               result.error || "Error al eliminar",
               "error",
-              5000,
+              1500,
             );
           }
         } catch (error) {
           console.error("Error eliminando hermano:", error);
-          showNotification("Error de conexión al eliminar", "error", 5000);
+          showNotification("Error de conexión al eliminar", "error", 1500);
         }
       });
     });

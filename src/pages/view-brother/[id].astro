@@ -1,6 +1,9 @@
 ---
-import { db } from "@/lib/db";
+// COMPONENTS
 import BrotherDetailsContent from "@/components/BrotherDetailsContent.astro";
+
+// SERVICES
+import { db } from "@/lib/db";
 import { getPersonalBrother } from "@/services/brothers";
 
 const { id } = Astro.params;
@@ -16,15 +19,13 @@ let brother = null;
 let error = null;
 
 try {
-  // Query principal
-  // modificar query para traer el nombre del conyugue y no el id
   const brotherRows = await getPersonalBrother(id);
 
   if (!brotherRows || brotherRows.length === 0) {
     error = "Hermano no encontrado";
   } else {
     const brotherData = brotherRows[0];
-    console.log(brotherData);
+    // console.log(brotherData);
 
     // Obtener roles
     const rolesQuery = `
@@ -66,14 +67,15 @@ try {
         level_paso: brotherData.level_paso,
       },
       parish: {
-        id: brotherData.parish_id,
+        // id: brotherData.parish_id,
         name: brotherData.parish_name,
         aka: brotherData.parish_aka,
-        tag: brotherData.parish_tag,
+        // tag: brotherData.parish_tag,
       },
       roles_in_own_community: rolesInOwnCommunity,
       catechist_of_communities: catechistOfCommunities,
     };
+    console.log(brother);
   }
 } catch (e) {
   console.error("Error en /view-brother/[id]:", e);
