@@ -8,6 +8,7 @@ const Element = href ? "a" : "article";
 
 <article
   class="rounded-xl bg-white border border-border-light shadow-sm group cursor-pointer transition-all duration-300 hover:shadow-md relative overflow-hidden parish-card group"
+  {...Astro.props}
 >
   <div
     class="absolute top-3 right-3 translate-x-12 -translate-y-8 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0"

@@ -25,8 +25,9 @@ if (!id) {
   return Astro.redirect("/");
 }
 
-const data = await getCommunityById(id);
-const title = `${data[0].parish_name} - Comunidad ${data[0].number_community}`;
+const community = await getCommunityById(id);
+const parishCommunity = community[0];
+const title = `${parishCommunity.parish_name} - Comunidad ${parishCommunity.number_community}`;
 const brothers = await getBrothersByCommunityId(id);
 
 const groupedBrothers = groupMarriagesById(brothers as any);
@@ -35,7 +36,11 @@ const groupedBrothers = groupMarriagesById(brothers as any);
 <Layout>
   <SectionContainer title={title} transition:name="parish-section">
     <div class="flex items-center gap-2" slot="nav-links">
-      <button id="btn-add-brotherc" data-community-id={id} class="btn btn-primary flex items-center gap-2">
+      <button
+        id="btn-add-brotherc"
+        data-community-id={id}
+        class="btn btn-primary flex items-center gap-2"
+      >
         <PLusIcon class="size-4 block" />
         <span>Agregar hermano</span>
       </button>
@@ -45,173 +50,175 @@ const groupedBrothers = groupMarriagesById(brothers as any);
       brothers.length === 0 ? (
         <div class="" slot="body">
           <section class="w-full min-h-30 border border-border-medium rounded-xl bg-white flex justify-center items-center">
-            <span class="text-text-muted text-sm">No se encuentra aun registrado ningun hermano en esta comunidad, puedes empezar ya a agregar hermanos a <strong>esta comunidad</strong></span>
+            <span class="text-text-muted text-sm">
+              No se encuentra aun registrado ningun hermano en esta comunidad,
+              puedes empezar ya a agregar hermanos a{" "}
+              <strong>esta comunidad</strong>
+            </span>
           </section>
         </div>
       ) : (
         <div class="flex flex-col gap-5" slot="body">
-            <FilterTable />
-            <section class="container-table">
-              <table transition:name={`table-${data[0]?.id}`}>
-                <thead>
-                  <tr>
-                    <!-- <th class="min print hidden">N°Com</th> -->
-                    <!-- <th class="min print hidden">Parroquia</th> -->
-                    <th>Nombres</th>
-                    <th>Estado</th>
-                    <th>Roles</th>
-                    <th class="min" >Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {
-                    groupedBrothers.map((bro: any) => {
-                      const spouse =
-                        bro.civil_status === "matrimonio" && bro.spouse_id
-                          ? brothers.find((b: any) => b.id === bro.spouse_id)
-                          : null;
+          <FilterTable />
+          <section class="container-table">
+            <table transition:name={`table-parish-${parishCommunity.id}`}>
+              <thead>
+                <tr>
+                  {/* <th class="min print hidden">N°Com</th> */}
+                  {/* <th class="min print hidden">Parroquia</th> */}
+                  <th>Nombres</th>
+                  <th>Estado</th>
+                  <th>Roles</th>
+                  <th class="min">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groupedBrothers.map((bro: any) => {
+                  const spouse =
+                    bro.civil_status === "matrimonio" && bro.spouse_id
+                      ? brothers.find((b: any) => b.id === bro.spouse_id)
+                      : null;
 
-                      const isMarriage = !!spouse;
-                      const combinedRoles = Array.from(
-                        new Set([
-                          ...(bro.roles || []),
-                          ...((spouse?.roles as string[]) || []),
-                        ]),
-                      );
+                  const isMarriage = !!spouse;
+                  const combinedRoles = Array.from(
+                    new Set([
+                      ...(bro.roles || []),
+                      ...((spouse?.roles as string[]) || []),
+                    ]),
+                  );
 
-                      return (
-                        <tr
-                          data-brother-row
-                          data-name={bro.names}
-                          data-roles={combinedRoles.join(",")}
-                          data-brother-id={bro.id}
-                          data-spouse-id={spouse?.id || ""}
-                          data-is-marriage={isMarriage ? "true" : "false"}
-                        >
-                          <td>{bro.names}</td>
-                          <td class="capitalize">{bro.civil_status}</td>
-                          <td>
-                            {combinedRoles.map((role) => (
-                              <span class="role-tag" data-rol={role}>
-                                {role}
-                              </span>
-                            ))}
-                          </td>
-                          <td>
-                            <div class="content-action-btns">
-                              {isMarriage && spouse ? (
-                                <>
-                                  <div class="dropdown-wrapper wrapper-view">
-                                    <input
-                                      type="checkbox"
-                                      id={`dropdown-view-${bro.id}`}
-                                      class="dropdown-toggle dropdown-view"
-                                    />
-                                    <label
-                                      for={`dropdown-view-${bro.id}`}
-                                      class="dropdown-bt action-btn"
-                                      title="Ver detalles"
-                                    >
-                                      <span class="icon-dots">
-                                        <EyesIcon class="size-4 block" />
-                                      </span>
-                                    </label>
-                                    <div class="dropdown-menu dropdown-menu-view">
-                                      <button
-                                        type="button"
-                                        class="brother-menu-item dropdown-item"
-                                        data-action="view"
-                                        data-role="esposo"
-                                        data-target-id={bro.id}
-                                      >
-                                        Esposo
-                                      </button>
-                                      <button
-                                        type="button"
-                                        class="brother-menu-item dropdown-item"
-                                        data-action="view"
-                                        data-role="esposa"
-                                        data-target-id={spouse.id}
-                                      >
-                                        Esposa
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  <div class="dropdown-wrapper wrapper-edit">
-                                    <input
-                                      type="checkbox"
-                                      id={`dropdown-edit-${bro.id}`}
-                                      class="dropdown-toggle dropdown-edit"
-                                    />
-                                    <label
-                                      for={`dropdown-edit-${bro.id}`}
-                                      class="action-btn"
-                                      title="Editar"
-                                    >
-                                      <PencilIcon class="size-4 block" />
-                                    </label>
-                                    <div class="dropdown-menu dropdown-menu-edit">
-                                      <button
-                                        type="button"
-                                        class="brother-menu-item dropdown-item"
-                                        data-action="edit"
-                                        data-role="esposo"
-                                        data-target-id={bro.id}
-                                      >
-                                        Esposo
-                                      </button>
-                                      <button
-                                        type="button"
-                                        class="brother-menu-item dropdown-item"
-                                        data-action="edit"
-                                        data-role="esposa"
-                                        data-target-id={spouse.id}
-                                      >
-                                        Esposa
-                                      </button>
-                                    </div>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <button
-                                    type="button"
-                                    class="action-btn brother-view-btn"
-                                    title="Ver detalles"
-                                    data-brother-id={bro.id}
-                                  >
+                  return (
+                    <tr
+                      data-brother-row
+                      data-name={bro.names}
+                      data-roles={combinedRoles.join(",")}
+                      data-brother-id={bro.id}
+                      data-spouse-id={spouse?.id || ""}
+                      data-is-marriage={isMarriage ? "true" : "false"}
+                    >
+                      <td>{bro.names}</td>
+                      <td class="capitalize">{bro.civil_status}</td>
+                      <td>
+                        {combinedRoles.map((role) => (
+                          <span class="role-tag" data-rol={role}>
+                            {role}
+                          </span>
+                        ))}
+                      </td>
+                      <td>
+                        <div class="content-action-btns">
+                          {isMarriage && spouse ? (
+                            <>
+                              <div class="dropdown-wrapper wrapper-view">
+                                <input
+                                  type="checkbox"
+                                  id={`dropdown-view-${bro.id}`}
+                                  class="dropdown-toggle dropdown-view"
+                                />
+                                <label
+                                  for={`dropdown-view-${bro.id}`}
+                                  class="dropdown-bt atn-btn"
+                                  title="Ver detalles"
+                                >
+                                  <span class="icon-dots">
                                     <EyesIcon class="size-4 block" />
+                                  </span>
+                                </label>
+                                <div class="dropdown-menu dropdown-menu-view">
+                                  <button
+                                    type="button"
+                                    class="brother-menu-item dropdown-item"
+                                    data-action="view"
+                                    data-role="esposo"
+                                    data-target-id={bro.id}
+                                  >
+                                    Esposo
                                   </button>
                                   <button
                                     type="button"
-                                    class="action-btn brother-edit-btn"
-                                    title="Editar"
-                                    data-brother-id={bro.id}
+                                    class="brother-menu-item dropdown-item"
+                                    data-action="view"
+                                    data-role="esposa"
+                                    data-target-id={spouse.id}
                                   >
-                                    <PencilIcon class="size-4 block" />
+                                    Esposa
                                   </button>
-                                </>
-                              )}
+                                </div>
+                              </div>
 
+                              <div class="dropdown-wrapper wrapper-edit">
+                                <input
+                                  type="checkbox"
+                                  id={`dropdown-edit-${bro.id}`}
+                                  class="dropdown-toggle dropdown-edit"
+                                />
+                                <label
+                                  for={`dropdown-edit-${bro.id}`}
+                                  class="atn-btn"
+                                  title="Editar"
+                                >
+                                  <PencilIcon class="size-4 block" />
+                                </label>
+                                <div class="dropdown-menu dropdown-menu-edit">
+                                  <button
+                                    type="button"
+                                    class="brother-menu-item dropdown-item"
+                                    data-action="edit"
+                                    data-role="esposo"
+                                    data-target-id={bro.id}
+                                  >
+                                    Esposo
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="brother-menu-item dropdown-item"
+                                    data-action="edit"
+                                    data-role="esposa"
+                                    data-target-id={spouse.id}
+                                  >
+                                    Esposa
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
                               <button
                                 type="button"
-                                class="action-btn brother-delete-btn"
-                                title="Eliminar"
+                                class="atn-btn brother-view-btn"
+                                title="Ver detalles"
                                 data-brother-id={bro.id}
                               >
-                                <TrashIcon class="size-4 block" />
+                                <EyesIcon class="size-4 block" />
                               </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  }
-                </tbody>
-              </table>
-            </section>
-          </div>
+                              <button
+                                type="button"
+                                class="atn-btn brother-edit-btn"
+                                title="Editar"
+                                data-brother-id={bro.id}
+                              >
+                                <PencilIcon class="size-4 block" />
+                              </button>
+                            </>
+                          )}
+
+                          <button
+                            type="button"
+                            class="atn-btn brother-delete-btn"
+                            title="Eliminar"
+                            data-brother-id={bro.id}
+                          >
+                            <TrashIcon class="size-4 block" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </section>
+        </div>
       )
     }
 
@@ -225,24 +232,28 @@ const groupedBrothers = groupMarriagesById(brothers as any);
 
 <script>
   import { showNotification } from "@/scripts/notification";
-  import { $id } from "@/utils/selectElementsDom";
+  import { $id, $$ } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const $openAddBrother = $id("btn-add-brotherc");
-    const $modal = $id('modal-add-brotherc')
+    const $openMdl = $id("btn-add-brotherc") as HTMLButtonElement;
+    const $modal = $id("modal-add-brotherc") as HTMLElement;
 
-    const $searchInput = $id("search-brothers-input") as HTMLInputElement;
-    const $selectInput = $id("roles-brother-select") as HTMLSelectElement;
-    const $cleanBtn = $id("clean-filters");
-    const $clearSearchBtn = $id("clear-search-btn");
+    const $searchInput = $id("search-input") as HTMLInputElement;
+    const $selectInput = $id("roles-select") as HTMLSelectElement;
+    const $cleanBtn = $id("clean-filters") as HTMLButtonElement;
+    const $clearSearchBtn = $id("clear-search-btn") as HTMLButtonElement;
+
+    if (!$openMdl || !$modal) return;
+    if (!$searchInput || !$selectInput) return;
+    if (!$cleanBtn || !$clearSearchBtn) return;
 
     const $rows = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-brother-row]")
+      $$("[data-brother-row]") as NodeListOf<HTMLElement>,
     );
 
     const applyFilters = () => {
-      const search = ($searchInput?.value ?? "").trim().toLowerCase();
-      const role = ($selectInput?.value ?? "").trim().toLowerCase();
+      const search = ($searchInput.value ?? "").trim().toLowerCase();
+      const role = ($selectInput.value ?? "").trim().toLowerCase();
 
       for (const $row of $rows) {
         const name = ($row.dataset.name ?? "").toLowerCase();
@@ -258,27 +269,25 @@ const groupedBrothers = groupMarriagesById(brothers as any);
       }
     };
 
-    $openAddBrother?.addEventListener("click", () => {
-      if ($modal) {
-        if (typeof (window as any).openBrotherchModal === "function") {
-          const communityId = $openAddBrother?.getAttribute("data-community-id");
-          (window as any).openBrotherchModal(communityId);
-        } else {
-          console.log("openBrotherchModal no está disponible");
-        }
+    $openMdl.addEventListener("click", () => {
+      if (typeof (window as any).openBrotherchModal === "function") {
+        const communityId = $openMdl.getAttribute("data-community-id");
+        (window as any).openBrotherchModal(communityId);
+      } else {
+        console.log("openBrotherchModal no está disponible");
       }
     });
 
-    $cleanBtn?.addEventListener('click', () => {
-      $searchInput.value = ''
-      $selectInput.value = ''
+    $cleanBtn.addEventListener("click", () => {
+      $searchInput.value = "";
+      $selectInput.value = "";
       applyFilters();
-    })
+    });
 
-    $clearSearchBtn?.addEventListener('click', () => {
-      $searchInput.value = ''
+    $clearSearchBtn?.addEventListener("click", () => {
+      $searchInput.value = "";
       applyFilters();
-    })
+    });
 
     // habilitar filtros
 

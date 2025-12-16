@@ -16,7 +16,7 @@ const roles = ["responsable", "corresponsable", "didascala", "ostiario"];
       <div class="content-input w-full">
         <input
           type="text"
-          id="search-brothers-input"
+          id="search-input"
           placeholder="Buscar hermano..."
           class="search-input"
           autocomplete="off"
@@ -33,11 +33,7 @@ const roles = ["responsable", "corresponsable", "didascala", "ostiario"];
 
     <!-- roles -->
     <div class="roles w-full relative">
-      <select
-        name="roles-select"
-        id="roles-brother-select"
-        class="select-input"
-      >
+      <select name="roles-select" id="roles-select" class="select-input">
         <option class="options-select" value="">Todos los servicios</option>
         {
           roles.map((role) => (

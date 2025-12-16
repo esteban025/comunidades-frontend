@@ -1,38 +1,42 @@
 ---
+// COMPONENTS
 import ModalDesign from "./ModalDesign.astro";
+
+// DATA
 import { pasosListaPlana } from "@/datos/pasos-list";
 ---
 
 <ModalDesign
   id="modal-edit-community"
-  title="Editar Paso de la Comunidad"
+  title="Editar Comunidad"
   isForm={true}
   idForm="form-edit-community"
 >
   <div class="flex flex-col gap-4 w-full" slot="body">
-    <p class="text-sm text-text-muted" id="edit-community-header">Comunidad</p>
+    <fieldset class="container-fieldset">
+      <legend class="title-container">Datos de la comunidad</legend>
+      <input type="hidden" id="edit-community-id" />
+      <input type="hidden" id="edit-community-number" />
 
-    <input type="hidden" id="edit-community-id" />
-    <input type="hidden" id="edit-community-number" />
-
-    <div class="content-input">
-      <label for="edit-level-paso">Paso de la comunidad</label>
-      <select
-        name="edit-level-paso"
-        id="edit-level-paso"
-        class="select-input"
-        required
-      >
-        <option value="" disabled selected>Selecciona un paso</option>
-        {
-          pasosListaPlana.map((paso) => (
-            <option class="options-select" value={paso}>
-              {paso}
-            </option>
-          ))
-        }
-      </select>
-    </div>
+      <div class="content-input">
+        <label for="edit-level-paso">Paso de la comunidad</label>
+        <select
+          name="edit-level-paso"
+          id="edit-level-paso"
+          class="select-input"
+          required
+        >
+          <option value="" disabled selected>Selecciona un paso</option>
+          {
+            pasosListaPlana.map((paso) => (
+              <option class="options-select" value={paso}>
+                {paso}
+              </option>
+            ))
+          }
+        </select>
+      </div>
+    </fieldset>
   </div>
 
   <button
@@ -56,31 +60,30 @@ import { pasosListaPlana } from "@/datos/pasos-list";
 <script>
   import { showNotification } from "@/scripts/notification";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
+  import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const $ = (selector: string) => document.getElementById(selector);
-    const modal = $("modal-edit-community") as HTMLDivElement;
-    const form = $("form-edit-community") as HTMLFormElement;
-    const header = $("edit-community-header") as HTMLParagraphElement;
-    const inputId = $("edit-community-id") as HTMLInputElement;
-    const inputNumber = $("edit-community-number") as HTMLInputElement;
-    const inputPaso = $("edit-level-paso") as HTMLInputElement;
+    const $modal = $id("modal-edit-community") as HTMLDivElement;
+    const $form = $id("form-edit-community") as HTMLFormElement;
 
-    if (!modal || !form || !header || !inputId || !inputNumber || !inputPaso)
-      return;
+    const $iptId = $id("edit-community-id") as HTMLInputElement;
+    const $iptNu = $id("edit-community-number") as HTMLInputElement;
+    const $iptpaso = $id("edit-level-paso") as HTMLInputElement;
+
+    if (!$modal || !$form || !$iptId || !$iptNu || !$iptpaso) return;
 
     function closeEditCommunityModal() {
-      modal.classList.add("hidden");
+      $modal.classList.add("hidden");
       document.body.style.overflow = "";
-      form.reset();
+      $form.reset();
     }
 
     async function handleSubmit(event: SubmitEvent) {
       event.preventDefault();
 
-      const id = inputId.value;
-      const number = inputNumber.value;
-      const paso = inputPaso.value.trim();
+      const id = $iptId.value;
+      const number = $iptNu.value;
+      const paso = $iptpaso.value.trim();
 
       if (!id || !number) {
         showNotification(
@@ -131,20 +134,19 @@ import { pasosListaPlana } from "@/datos/pasos-list";
       communityNumber: string,
       levelPaso: string,
     ) {
-      modal.classList.remove("hidden");
+      $modal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
 
-      inputId.value = communityId;
-      inputNumber.value = communityNumber;
-      inputPaso.value = levelPaso || "";
-      header.textContent = `Comunidad ${communityNumber}`;
+      $iptId.value = communityId;
+      $iptNu.value = communityNumber;
+      $iptpaso.value = levelPaso || "";
     }
 
     setupModalCloseHandlers("modal-edit-community", () => {
       closeEditCommunityModal();
     });
 
-    form.addEventListener("submit", handleSubmit);
+    $form.addEventListener("submit", handleSubmit);
 
     (window as any).openEditCommunityModal = openEditCommunityModal;
   });

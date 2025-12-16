@@ -1,4 +1,5 @@
 ---
+// COMPONENTS
 import ModalDesign from "./ModalDesign.astro";
 ---
 
@@ -38,11 +39,11 @@ import ModalDesign from "./ModalDesign.astro";
 <script>
   import { showNotification } from "@/scripts/notification";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
+  import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const $ = (selector: string) => document.querySelector(selector);
-    const modal = $("#modal-view-community") as HTMLDivElement;
-    const contentDiv = $("#community-details-content") as HTMLDivElement;
+    const modal = $id("modal-view-community") as HTMLDivElement;
+    const contentDiv = $id("community-details-content") as HTMLDivElement;
 
     if (!modal || !contentDiv) return;
 

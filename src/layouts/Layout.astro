@@ -1,21 +1,23 @@
 ---
 import "../styles/global.css";
+
 import Notification from "@/components/Notification.astro";
+import HeaderPage from "@/sections/HeaderPage.astro";
+import ButtonScrollUp from "@/components/ButtonScrollUp.astro";
+import ClientRouter from "astro/components/ClientRouter.astro";
+import WaterMark from "@/assets/WaterMark.astro";
+
 import ModalAddParish from "@/components/ModalAddParish.astro";
 import ModalViewBrother from "@/components/ModalViewBrother.astro";
-import ButtonScrollUp from "@/components/ButtonScrollUp.astro";
 import ModalViewCommunity from "@/components/ModalViewCommunity.astro";
 import ModalManageCommunities from "@/components/ModalManageCommunities.astro";
 import ModalEditCommunity from "@/components/ModalEditCommunity.astro";
-import HeaderPage from "@/sections/HeaderPage.astro";
-import ClientRouter from "astro/components/ClientRouter.astro";
 import ModalAddConvivencia from "@/components/ModalAddConvivencia.astro";
 import ModalMoreInvited from "@/components/ModalMoreInvited.astro";
 import ModalConfirmAttendance from "@/components/ModalConfirmAttendance.astro";
 import ModalAddCasaConvivencia from "@/components/ModalAddCasaConvivencia.astro";
 import ModalAddCommunity from "@/components/ModalAddCommunity.astro";
 import ModalAddBrotherc from "@/components/ModalAddBrotherc.astro";
-import WaterMark from "@/assets/WaterMark.astro";
 ---
 
 <!doctype html>
@@ -37,6 +39,7 @@ import WaterMark from "@/assets/WaterMark.astro";
 		<ButtonScrollUp />
 		<Notification />
 
+		<!-- Modales -->
 		<ModalAddParish />
 		<ModalViewBrother />
 		<ModalViewCommunity />

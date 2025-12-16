@@ -63,99 +63,91 @@ import { pasosListaPlana } from "@/datos/pasos-list";
   import { showNotification } from "@/scripts/notification";
 
   document.addEventListener("astro:page-load", () => {
-    const $modal = $id("modal-add-community") as HTMLDivElement | null;
-    const $form = $id("form-add-community") as HTMLFormElement | null;
-    const $submit = $id(
-      "modal-add-community-submit",
-    ) as HTMLButtonElement | null;
-    const $parishId = $id(
-      "modal-community-parish-id",
-    ) as HTMLInputElement | null;
+    const $modal = $id("modal-add-community") as HTMLDivElement;
+    const $form = $id("form-add-community") as HTMLFormElement;
+    const $submit = $id("modal-add-community-submit") as HTMLButtonElement;
+    const $parishId = $id("modal-community-parish-id") as HTMLInputElement;
+
+    if (!$modal || !$form || !$submit || !$parishId) return;
 
     function openModalAddComm(parishId?: number | string) {
       if ($parishId && parishId !== undefined && parishId !== null) {
         $parishId.value = String(parishId);
       }
-      $modal?.classList.remove("hidden");
+      $modal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
     }
 
     function closeModalAddComm() {
-      $modal?.classList.add("hidden");
+      $modal.classList.add("hidden");
       document.body.style.overflow = "";
-      $form?.reset();
-      if ($parishId) $parishId.value = "";
-      if ($submit) {
-        $submit.disabled = false;
-        $submit.textContent = "Agregar";
-      }
+      $form.reset();
+      $parishId.value = "";
+      $submit.disabled = false;
+      $submit.textContent = "Agregar";
     }
 
     setupModalCloseHandlers("modal-add-community", () => {
       closeModalAddComm();
     });
 
-    if ($form) {
-      $form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    $form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-        const formData = new FormData($form);
-        const parishId = formData.get("parish-id");
-        const numberCommunity = formData.get("number-comm");
-        const levelPaso = formData.get("level-comm");
+      const formData = new FormData($form);
+      const parishId = formData.get("parish-id");
+      const numberCommunity = formData.get("number-comm");
+      const levelPaso = formData.get("level-comm");
 
-        if (!parishId || !numberCommunity || !levelPaso) {
-          showNotification("Completa todos los campos", "error", 4500);
-          return;
-        }
+      if (!parishId || !numberCommunity || !levelPaso) {
+        showNotification("Completa todos los campos", "error", 4500);
+        return;
+      }
 
-        if ($submit) {
-          $submit.disabled = true;
-          $submit.textContent = "Guardando...";
-        }
+      $submit.disabled = true;
+      $submit.textContent = "Guardando...";
 
-        try {
-          const res = await fetch("/api/communities", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              parish_id: Number(parishId),
-              number_community: Number(numberCommunity),
-              level_paso: String(levelPaso),
-            }),
-          });
+      try {
+        const res = await fetch("/api/communities", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            parish_id: Number(parishId),
+            number_community: Number(numberCommunity),
+            level_paso: String(levelPaso),
+          }),
+        });
 
-          const result = await res.json();
+        const result = await res.json();
 
-          closeModalAddComm();
+        closeModalAddComm();
 
-          if (result?.success) {
-            showNotification(
-              "¡Comunidad agregada exitosamente!",
-              "success",
-              3000,
-            );
-            setTimeout(() => window.location.reload(), 500);
-          } else {
-            showNotification(
-              result?.error || "Error al agregar comunidad",
-              "error",
-              5000,
-            );
-          }
-        } catch (err) {
-          closeModalAddComm();
+        if (result?.success) {
           showNotification(
-            "Error de conexión al agregar comunidad",
+            "¡Comunidad agregada exitosamente!",
+            "success",
+            3000,
+          );
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showNotification(
+            result?.error || "Error al agregar comunidad",
             "error",
             5000,
           );
         }
-      });
-    }
+      } catch (err) {
+        closeModalAddComm();
+        showNotification(
+          "Error de conexión al agregar comunidad",
+          "error",
+          5000,
+        );
+      }
+    });
 
     (window as any).openModalAddComm = openModalAddComm;
   });

@@ -1,24 +1,28 @@
 ---
+// COMPONENTS
 import Layout from "@/layouts/Layout.astro";
 import SectionContainer from "@/components/SectionContainer.astro";
+import BaseCard from "@/components/BaseCard.astro";
 
+// ICONS
 import EyeIcon from "@/assets/EyesIcon.astro";
 import PencilIcon from "@/assets/PencilIcon.astro";
-import DotsVerticalIcon from "@/assets/DotsVerticalIcon.astro";
 import ConfigIcon from "@/assets/ConfigIcon.astro";
+import PLusIcon from "@/assets/PLusIcon.astro";
+import CursorIcon from "@/assets/CursorIcon.astro";
 
+// SERVICES
 import { getParishByTag } from "@/services/parishes";
 import { getCommunitiesWithPrimaryResponsableByParishId } from "@/services/communities";
 
+// TYPES
 import type { Parish } from "@/types/parishes";
-import PLusIcon from "@/assets/PLusIcon.astro";
-import CursorIcon from "@/assets/CursorIcon.astro";
+import type { CommunityWithResponsable } from "@/services/communities";
 
 const { tag } = Astro.params;
 
 let parishData: Parish | null = null;
-let communities: import("@/services/communities").CommunityWithResponsable[] =
-  [];
+let communities: CommunityWithResponsable[] = [];
 let error = false;
 
 if (!tag) {
@@ -43,6 +47,11 @@ if (!tag) {
     error = true;
   }
 }
+
+const titleSection = parishData?.name ?? "Parroquia no encontrada";
+const descriptionSection = error
+  ? "No hay detalles, algo salio mal!"
+  : `${parishData?.name ?? ""} • Tag: ${parishData?.tag ?? ""} • ${communities.length} comunidades`;
 ---
 
 <Layout>
@@ -50,8 +59,8 @@ if (!tag) {
     error ? (
       <SectionContainer
         transition:name="parishes-section"
-        title={parishData?.name ?? "Parroquia No Encontrada"}
-        description="Detalles de la parroquia y sus comunidades."
+        title={titleSection}
+        description={descriptionSection}
       >
         {parishData ? (
           <div
@@ -61,29 +70,27 @@ if (!tag) {
             Error al cargar las comunidades de la parroquia
           </div>
         ) : (
-          <div
-            class="bg-white border border-border-light rounded-lg p-6 text-center text-gray-600"
-            slot="body"
-          >
-            <h3 class="text-2xl font-semibold text-text-primary">
-              La parroquia con tag "{tag}" no fue encontrada.
-            </h3>
-            <p class="mt-2 text-sm text-text-muted">
-              Verifica que el enlace sea correcto o regresa a la lista de
-              parroquias.
-            </p>
-            <a href="/" class="mt-6 block hover:underline">
-              ← Volver a parroquias
-            </a>
-          </div>
+          <BaseCard slot="body">
+            <div class="p-4 flex items-center justify-center flex-col">
+              <h3 class="text-2xl font-semibold text-text-primary">
+                La parroquia con tag "{tag}" no fue encontrada.
+              </h3>
+              <p class="mt-2 text-sm text-text-muted">
+                Verifica que el enlace sea correcto o regresa a la lista de
+                parroquias.
+              </p>
+              <a href="/" class="mt-6 block hover:underline">
+                ← Volver a parroquias
+              </a>
+            </div>
+          </BaseCard>
         )}
       </SectionContainer>
     ) : (
-      // San Juan Pablo II • Tag: SJPII • 2 comunidades
       <SectionContainer
         transition:name="parishes-section"
-        title={parishData?.name ?? ""}
-        description={`${parishData?.name ?? ""} • Tag: ${parishData?.tag ?? ""} • ${communities.length} comunidades`}
+        title={titleSection}
+        description={descriptionSection}
       >
         <div class="flex gap-2 items-center" slot="nav-links">
           <button
@@ -99,20 +106,20 @@ if (!tag) {
             slot="nav-links"
             class="btn btn-secondary flex items-center gap-2"
           >
-            <ConfigIcon class="w-6 aspect-square block" />
+            <ConfigIcon class="size-4 block" />
             <span>Fusion/Reorganizar</span>
           </button>
         </div>
         <div slot="body">
           <div class="container-table">
             {communities.length > 0 ? (
-              <table transition:name={`table-${parishData?.id}`}>
+              <table transition:name={`table-parish-${parishData?.id}`}>
                 <thead>
                   <tr>
                     <th class="min">N°Com</th>
                     <th>Responsable</th>
                     <th>Paso</th>
-                    <th>Total</th>
+                    <th class="min">Total</th>
                     <th class="min">Acciones</th>
                   </tr>
                 </thead>
@@ -124,11 +131,11 @@ if (!tag) {
                         {community.responsable || "Responsable no registrado"}
                       </td>
                       <td>{community.level_paso || "Sin especificar"}</td>
-                      <td class="cell-value">{community.brothers_count}</td>
+                      <td class="text-center">{community.brothers_count}</td>
                       <td>
-                        <div class="action-buttons flex justify-center gap-2">
+                        <div class="content-action-btns">
                           <button
-                            class="action-btn"
+                            class="atn-btn"
                             title="Ver detalles"
                             data-action="view"
                             data-community-id={community.id}
@@ -137,7 +144,7 @@ if (!tag) {
                             <EyeIcon class="size-4 block" />
                           </button>
                           <button
-                            class="action-btn"
+                            class="atn-btn"
                             title="Editar"
                             data-action="edit"
                             data-community-id={community.id}
@@ -147,7 +154,7 @@ if (!tag) {
                             <PencilIcon class="size-4 block" />
                           </button>
                           <a
-                            class="action-btn"
+                            class="atn-btn"
                             title="Más Detalles"
                             href={`/details-community/${community.id}`}
                           >
@@ -160,9 +167,16 @@ if (!tag) {
                 </tbody>
               </table>
             ) : (
-              <div class="text-center text-gray-500 py-8">
-                No hay comunidades registradas en esta parroquia
-              </div>
+              <BaseCard>
+                <div class="flex flex-col gap-2 justify-center items-center p-4 min-h-30">
+                  <p class="text-center text-text-muted text-sm font-semibold">
+                    No hay comunidades rregistradas en esta parroquia
+                  </p>
+                  <p class="text-center text-xs text-text-muted">
+                    Empieza por agregar una comunidad
+                  </p>
+                </div>
+              </BaseCard>
             )}
           </div>
         </div>
@@ -182,29 +196,27 @@ if (!tag) {
 </Layout>
 
 <script>
-  import { $, $$, $id } from "@/utils/selectElementsDom";
+  import { $$, $id } from "@/utils/selectElementsDom";
   document.addEventListener("astro:page-load", () => {
-    const actionButtons = $$(".action-btn[data-action]");
-    const $modal = $id("modal-add-community");
-    const $openModal = $id("btn-add-comm");
+    const $atnBtns = $$(
+      ".atn-btn[data-action]",
+    ) as NodeListOf<HTMLButtonElement>;
+    const $modal = $id("modal-add-community") as HTMLElement;
+    const $openModal = $id("btn-add-comm") as HTMLButtonElement;
 
-    // Obtener nombre de la parroquia del header
-    const parishNameEl = $("header h1");
-    const parishName = parishNameEl?.textContent || "Parroquia";
+    if (!$atnBtns || !$modal || !$openModal) return;
 
-    $openModal?.addEventListener("click", () => {
-      if ($modal) {
-        if (typeof (window as any).openModalAddComm === "function") {
-          const parishId = ($openModal as HTMLElement | null)?.dataset.parishId;
-          (window as any).openModalAddComm(parishId);
-        } else {
-          console.log("openModalAddComm no está disponible");
-        }
+    $openModal.addEventListener("click", () => {
+      if (typeof (window as any).openModalAddComm === "function") {
+        const parishId = $openModal.dataset.parishId;
+        (window as any).openModalAddComm(parishId);
+      } else {
+        console.log("openModalAddComm no está disponible");
       }
     });
 
     (window as any).openManageCommunitiesModal = () => {
-      const pid = ($openModal as HTMLElement | null)?.dataset.parishId;
+      const pid = $openModal.dataset.parishId;
       if (
         typeof (window as any).openManageCommunitiesModalWithParishId ===
         "function"
@@ -217,31 +229,27 @@ if (!tag) {
       }
     };
 
-    actionButtons.forEach((button) => {
+    // boton de acciones view - edit
+    $atnBtns.forEach((button: HTMLElement) => {
       button.addEventListener("click", (e) => {
         e.stopPropagation();
-        const action = (button as HTMLElement).dataset.action;
-        const communityId = (button as HTMLElement).dataset.communityId;
-        const communityNumber = (button as HTMLElement).dataset.communityNumber;
-        const levelPaso = (button as HTMLElement).dataset.levelPaso || "";
+        const action = button.dataset.action;
+        const communityId = button.dataset.communityId;
+        const communityNumber = button.dataset.communityNumber;
+        const levelPaso = button.dataset.levelPaso || "";
 
         switch (action) {
           case "view":
-            // Abrir modal de detalles
             if (typeof (window as any).openViewCommunityModal === "function") {
-              (window as any).openViewCommunityModal(
-                communityId,
-                parishName,
-                communityNumber,
-              );
+              (window as any).openViewCommunityModal(communityId);
             }
             break;
 
           case "edit":
             if (typeof (window as any).openEditCommunityModal === "function") {
               (window as any).openEditCommunityModal(
-                communityId as string,
-                communityNumber as string,
+                communityId,
+                communityNumber,
                 levelPaso,
               );
             } else {
@@ -250,13 +258,9 @@ if (!tag) {
             break;
 
           case "more":
-            console.log(
-              `Más opciones para comunidad ${communityNumber}, ID: ${communityId}`,
-            );
             alert(
               `Más opciones\nComunidad: ${communityNumber}\nID: ${communityId}`,
             );
-            // TODO: Mostrar menú con opción de eliminar, etc.
             break;
         }
       });

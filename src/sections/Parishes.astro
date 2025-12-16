@@ -1,20 +1,24 @@
 ---
+// COMPONENTS
 import SectionContainer from "@/components/SectionContainer.astro";
 import BaseCard from "@/components/BaseCard.astro";
-// import PencilIcon from "@/assets/PencilIcon.astro";
-import ChurchIcon from "@/assets/ChurchIcon.astro";
-import type { ParishesResponse, Parish } from "@/types/parishes";
 
+// SERVICES
+import { getParishes } from "@/services/parishes";
+
+// TYPES
+import type { Parish } from "@/types/parishes";
+
+// ICONS
+import ChurchIcon from "@/assets/ChurchIcon.astro";
+
+// STATES
 let parishes: Parish[] = [];
 let error = false;
 
 try {
-  const response = await fetch("http://localhost:4321/api/parishes");
-  const result: ParishesResponse = await response.json();
-
-  if (result.success && result.data) {
-    parishes = result.data;
-  }
+  const parishess = await getParishes();
+  parishes = parishess;
 } catch (e) {
   error = true;
   console.error("Error fetching parishes:", e);
