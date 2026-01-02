@@ -97,15 +97,18 @@ import ModalDesign from "./ModalDesign.astro";
 
     // Función para abrir el modal en modo edición
     function openEditParishModal(parishData: any) {
+      console.log(parishData);
       isEditMode = true;
       if (modalTitle) modalTitle.textContent = "Editar Parroquia";
       if (submitButton) submitButton.textContent = "Actualizar";
 
+      const { id, name, tag, aka } = parishData;
+
       // Pre-llenar los campos
-      if (parishIdInput) parishIdInput.value = parishData.id;
-      if (parishNameInput) parishNameInput.value = parishData.name;
-      if (parishTagInput) parishTagInput.value = parishData.tag;
-      if (parishAkaInput) parishAkaInput.value = parishData.aka;
+      if (parishIdInput) parishIdInput.value = id;
+      if (parishNameInput) parishNameInput.value = name;
+      if (parishTagInput) parishTagInput.value = tag;
+      if (parishAkaInput) parishAkaInput.value = aka;
 
       modal?.classList.remove("hidden");
       document.body.style.overflow = "hidden";

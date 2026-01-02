@@ -108,6 +108,7 @@ CREATE TABLE casas_convivencia (
   capacity INT NOT NULL,
   has_ground_floor_rooms BOOLEAN DEFAULT FALSE,  -- Tiene habitaciones en planta baja
   has_baby_facilities BOOLEAN DEFAULT FALSE,     -- Tiene facilidades para bebés
+  aka VARCHAR(100) NOT NULL,
   description TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

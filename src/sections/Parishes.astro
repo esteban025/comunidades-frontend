@@ -11,6 +11,7 @@ import type { Parish } from "@/types/parishes";
 
 // ICONS
 import ChurchIcon from "@/assets/ChurchIcon.astro";
+import PencilIcon from "@/assets/PencilIcon.astro";
 
 // STATES
 let parishes: Parish[] = [];
@@ -57,6 +58,14 @@ try {
         >
           {parishes.map((parish) => (
             <BaseCard href={`/parishes/${parish.tag}`}>
+              <button
+                id="edit-parish-btn"
+                slot="btn-edit"
+                class="atn-btn edit-parish-btn"
+                data-parish={JSON.stringify(parish)}
+              >
+                <PencilIcon class="size-4 block" />
+              </button>
               <div class="flex flex-col gap-1 p-6 duration-200 group-hover:scale-[0.98]">
                 <h3 class="text-2xl font-semibold text-text-primary">
                   {parish.aka}
@@ -73,3 +82,27 @@ try {
     }
   </div>
 </SectionContainer>
+
+<script>
+  import { $$ } from "@/utils/selectElementsDom";
+  document.addEventListener("astro:page-load", () => {
+    const $btnsEdits = $$(".edit-parish-btn") as NodeListOf<HTMLButtonElement>;
+
+    if (!$btnsEdits) return;
+
+    $btnsEdits.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const parishRaw = btn.dataset.parish;
+        if (!parishRaw) return;
+
+        try {
+          const parish = JSON.parse(parishRaw);
+          (window as any).openEditParishModal(parish);
+        } catch (err) {
+          console.error("Error parseando data-parish", err);
+        }
+      });
+    });
+  });
+</script>

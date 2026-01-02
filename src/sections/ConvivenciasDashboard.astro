@@ -75,7 +75,7 @@ const groupedInvited = groupMarriagesForAttendance(invitedBrothers as any[]);
                       <div class="flex items-center justify-center gap-1">
                         <button
                           type="button"
-                          class="action-btn"
+                          class="atn-btn"
                           data-action="confirm"
                           data-brother-id={brother.brother_id}
                           data-is-marriage={
@@ -91,7 +91,7 @@ const groupedInvited = groupMarriagesForAttendance(invitedBrothers as any[]);
                         </button>
                         <button
                           type="button"
-                          class="action-btn"
+                          class="atn-btn"
                           data-action="uninvite"
                           data-brother-id={brother.brother_id}
                           data-is-marriage={
@@ -114,7 +114,11 @@ const groupedInvited = groupMarriagesForAttendance(invitedBrothers as any[]);
       }
     </section>
   </div>
-  <div class="btns-action" slot="footer-link">
+  <div
+    class="btns-action flex items-center justify-center gap-2"
+    slot="footer-link"
+  >
+    <button class="btn btn-secondary">Confirmar todos</button>
     <button
       class="btn btn-primary flex item gap-2"
       data-modal="invited-brother-btn"
