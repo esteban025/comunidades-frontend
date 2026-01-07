@@ -335,6 +335,7 @@ const parishes: Parish[] = await getParishes();
     Registrar Hermano
   </button>
 </ModalDesign>
+
 <style>
   .is-readonly {
     padding: 0.5rem;
@@ -667,16 +668,9 @@ const parishes: Parish[] = await getParishes();
     }
     function updateCivilIndicator() {
       if (!$civilIndicator) return;
-
-      let activeIndex = 0;
-      civilStatusRadios.forEach((radio, i) => {
-        const input = radio as HTMLInputElement;
-        if (input.checked) {
-          const dataIndex = (input as HTMLElement).dataset.index;
-          activeIndex = dataIndex ? parseInt(dataIndex) || i : i;
-        }
-      });
-
+      const radios = Array.from(civilStatusRadios);
+      const activeIndex = radios.findIndex((radio) => radio.checked);
+      if (activeIndex === -1) return;
       const translateValue = activeIndex * 100;
       $civilIndicator.style.transform = `translateX(${translateValue}%)`;
     }
@@ -1038,7 +1032,7 @@ const parishes: Parish[] = await getParishes();
       });
     }
 
-    updateCivilIndicator();
+    // updateCivilIndicator();
     (window as any).openBrotherchModal = openBrotherchModal;
     (window as any).openEditBrotherModal = openEditBrotherModal;
     (window as any).closeModalAddBrotherc = closeModalAddBrotherc;
