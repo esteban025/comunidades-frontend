@@ -30,7 +30,7 @@ export function formatConvivenciaRange(
   const mes = MESES[endDate.getMonth()];
   const anio = endDate.getFullYear();
 
-  return `${diaInicio} al ${diaFin} de ${mes} del ${anio}`;
+  return `Del ${diaInicio} al ${diaFin} de ${mes} del ${anio}`;
 }
 
 export function formatTodayLong(): string {
