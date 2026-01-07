@@ -72,6 +72,7 @@ const numComunidad = (first?.community_number as number | undefined) || 0;
 const fechaConvivencia = currentConv
   ? formatConvivenciaRange(currentConv.start_date, currentConv.end_date)
   : "";
+const nameConv = currentConv ? currentConv.name : "";
 ---
 
 <PrintByCommunity
@@ -79,5 +80,6 @@ const fechaConvivencia = currentConv
   parroquia={parroquia}
   numComunidad={numComunidad}
   fechaConvivencia={fechaConvivencia}
+  nameConv={nameConv}
   hermanos={hermanos}
 />

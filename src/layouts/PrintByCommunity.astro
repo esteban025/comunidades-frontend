@@ -6,6 +6,7 @@ interface Props {
   parroquia: string;
   numComunidad: number;
   fechaConvivencia: string;
+  nameConv: string;
   hermanos?: {
     tipo: string;
     nombres: string;
@@ -19,11 +20,12 @@ const {
   parroquia,
   numComunidad,
   fechaConvivencia,
+  nameConv,
   hermanos = [],
 } = Astro.props as Props;
 
 const hermanosAsistieron = hermanos;
-const COSTO_POR_PERSONA = 4.6;
+const COSTO_POR_PERSONA = 22.7;
 
 // Calcular asistentes y total
 const calcularAsistentesYTotal = () => {
@@ -100,10 +102,9 @@ const fechaHoy = formatTodayLong();
       <p class="mb-6">De mi consideración:</p>
 
       <p class="text-justify mb-6">
-        A través de la presente solicito cancelar el valor pendiente de la
-        convivencia de transmisión de responsables realizada del {
-          fechaConvivencia
-        }
+        A través de la presente solicito cancelar el valor pendiente de la {
+          nameConv
+        }, realizada del {fechaConvivencia}
         que deberá ser cancelado máximo en 15 días.
       </p>
 
@@ -143,7 +144,7 @@ const fechaHoy = formatTodayLong();
                         )}
                       </td>
                       <td class="border border-gray-300 px-4 py-2 text-right">
-                        ${valor.toFixed(2)}
+                        $ {valor.toFixed(2)}
                       </td>
                     </tr>
                   );

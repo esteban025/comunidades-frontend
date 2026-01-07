@@ -7,6 +7,7 @@ import {
 } from "@/services/convivencias";
 import { groupMarriagesForAttendance } from "@/utils/marriageGrouping";
 import { calculateAttendanceTotals } from "@/utils/attendanceTotals";
+import { formatConvivenciaRange } from "@/utils/formatDates";
 
 const { convivencias } = await getConvivenciasForDashboard();
 
@@ -99,7 +100,10 @@ function getTipoFromCivilStatus(status?: string | null): string {
 
             {/* TAREA: Obtener la fecha de la convivencia */}
             <span class="date text-sm text-text-muted">
-              Del 18 al 21 de diciembre, 2025
+              {formatConvivenciaRange(
+                currentConv.start_date,
+                currentConv.end_date,
+              )}
             </span>
           </div>
         )
@@ -385,8 +389,8 @@ function getTipoFromCivilStatus(status?: string | null): string {
 <style>
   @media print {
     table {
-      page-break-inside: auto;
-      break-inside: auto;
+      /* page-break-inside: auto; */
+      /* break-inside: auto; */
     }
 
     thead {
@@ -404,18 +408,18 @@ function getTipoFromCivilStatus(status?: string | null): string {
     }
 
     .container-table {
-      break-inside: avoid;
-      page-break-inside: avoid;
+      /* break-inside: avoid; */
+      /* page-break-inside: avoid; */
     }
 
     .print-keep-with-table {
-      break-inside: avoid;
-      page-break-inside: avoid;
+      /* break-inside: avoid; */
+      /* page-break-inside: avoid; */
     }
 
     .print-keep-with-table > header {
-      break-after: avoid;
-      page-break-after: avoid;
+      /* break-after: avoid; */
+      /* page-break-after: avoid; */
     }
   }
 </style>
