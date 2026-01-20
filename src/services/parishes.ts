@@ -30,14 +30,56 @@ interface Params {
   aka: string;
 }
 
-export const createParish = async (params: Params) => {
-  const { name, tag, aka } = params;
-  const insertQuery = 'INSERT INTO parishes (name, tag, aka) VALUES (?, ?, ?)';
-  const [result] = await db.query(insertQuery, [name, tag, aka]);
-  const insertId = (result as any).insertId;
+interface CreateParishResult {
+  success: boolean;
+  duplicated: boolean;
+  error: string | null;
+  parish?: Parish;
+}
 
-  const selectQuery = 'SELECT id, name, tag, aka FROM parishes WHERE id = ?';
-  const [rows] = await db.query(selectQuery, [insertId]);
-  const newParish = (rows as any[])[0];
-  return newParish;
+export const createParish = async (params: Params): Promise<CreateParishResult> => {
+  const { name, tag, aka } = params;
+
+  try {
+    // Comprobar si ya existe una parroquia con el mismo tag
+    const existing = await getParishByTag(tag);
+    if (existing.length > 0) {
+      return {
+        success: false,
+        duplicated: true,
+        error: null,
+      };
+    }
+
+    const insertQuery = "INSERT INTO parishes (name, tag, aka) VALUES (?, ?, ?)";
+    const [result] = await db.query(insertQuery, [name, tag, aka]);
+    const insertId = (result as any).insertId;
+
+    const selectQuery = "SELECT id, name, tag, aka FROM parishes WHERE id = ?";
+    const [rows] = await db.query(selectQuery, [insertId]);
+    const newParish = (rows as any[])[0] as Parish;
+
+    return {
+      success: true,
+      duplicated: false,
+      error: null,
+      parish: newParish,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      duplicated: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al crear la parroquia",
+    };
+  }
+};
+
+export const updateParish = async (id: number, data: Params) => {
+  const { name, tag, aka } = data
+  const query = `UPDATE parishes SET name = ?, tag = ?, aka = ? WHERE id = ?`
+  const [result] = await db.query(query, [name, tag, aka, id])
+  return result
 }

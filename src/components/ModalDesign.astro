@@ -1,13 +1,13 @@
 ---
 interface Props {
   id: string;
-  idForm?: string;
   title: string;
+  idForm?: string;
   isForm?: boolean;
   isBig?: boolean;
 }
 
-const { id, idForm, title, isForm = false, isBig = false } = Astro.props;
+const { id, title, idForm, isForm = false, isBig = false } = Astro.props;
 const widthContainer = isBig ? "max-w-[1000px]" : "max-w-[700px]";
 ---
 
