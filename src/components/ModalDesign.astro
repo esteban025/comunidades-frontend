@@ -1,13 +1,19 @@
 ---
+import type { Actions } from "astro:actions";
+
 interface Props {
   id: string;
   title: string;
-  idForm?: string;
   isForm?: boolean;
   isBig?: boolean;
+  formData?: {
+    idForm: string;
+    method?: "POST" | "GET" | "PUT" | "DELETE";
+    action?: Actions[keyof Actions];
+  };
 }
 
-const { id, title, idForm, isForm = false, isBig = false } = Astro.props;
+const { id, title, formData, isForm = false, isBig = false } = Astro.props;
 const widthContainer = isBig ? "max-w-[1000px]" : "max-w-[700px]";
 ---
 
@@ -41,7 +47,11 @@ const widthContainer = isBig ? "max-w-[1000px]" : "max-w-[700px]";
       {
         isForm ? (
           <div class="modal-body">
-            <form id={idForm}>
+            <form
+              id={formData?.idForm}
+              method={formData?.method}
+              action={formData?.action}
+            >
               <div class="p-6 flex flex-col gap-5 border-b-2 border-neutral-300 ">
                 <slot name="body" />
               </div>

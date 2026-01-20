@@ -24,11 +24,6 @@ export const getParishById = async (id: number): Promise<Parish[]> => {
 }
 
 // Crear una nueva parroquia
-interface Params {
-  name: string;
-  tag: string;
-  aka: string;
-}
 
 interface CreateParishResult {
   success: boolean;
@@ -37,7 +32,7 @@ interface CreateParishResult {
   parish?: Parish;
 }
 
-export const createParish = async (params: Params): Promise<CreateParishResult> => {
+export const createParish = async (params: Omit<Parish, "id">): Promise<CreateParishResult> => {
   const { name, tag, aka } = params;
 
   try {
@@ -77,7 +72,7 @@ export const createParish = async (params: Params): Promise<CreateParishResult> 
   }
 };
 
-export const updateParish = async (id: number, data: Params) => {
+export const updateParish = async (id: number, data: Omit<Parish, "id">) => {
   const { name, tag, aka } = data
   const query = `UPDATE parishes SET name = ?, tag = ?, aka = ? WHERE id = ?`
   const [result] = await db.query(query, [name, tag, aka, id])

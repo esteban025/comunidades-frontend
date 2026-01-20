@@ -1,53 +1,66 @@
 ---
-// Modal para agregar parroquia
 import ModalDesign from "./ModalDesign.astro";
+import { actions } from "astro:actions";
+
+const parishAct = actions.parishesAction;
+const formData = {
+  idForm: "modal-parish-form",
+  method: "POST" as const,
+  action: parishAct,
+};
 ---
 
 <ModalDesign
   id="modal-parish"
   title="Registrar Parroquia"
-  idForm="modal-parish-form"
   isForm={true}
+  formData={formData}
 >
   <div class="" slot="body">
-    <input type="hidden" name="parish-id" id="modal-parish-id" />
     <fieldset class="container-fieldset">
       <legend class="title-container">Información</legend>
+
+      <!-- name -->
       <div class="content-input">
-        <label for="modal-parish-name">Nombre Parroquia</label>
+        <label for="parish-name">Nombre Parroquia</label>
         <input
           type="text"
           name="parish-name"
-          id="modal-parish-name"
+          id="parish-name"
           placeholder="San Luis de Gonzaga"
           required
           autocomplete="off"
         />
       </div>
 
+      <!-- tag -->
       <div class="content-input">
-        <label for="modal-parish-tag">Etiqueta Parroquia</label>
+        <label for="parish-tag">Etiqueta Parroquia</label>
         <input
           type="text"
           name="parish-tag"
-          id="modal-parish-tag"
+          id="parish-tag"
           placeholder="SLG"
           required
           autocomplete="off"
         />
       </div>
 
+      <!-- aka -->
       <div class="content-input">
-        <label for="modal-parish-aka">Alias Parroquia</label>
+        <label for="parish-aka">Alias Parroquia</label>
         <input
           type="text"
           name="parish-aka"
-          id="modal-parish-aka"
+          id="parish-aka"
           placeholder="Quinta Chica"
           required
           autocomplete="off"
         />
       </div>
+
+      <!-- id para edit -->
+      <input type="hidden" name="parish-id" id="parish-id" />
     </fieldset>
   </div>
   <button
@@ -61,7 +74,7 @@ import ModalDesign from "./ModalDesign.astro";
   <button
     type="submit"
     class="btn btn-primary flex-1"
-    id="modal-parish-submit"
+    id="parish-submit"
     slot="footer"
   >
     Registrar
@@ -69,119 +82,86 @@ import ModalDesign from "./ModalDesign.astro";
 </ModalDesign>
 
 <script>
-  import { registerParish } from "@/scripts/registerParish";
+  import { actions } from "astro:actions";
   import { showNotification } from "@/scripts/notification";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
   import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const modal = $id("modal-parish");
+    const mdl = $id("modal-parish");
+    const mdlTitle = mdl?.querySelector("h2");
     const form = $id("modal-parish-form") as HTMLFormElement;
-    const modalTitle = modal?.querySelector("h2");
-    const submitButton = $id("modal-parish-submit") as HTMLButtonElement;
-    const parishIdInput = $id("modal-parish-id") as HTMLInputElement;
-    const parishNameInput = $id("modal-parish-name") as HTMLInputElement;
-    const parishTagInput = $id("modal-parish-tag") as HTMLInputElement;
-    const parishAkaInput = $id("modal-parish-aka") as HTMLInputElement;
+    const sbtBtn = $id("parish-submit") as HTMLButtonElement;
 
-    let isEditMode = false;
+    const inpParishName = $id("parish-name") as HTMLInputElement;
+    const inpParishTag = $id("parish-tag") as HTMLInputElement;
+    const inpParishAka = $id("parish-aka") as HTMLInputElement;
+    const inpParishId = $id("parish-id") as HTMLInputElement;
 
-    // Función para abrir el modal (crear)
     function openParishModal() {
-      isEditMode = false;
-      if (modalTitle) modalTitle.textContent = "Registrar Parroquia";
-      if (submitButton) submitButton.textContent = "Registrar";
-      modal?.classList.remove("hidden");
-      document.body.style.overflow = "hidden";
+      if (mdlTitle) mdlTitle.textContent = "Registrar Parroquia";
+      if (sbtBtn) sbtBtn.textContent = "Registrar";
+      form.reset();
+
+      mdl?.classList.remove("hidden");
     }
 
-    // Función para abrir el modal en modo edición
-    function openEditParishModal(parishData: any) {
-      console.log(parishData);
-      isEditMode = true;
-      if (modalTitle) modalTitle.textContent = "Editar Parroquia";
-      if (submitButton) submitButton.textContent = "Actualizar";
-
-      const { id, name, tag, aka } = parishData;
-
-      // Pre-llenar los campos
-      if (parishIdInput) parishIdInput.value = id;
-      if (parishNameInput) parishNameInput.value = name;
-      if (parishTagInput) parishTagInput.value = tag;
-      if (parishAkaInput) parishAkaInput.value = aka;
-
-      modal?.classList.remove("hidden");
-      document.body.style.overflow = "hidden";
-    }
-
-    // Función para cerrar el modal
     function closeParishModal() {
-      modal?.classList.add("hidden");
-      document.body.style.overflow = "";
-      form?.reset();
+      mdl?.classList.add("hidden");
+      form.reset();
+      if (inpParishId) inpParishId.value = "";
     }
 
-    setupModalCloseHandlers("modal-parish", () => {
-      closeParishModal();
+    function openEditParishModal(parish: {
+      id: number;
+      name: string;
+      tag: string;
+      aka: string;
+    }) {
+      if (mdlTitle) mdlTitle.textContent = "Editar Parroquia";
+      if (sbtBtn) sbtBtn.textContent = "Actualizar";
+
+      if (inpParishName) inpParishName.value = parish.name;
+      if (inpParishTag) inpParishTag.value = parish.tag;
+      if (inpParishAka) inpParishAka.value = parish.aka;
+      if (inpParishId) inpParishId.value = String(parish.id);
+
+      mdl?.classList.remove("hidden");
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const id = formData.get("parish-id");
+      const name = formData.get("parish-name") as string;
+      const tag = formData.get("parish-tag") as string;
+      const aka = formData.get("parish-aka") as string;
+      const info = id ? { id: Number(id), name, tag, aka } : { name, tag, aka };
+      const { data, error } = await actions.parishesAction(info);
+      const isEdit = Boolean(id);
+      if (error) {
+        showNotification(
+          isEdit
+            ? "Error al actualizar la parroquia."
+            : "Error al registrar la parroquia.",
+          "error",
+        );
+        closeParishModal();
+      } else {
+        closeParishModal();
+        showNotification(
+          isEdit
+            ? "Parroquia actualizada con éxito."
+            : "Parroquia registrada con éxito.",
+          "success",
+        );
+        form.reset();
+        window.dispatchEvent(new CustomEvent("parish:created"));
+      }
     });
 
-    // Manejar el envío del formulario
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    setupModalCloseHandlers("modal-parish", closeParishModal);
 
-        const formData = new FormData(form);
-        const submitBtn = form.querySelector(
-          'button[type="submit"]',
-        ) as HTMLButtonElement;
-
-        // Deshabilitar botón mientras se procesa
-        const originalText = submitBtn.textContent;
-        submitBtn.disabled = true;
-        submitBtn.textContent = isEditMode
-          ? "Actualizando..."
-          : "Registrando...";
-
-        const result = await registerParish(formData, isEditMode);
-
-        if (result.success) {
-          closeParishModal();
-          showNotification(
-            isEditMode
-              ? "¡Parroquia actualizada exitosamente!"
-              : "¡Parroquia registrada exitosamente!",
-            "success",
-            3000,
-          );
-
-          // Actualizar la lista sin recargar la página
-          if (typeof (window as any).refreshParishes === "function") {
-            await (window as any).refreshParishes();
-          } else {
-            setTimeout(() => {
-              window.location.href = "/#section-parishes";
-              window.location.reload();
-            }, 300);
-          }
-        } else {
-          showNotification(
-            result.error ||
-              (isEditMode
-                ? "Error al actualizar la parroquia"
-                : "Error al registrar la parroquia"),
-            "error",
-            5000,
-          );
-        }
-
-        // Rehabilitar botón
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText || "Registrar";
-      });
-    }
-
-    // Hacer las funciones disponibles globalmente
     (window as any).openParishModal = openParishModal;
     (window as any).openEditParishModal = openEditParishModal;
   });

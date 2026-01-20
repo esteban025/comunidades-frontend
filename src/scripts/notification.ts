@@ -1,9 +1,11 @@
+import { $id } from "@/utils/selectElementsDom";
+
 export function showNotification(
   message: string,
   type: "success" | "error" | "info" = "info",
-  duration: number = 4000
+  duration: number = 3000
 ) {
-  const notification = document.getElementById("notification") as HTMLDivElement;
+  const notification = $id("notification") as HTMLDivElement;
   const messageElement = notification?.querySelector(
     ".notification-message"
   ) as HTMLParagraphElement;
@@ -24,9 +26,7 @@ export function showNotification(
   // Ocultar después de la duración especificada
   setTimeout(() => {
     notification.classList.add("hide");
-    setTimeout(() => {
-      notification.classList.remove("show", "hide");
-      notification.classList.add("hidden");
-    }, 300);
+    notification.classList.remove("show", "hide");
+    notification.classList.add("hidden");
   }, duration);
 }

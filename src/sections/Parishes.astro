@@ -11,19 +11,7 @@ import type { Parish } from "@/types/parishes";
 
 // ICONS
 import ChurchIcon from "@/assets/ChurchIcon.astro";
-import PencilIcon from "@/assets/PencilIcon.astro";
-
-// STATES
-let parishes: Parish[] = [];
-let error = false;
-
-try {
-  const parishess = await getParishes();
-  parishes = parishess;
-} catch (e) {
-  error = true;
-  console.error("Error fetching parishes:", e);
-}
+import { ViewParishes } from "@/components/ViewParishes";
 ---
 
 <SectionContainer
@@ -35,51 +23,8 @@ try {
   <div class="icon-title block" slot="icon-title">
     <ChurchIcon class="w-8 aspect-square block text-gray-500" />
   </div>
-  <div id="parishes-container" slot="body">
-    {
-      error ? (
-        <div class="bg-gray-100 border border-gray-300 rounded-full px-6 py-4 text-center text-gray-600">
-          Error al cargar las parroquias
-        </div>
-      ) : parishes.length === 0 ? (
-        <div class="text-center py-12 bg-white rounded-2xl overflow-hidden border border-gray-300 shadow-lg">
-          <div class="text-6xl mb-4">📭</div>
-          <h3 class="text-xl font-semibold text-neutral-700 mb-2">
-            No hay parroquias registradas aún
-          </h3>
-          <p class="text-neutral-600">
-            Agrega nuevas parroquias para comenzar a gestionar las comunidades.
-          </p>
-        </div>
-      ) : (
-        <div
-          id="parishes-grid"
-          class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]"
-        >
-          {parishes.map((parish) => (
-            <BaseCard href={`/parishes/${parish.tag}`}>
-              <button
-                id="edit-parish-btn"
-                slot="btn-edit"
-                class="atn-btn edit-parish-btn"
-                data-parish={JSON.stringify(parish)}
-              >
-                <PencilIcon class="size-4 block" />
-              </button>
-              <div class="flex flex-col gap-1 p-6 duration-200 group-hover:scale-[0.98]">
-                <h3 class="text-2xl font-semibold text-text-primary">
-                  {parish.aka}
-                </h3>
-                <span class="text-sm mb-4 text-text-muted">{parish.name}</span>
-                <span class="tag-others role-tag text-sm w-max">
-                  {parish.tag}
-                </span>
-              </div>
-            </BaseCard>
-          ))}
-        </div>
-      )
-    }
+  <div class="parishes-view" slot="body">
+    <ViewParishes client:load />
   </div>
 </SectionContainer>
 

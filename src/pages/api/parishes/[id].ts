@@ -75,7 +75,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
   }
 };
 
-// DELETE - Eliminar una parroquia
+// DELETE - Eliminar una parroquia (y sus comunidades asociadas)
 export const DELETE: APIRoute = async ({ params }) => {
   try {
     const { id } = params;
@@ -90,23 +90,8 @@ export const DELETE: APIRoute = async ({ params }) => {
       });
     }
 
-    // Verificar si la parroquia tiene comunidades asociadas
-    const [communities] = await db.query(
-      'SELECT COUNT(*) as count FROM communities WHERE parish_id = ?',
-      [id]
-    );
-
-    const communityCount = (communities as any[])[0].count;
-
-    if (communityCount > 0) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: `No se puede eliminar la parroquia porque tiene ${communityCount} comunidad(es) asociada(s)`
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    // Eliminar comunidades asociadas a la parroquia
+    await db.query('DELETE FROM communities WHERE parish_id = ?', [id]);
 
     // Eliminar la parroquia
     await db.query('DELETE FROM parishes WHERE id = ?', [id]);
