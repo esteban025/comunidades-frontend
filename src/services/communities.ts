@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import type { CommunityById, CommunityByIdParish, ResponsablesByCommunity } from "@/types/community"
+import type { Community, CommunityById, CommunityByIdParish, ResponsablesByCommunity } from "@/types/community"
 import type { Brothers } from "@/types/brothers";
 
 export const getCommunityByIdParis = async (id: number) => {
@@ -8,16 +8,31 @@ export const getCommunityByIdParis = async (id: number) => {
       c.id,
       c.number_community,
       c.level_paso,
-      COUNT(DISTINCT b.id) as brothers_count
+      COUNT(DISTINCT b.id) as brothers_count,
+      GROUP_CONCAT(
+        DISTINCT CASE 
+          WHEN br_roles.role = 'responsable' THEN b_resp.names 
+        END 
+        ORDER BY b_resp.id 
+        SEPARATOR ', '
+      ) as responsables
     FROM communities c
-    LEFT JOIN brothers b ON c.id = b.community_id
+    LEFT JOIN brothers b ON b.community_id = c.id
+    LEFT JOIN brother_roles br_roles ON br_roles.community_id = c.id AND br_roles.role = 'responsable'
+    LEFT JOIN brothers b_resp ON b_resp.id = br_roles.brother_id
     WHERE c.parish_id = ?
     GROUP BY c.id, c.number_community, c.level_paso
-    ORDER BY c.number_community ASC
+    ORDER BY c.number_community;
   `
   const [rows] = await db.query(query, [id])
   const data: CommunityByIdParish[] = rows as CommunityByIdParish[]
-  return data
+  const formattedData = data.map((comm) => {
+    return {
+      ...comm,
+      responsables: comm.responsables ? comm.responsables.split(", ")[0] : null,
+    }
+  })
+  return formattedData
 }
 
 export interface CommunityWithResponsable extends CommunityByIdParish {
@@ -227,4 +242,35 @@ export const getCommByIdPlusResponsables = async (communityId: string) => {
   const [rows] = await db.query(query, [communityId])
   const data = (rows as any[])[0] ?? null
   return data
+}
+
+
+// === NUEVAS FUNCIONALIDADES PARA COMUNIDADES ===
+export const createCommunity = async (data: Omit<Community, "id">) => {
+  const { number_community, level_paso, parish_id } = data
+  const query = `
+    INSERT INTO communities (number_community, level_paso, parish_id)
+    VALUES (?, ?, ?)
+  `
+  const [results] = await db.query(query, [
+    number_community,
+    level_paso,
+    parish_id,
+  ])
+  return results
+}
+
+export const upadateCommunity = async (id: number, data: Omit<Community, "id">) => {
+  const { number_community, level_paso, parish_id } = data
+  const query = `
+    UPDATE communities SET number_community = ?, level_paso = ?, parish_id = ? WHERE id = ?
+  `
+  const [results] = await db.query(query, [
+    number_community,
+    level_paso,
+    parish_id,
+    id,
+  ])
+  return results
+
 }

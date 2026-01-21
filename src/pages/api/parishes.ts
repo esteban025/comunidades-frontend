@@ -36,7 +36,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (contentType && contentType.includes('application/json')) {
       const text = await request.text();
-      console.log('Body raw:', text);
 
       if (!text || text.trim() === '') {
         return new Response(JSON.stringify({

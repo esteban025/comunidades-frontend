@@ -495,7 +495,6 @@ const parishes: Parish[] = await getParishes();
           });
 
           const result = await res.json();
-          console.log("[ModalAddConvivencia] Respuesta:", result);
 
           if (result.success) {
             closeParishModal();

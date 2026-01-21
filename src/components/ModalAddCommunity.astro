@@ -1,6 +1,14 @@
 ---
+import { actions } from "astro:actions";
 import ModalDesign from "./ModalDesign.astro";
 import { pasosListaPlana } from "@/datos/pasos-list";
+
+const action = actions.communitiesAction;
+const formData = {
+  idForm: "form-add-community",
+  method: "POST" as const,
+  action: "/api/communities",
+};
 ---
 
 <ModalDesign

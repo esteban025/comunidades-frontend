@@ -1,8 +1,12 @@
-export interface CommunityByIdParish {
-  id: number,
-  number_community: number,
-  level_paso: string | null,
+export interface Community {
+  id: number;
+  number_community: number;
+  level_paso: string | null;
+  parish_id: number;
+}
+export interface CommunityByIdParish extends Community {
   brothers_count: number
+  responsables: string | null;
 }
 
 export interface ResponsablesByCommunity {
@@ -10,10 +14,7 @@ export interface ResponsablesByCommunity {
   responsable_name: string;
 }
 
-export interface CommunityById {
-  id: number,
-  number_community: number;
-  level_paso: string;
+export interface CommunityById extends Community {
   parish_name: string;
   parish_aka: string;
   total_brothers: number;

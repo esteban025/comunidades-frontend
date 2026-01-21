@@ -60,7 +60,7 @@ export const ViewParishes = () => {
       console.warn("openEditParishModal no está disponible en window")
     }
   }
-  const handleDeleteParish = async (parish: Parish) => {
+  const handleDeleteParish = async (id: number) => {
     const confirmDelete = window.confirm(
       "Esta parroquia se eliminará junto con todas sus comunidades internas que existan. ¿Deseas continuar?"
     )
@@ -68,7 +68,7 @@ export const ViewParishes = () => {
     if (!confirmDelete) return
 
     try {
-      const response = await fetch(`/api/parishes/${parish.id}`, {
+      const response = await fetch(`/api/parishes/${id}`, {
         method: "DELETE",
       })
 
@@ -79,7 +79,7 @@ export const ViewParishes = () => {
         return
       }
 
-      setParishes((prev) => prev.filter((p) => p.id !== parish.id))
+      setParishes((prev) => prev.filter((p) => p.id !== id))
       showNotification(
         "Parroquia eliminada exitosamente.",
         "success"
@@ -103,7 +103,7 @@ export const ViewParishes = () => {
         parishes.map((parish) => (
           <div className="card relative group" key={parish.id}>
             <div className="group-hover:scale-95 transition-transform duration-300 ease-in-out">
-              <a href={`/parishes/${parish.tag}`} className="p-4 rounded-xl border border-gray-300 shadow-sm hover:shadow-lg transition-shadow duration-200 ease-in-out block">
+              <a href={`/parishes/${parish.id}`} className="p-4 rounded-xl border border-gray-300 shadow-sm hover:shadow-lg transition-shadow duration-200 ease-in-out block">
                 <h2 className="text-xl font-semibold">{parish.name}</h2>
                 <p className="text-description text-sm ">{parish.aka}</p>
                 <span className="rounded-full px-2 py-1 border-2 border-neutral-400 text-neutral-400 mt-4 block w-min">{parish.tag}</span>
@@ -120,7 +120,7 @@ export const ViewParishes = () => {
               <button
                 className="atn-btn"
                 title="Eliminar Parroquia"
-                onClick={() => handleDeleteParish(parish)}
+                onClick={() => handleDeleteParish(parish.id)}
               >
                 <TrashIcon className="size-5 text-red-400 hover:text-red-600" />
               </button>

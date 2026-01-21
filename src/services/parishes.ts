@@ -3,7 +3,7 @@ import type { Parish } from "@/types/parishes";
 
 // Obtener todas las parroquias
 export const getParishes = async (): Promise<Parish[]> => {
-  const query = "SELECT * FROM parishes ORDER BY name ASC";
+  const query = "SELECT * FROM parishes ORDER BY id ASC";
   const [rows] = await db.query(query)
   const data: Parish[] = rows as Parish[];
   return data;

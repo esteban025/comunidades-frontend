@@ -37,7 +37,6 @@ export const GET: APIRoute = async ({ request }) => {
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    console.log('Body recibido:', body);
 
     const {
       civil_status,

@@ -1,0 +1,22 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import SectionContainer from "@/components/SectionContainer.astro";
+import NavbarComm from "@/components/NavbarComm.astro";
+
+import { ViewCommunities } from "@/components/ViewCommunities";
+
+const { id } = Astro.params;
+---
+
+<Layout>
+  <SectionContainer
+    title=""
+    description={`Comunidades pertenecientes a esta parroquia.`}
+    transition:name="parishes-section"
+  >
+    <NavbarComm slot="nav-links" id={id} />
+    <div class="ss" slot="body">
+      <ViewCommunities id={id || ""} client:load />
+    </div>
+  </SectionContainer>
+</Layout>

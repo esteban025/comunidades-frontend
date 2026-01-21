@@ -23,7 +23,6 @@ try {
   const communityss = await getDataGroupResponsables(id);
 
   community = { ...dataCommunity[0], ...communityss };
-  console.log(community);
 } catch (e) {
   console.error("Error en /view-community/[id]:", e);
   error = "Error al cargar los datos";

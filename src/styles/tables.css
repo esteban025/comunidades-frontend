@@ -41,6 +41,7 @@
 
       & tr {
         transition: background-color 0.2s ease;
+        cursor: pointer;
         
         &:nth-child(even) {
           background-color: var(--color-gray-100);
