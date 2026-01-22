@@ -1,26 +1,33 @@
 ---
+import NavbarPage from "./NavbarPage.astro";
 import PlusIcon from "@/assets/PLusIcon.astro";
 import ConfigIcon from "@/assets/ConfigIcon.astro";
 
 const { id } = Astro.props;
 ---
 
-<div class="flex gap-2 items-center">
-  <!-- el id solicitado es para agregar la comunidad en esa parroquia -->
-  <button
-    id="btn-add-comm"
-    data-parish-id={id}
-    class="btn btn-primary flex items-center justify-center gap-2"
-  >
-    <PlusIcon class="size-4 block" />
-    <span class="truncate">Agregar Comunidad</span>
-  </button>
-  <button
-    onclick="openManageCommunitiesModal()"
-    slot="nav-links"
-    class="btn btn-secondary flex items-center gap-2"
-  >
-    <ConfigIcon class="size-4 block" />
-    <span class="truncate">Fusion/Reorganizar</span>
-  </button>
-</div>
+<NavbarPage
+  {...Astro.props}
+  title="Gestión de Comunidades"
+  description="Desde aquí puedes agregar nuevas comunidades o gestionar las existentes."
+>
+  <div class="flex gap-2 items-center" slot="actions">
+    <!-- el id solicitado es para agregar la comunidad en esa parroquia -->
+    <button
+      id="btn-add-comm"
+      data-parish-id={id}
+      class="btn btn-primary flex items-center justify-center gap-2"
+    >
+      <PlusIcon class="size-4 block" />
+      <span class="truncate">Agregar Comunidad</span>
+    </button>
+    <button
+      onclick="openManageCommunitiesModal()"
+      slot="nav-links"
+      class="btn btn-secondary flex items-center gap-2"
+    >
+      <ConfigIcon class="size-4 block" />
+      <span class="truncate">Fusion/Reorganizar</span>
+    </button>
+  </div>
+</NavbarPage>

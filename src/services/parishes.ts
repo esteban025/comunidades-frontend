@@ -42,7 +42,7 @@ export const createParish = async (params: Omit<Parish, "id">): Promise<CreatePa
       return {
         success: false,
         duplicated: true,
-        error: null,
+        error: "Ya existe una parroquia con este tag",
       };
     }
 

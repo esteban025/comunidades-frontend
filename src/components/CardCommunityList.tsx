@@ -8,8 +8,32 @@ interface Props {
     nameResponsible: string;
     pairsOrImpares: string;
   };
+  // handleEdit?: (id: number) => void;
+  handleDelete?: (id: number) => void;
 }
 export const CardCommunityList = ({ filteredCommunities, filters }: Props) => {
+
+  const handleDelete = async (id: number) => {
+    const confirmDelete = confirm(`Eliminar comunidad con ID: ${id}`);
+
+    if (!confirmDelete) return
+
+    try {
+      const res = await fetch(`/api/communities/${id}`, {
+        method: "DELETE",
+      });
+      const result = await res.json()
+      if (!result.ok || !result.success) {
+        alert("Hubo un fallo al eliminar la comunidad.");
+        return;
+      }
+    } catch (error) {
+      const msg = `error: ${error}`;
+      alert(msg);
+    }
+
+
+  }
   return (
     <div
       key={`${filters.numberCommunity}-${filters.nameResponsible}-${filters.pairsOrImpares}`}
@@ -48,6 +72,7 @@ export const CardCommunityList = ({ filteredCommunities, filters }: Props) => {
             <button
               className="atn-btn"
               title="Eliminar Parroquia"
+              onClick={() => handleDelete(id)}
             >
               <TrashIcon className="size-5 text-red-400 hover:text-red-600" />
             </button>

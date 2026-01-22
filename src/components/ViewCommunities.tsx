@@ -45,7 +45,16 @@ export const ViewCommunities = ({ id }: { id: string }) => {
 
     fetchCommunities();
 
-  }, [id])
+    const handleCommunityCreated = () => {
+      fetchCommunities();
+    }
+    window.addEventListener("community:created", handleCommunityCreated);
+
+    return () => {
+      window.removeEventListener("community:created", handleCommunityCreated);
+    }
+
+  }, [])
   const filteredCommunities = communities.filter((community) => {
     const { numberCommunity, nameResponsible, pairsOrImpares } = filters;
 

@@ -1,0 +1,42 @@
+---
+import PairsIcon from "@/assets/PairsIcon.astro";
+import SectionContainer from "@/components/SectionContainer.astro";
+import { ViewCommunities } from "@/components/ViewCommunities";
+import { getParishById } from "@/services/parishes";
+
+const { parishId } = Astro.props;
+
+const nameParish = await getParishById(Number(parishId));
+const titlePage = nameParish
+  ? `Parroquia "${nameParish[0].name}"`
+  : "Parroquia no encontrada";
+---
+
+<SectionContainer
+  title={titlePage}
+  description="Comunidades pertenecientes a la parroquia seleccionada"
+  transition:name="parishes-section"
+>
+  <div class="ss" slot="icon-title">
+    <PairsIcon class="size-8 block text-gray-500" />
+  </div>
+  <div class="ss" slot="body">
+    <ViewCommunities id={parishId || ""} client:load />
+  </div>
+</SectionContainer>
+
+<script>
+  import { $id } from "@/utils/selectElementsDom";
+
+  document.addEventListener("astro:page-load", () => {
+    const btnAddComm = $id("btn-add-comm") as HTMLButtonElement;
+    if (!btnAddComm) return;
+
+    btnAddComm.addEventListener("click", (e) => {
+      e.preventDefault();
+      const parishId = btnAddComm.dataset.parishId;
+      if (!parishId) return;
+      (window as any).openModalAddComm(parishId);
+    });
+  });
+</script>

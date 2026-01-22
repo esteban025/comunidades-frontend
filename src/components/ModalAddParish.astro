@@ -92,6 +92,7 @@ const formData = {
   import { showNotification } from "@/scripts/notification";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
   import { $id } from "@/utils/selectElementsDom";
+  import type { Parish } from "@/types/parishes";
 
   document.addEventListener("astro:page-load", () => {
     const mdl = $id("modal-parish");
@@ -106,11 +107,14 @@ const formData = {
 
     const msgErrr = $id("message-error-parish") as HTMLParagraphElement;
 
-    function openParishModal() {
-      if (mdlTitle) mdlTitle.textContent = "Registrar Parroquia";
-      if (sbtBtn) sbtBtn.textContent = "Registrar";
+    function textModal(title: string, submitBtnText: string) {
+      if (mdlTitle) mdlTitle.textContent = title;
+      if (sbtBtn) sbtBtn.textContent = submitBtnText;
       form.reset();
+    }
 
+    function openParishModal() {
+      textModal("Registrar Parroquia", "Registrar");
       mdl?.classList.remove("hidden");
     }
 
@@ -120,19 +124,15 @@ const formData = {
       if (inpParishId) inpParishId.value = "";
     }
 
-    function openEditParishModal(parish: {
-      id: number;
-      name: string;
-      tag: string;
-      aka: string;
-    }) {
-      if (mdlTitle) mdlTitle.textContent = "Editar Parroquia";
-      if (sbtBtn) sbtBtn.textContent = "Actualizar";
+    function openEditParishModal(parish: Parish) {
+      textModal("Editar Parroquia", "Actualizar");
+      if (!inpParishName || !inpParishTag || !inpParishAka || !inpParishId)
+        return;
 
-      if (inpParishName) inpParishName.value = parish.name;
-      if (inpParishTag) inpParishTag.value = parish.tag;
-      if (inpParishAka) inpParishAka.value = parish.aka;
-      if (inpParishId) inpParishId.value = String(parish.id);
+      inpParishName.value = parish.name;
+      inpParishTag.value = parish.tag;
+      inpParishAka.value = parish.aka;
+      inpParishId.value = String(parish.id);
 
       mdl?.classList.remove("hidden");
     }

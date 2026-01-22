@@ -247,30 +247,35 @@ export const getCommByIdPlusResponsables = async (communityId: string) => {
 
 // === NUEVAS FUNCIONALIDADES PARA COMUNIDADES ===
 export const createCommunity = async (data: Omit<Community, "id">) => {
-  const { number_community, level_paso, parish_id } = data
+  const { number_community, level_paso, parish_id } = data;
+
   const query = `
     INSERT INTO communities (number_community, level_paso, parish_id)
     VALUES (?, ?, ?)
-  `
+  `;
+
   const [results] = await db.query(query, [
     number_community,
     level_paso,
     parish_id,
-  ])
-  return results
-}
+  ]);
 
-export const upadateCommunity = async (id: number, data: Omit<Community, "id">) => {
-  const { number_community, level_paso, parish_id } = data
+  return results;
+};
+
+export const updateCommunity = async (id: number, data: Omit<Community, "id">) => {
+  const { number_community, level_paso, parish_id } = data;
+
   const query = `
     UPDATE communities SET number_community = ?, level_paso = ?, parish_id = ? WHERE id = ?
-  `
+  `;
+
   const [results] = await db.query(query, [
     number_community,
     level_paso,
     parish_id,
     id,
-  ])
-  return results
+  ]);
 
-}
+  return results;
+};
