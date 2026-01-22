@@ -1,5 +1,4 @@
 import type { APIRoute } from "astro";
-import { db } from "@/lib/db";
 import { getCommunityByIdParis } from "@/services/communities";
 
 export const GET: APIRoute = async ({ params }) => {
@@ -14,6 +13,7 @@ export const GET: APIRoute = async ({ params }) => {
 
   try {
     const communities = await getCommunityByIdParis(Number(parishId));
+    console.log(communities);
     return new Response(
       JSON.stringify({ success: true, data: communities }),
       { status: 200, headers: { "Content-Type": "application/json" } }

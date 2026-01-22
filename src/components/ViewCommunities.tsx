@@ -6,7 +6,7 @@ import { CardCommunityList } from "./CardCommunityList";
 import { showNotification } from "@/scripts/notification";
 
 
-export const ViewCommunities = ({ id }: { id: string }) => {
+export const ViewCommunities = ({ parishId }: { parishId: string }) => {
   const [communities, setCommunities] = useState<CommunityByIdParish[]>([]);
   const [filters, setFilters] = useState({
     numberCommunity: "",
@@ -20,7 +20,7 @@ export const ViewCommunities = ({ id }: { id: string }) => {
     // Lógica para obtener y mostrar las comunidades
     const fetchCommunities = async () => {
       try {
-        const response = await fetch(`/api/communities-by-parish/${id}`);
+        const response = await fetch(`/api/communities-by-parish/${parishId}`);
         if (!response.ok) {
           setError("Hubo un fallo al obtener las comunidades.");
           setLoading(false);
@@ -57,7 +57,7 @@ export const ViewCommunities = ({ id }: { id: string }) => {
       window.removeEventListener("community:created", handleCommunityCreated);
     };
 
-  }, [id]);
+  }, [parishId]);
 
   const filteredCommunities = communities.filter((community) => {
     const { numberCommunity, nameResponsible, pairsOrImpares } = filters;
@@ -81,14 +81,14 @@ export const ViewCommunities = ({ id }: { id: string }) => {
     return matchesNumber && matchesName && matchesParity;
   });
 
-  const detailsCommunity = (id: number) => {
-    const community = filteredCommunities.find((comm) => comm.id === id);
+  const detailsCommunity = (idComm: number) => {
+    const community = filteredCommunities.find((comm) => comm.id === idComm);
     if (!community) return "Comunidad no encontrada";
     const { number_community, brothers_count } = community;
     return `N° ${number_community} - Hermanos: ${brothers_count}`;
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteComm = async (id: number) => {
     const data = detailsCommunity(id)
     const confirmDelete = confirm(`Eliminar comunidad: ${data}, Se eliminara absolutamente toda su informacion relacionada. ¿Desea continuar?`);
 
@@ -115,6 +115,16 @@ export const ViewCommunities = ({ id }: { id: string }) => {
 
 
   }
+
+  const handleEditComm = (e: React.MouseEvent<HTMLButtonElement>, comm: CommunityByIdParish) => {
+    e.preventDefault()
+    const anyWindow = window as any
+    if (typeof anyWindow.openEditModalComm === "function") {
+      anyWindow.openEditModalComm(parishId, comm)
+    } else {
+      console.warn("openEditModalComm no está disponible en window")
+    }
+  }
   return (
     <div className="flex flex-col gap-6">
       <FilterList filters={filters} onChange={setFilters} />
@@ -134,7 +144,8 @@ export const ViewCommunities = ({ id }: { id: string }) => {
                 key={comm.id}
                 filteredCommunities={[comm]}
                 filters={filters}
-                handleDelete={() => handleDelete(comm.id)}
+                functionEditComm={(e) => handleEditComm(e, comm)}
+                functionDeleteComm={() => handleDeleteComm(comm.id)}
               />
             ))
           }

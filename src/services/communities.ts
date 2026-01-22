@@ -25,7 +25,7 @@ export const getCommunityByIdParis = async (id: number) => {
     ORDER BY c.number_community;
   `
   const [rows] = await db.query(query, [id])
-  const data: CommunityByIdParish[] = rows as CommunityByIdParish[]
+  const data: Omit<CommunityByIdParish, "parish_id">[] = rows as Omit<CommunityByIdParish, "parish_id">[]
   const formattedData = data.map((comm) => {
     return {
       ...comm,

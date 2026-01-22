@@ -2,16 +2,17 @@ import type { CommunityByIdParish } from "@/types/community";
 import { EditIcon, TrashIcon } from "./iconsForReact"
 
 interface Props {
-  filteredCommunities: Omit<CommunityByIdParish, 'parish_id'>[];
+  filteredCommunities: CommunityByIdParish[];
   filters: {
     numberCommunity: string;
     nameResponsible: string;
     pairsOrImpares: string;
   };
   // handleEdit?: (id: number) => void;
-  handleDelete?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  functionEditComm?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  functionDeleteComm?: () => void;
 }
-export const CardCommunityList = ({ filteredCommunities, filters, handleDelete }: Props) => {
+export const CardCommunityList = ({ filteredCommunities, filters, functionDeleteComm, functionEditComm }: Props) => {
   return (
     <div
       key={`${filters.numberCommunity}-${filters.nameResponsible}-${filters.pairsOrImpares}`}
@@ -27,7 +28,7 @@ export const CardCommunityList = ({ filteredCommunities, filters, handleDelete }
             <a href={`/details-community/${id}`} className="p-4 rounded-xl border border-gray-300 shadow-sm hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col gap-2 h-full w-full cursor-pointer">
               <header className="text-left flex justify-between ">
                 <div>
-                  <h2 className="text-xl font-semibold truncate">{responsables}</h2>
+                  <h2 className="text-xl font-semibold truncate">{responsables ?? "Responsable no asignado"}</h2>
                   <p className="text-description text-sm">{level_paso}</p>
                 </div>
                 <span className="size-10 bg-neutral-800 text-neutral-50 rounded-full flex justify-center items-center font-semibold">{number_community}</span>
@@ -44,13 +45,14 @@ export const CardCommunityList = ({ filteredCommunities, filters, handleDelete }
             <button
               className="edit-parish-btn atn-btn"
               title="Editar Parroquia"
+              onClick={functionEditComm}
             >
               <EditIcon className="size-5" />
             </button>
             <button
               className="atn-btn"
               title="Eliminar Parroquia"
-              onClick={handleDelete}
+              onClick={functionDeleteComm}
             >
               <TrashIcon className="size-5 text-red-400 hover:text-red-600" />
             </button>

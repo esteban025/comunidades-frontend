@@ -85,7 +85,7 @@ const formData = {
   import { $id } from "@/utils/selectElementsDom";
   import { setupModalCloseHandlers } from "@/scripts/modalClose";
   import { showNotification } from "@/scripts/notification";
-  import type { Community } from "@/types/community";
+  import type { CommunityByIdParish } from "@/types/community";
 
   document.addEventListener("astro:page-load", () => {
     const form = $id("form-add-community") as HTMLFormElement;
@@ -117,13 +117,15 @@ const formData = {
       if (inpParishId) inpParishId.value = parishId;
     }
 
-    function openEditModalComm(comm: Community) {
+    function openEditModalComm(parishId: string, comm: CommunityByIdParish) {
+      console.log(comm);
       textModal("Editar Comunidad", "Guardar");
       if (!inpCommId || !inpNumberComm || !inpParishId || !inpLevelComm) return;
       inpCommId.value = String(comm.id);
       inpNumberComm.value = String(comm.number_community);
       inpLevelComm.value = comm.level_paso ?? "";
-      inpParishId.value = String(comm.parish_id);
+      inpParishId.value = parishId;
+      mdl?.classList.remove("hidden");
     }
 
     form.addEventListener("submit", async (e) => {

@@ -21,7 +21,7 @@ const titlePage = nameParish
     <PairsIcon class="size-8 block text-gray-500" />
   </div>
   <div class="ss" slot="body">
-    <ViewCommunities id={parishId || ""} client:load />
+    <ViewCommunities parishId={parishId || ""} client:load />
   </div>
 </SectionContainer>
 
