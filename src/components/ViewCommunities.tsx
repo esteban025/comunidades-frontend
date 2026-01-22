@@ -66,17 +66,8 @@ export const ViewCommunities = ({ id }: { id: string }) => {
 
     return matchesNumber && matchesName && matchesParity;
   });
-  const handleOpenCommunityDetails = (communityId: number) => {
-    // abrimos la funcion openViewCommunityModal para la modal
-    const anyWindow = window as any;
-    if (typeof anyWindow.openViewCommunityModal === "function") {
-      anyWindow.openViewCommunityModal(communityId);
-    } else {
-      console.warn("openViewCommunityModal no está disponible en window");
-    }
-  }
   return (
-    <div className="ss">
+    <div className="flex flex-col gap-6">
       <FilterList filters={filters} onChange={setFilters} />
       {loading && <p>Cargando comunidades...</p>}
       {error && <p className="bg-red-50/50 text-red-500 p-3 py-6 w-full rounded-xl border text-center border-dashed">{error}</p>}
@@ -84,10 +75,10 @@ export const ViewCommunities = ({ id }: { id: string }) => {
         <div className="content-cards grid gap-6 grid-cols-1">
           {filteredCommunities.map(({ id, level_paso, number_community, brothers_count, responsables }) => (
             <div className="card relative group h-full" key={id}>
-              <div className="group-hover:scale-95 transition-transform duration-300 ease-in-out h-full">
-                <button onClick={() => handleOpenCommunityDetails(id)} className="p-4 rounded-xl border border-gray-300 shadow-sm hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col gap-2 h-full w-full cursor-pointer">
+              <div className="group-hover:scale-[98%] transition-transform duration-300 ease-in-out h-full">
+                <a href={`/details-community/${id}`} className="p-4 rounded-xl border border-gray-300 shadow-sm hover:shadow-lg transition-shadow duration-200 ease-in-out flex flex-col gap-2 h-full w-full cursor-pointer">
                   <header className="text-left flex justify-between ">
-                    <div className="ss">
+                    <div>
                       <h2 className="text-xl font-semibold truncate">{responsables}</h2>
                       <p className="text-description text-sm">{level_paso}</p>
                     </div>
@@ -99,9 +90,9 @@ export const ViewCommunities = ({ id }: { id: string }) => {
                       <span className="text-xs ml-2">Hermanos</span>
                     </span>
                   </footer>
-                </button>
+                </a>
               </div>
-              <div className="absolute bottom-3 right-0 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out flex gap-2 group-hover:right-11 ">
+              <div className="absolute bottom-3 right-0 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out flex gap-2 group-hover:right-7 ">
                 <button
                   className="edit-parish-btn atn-btn"
                   title="Editar Parroquia"

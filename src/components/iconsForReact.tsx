@@ -28,3 +28,61 @@ export const TrashIcon = ({ className }: { className?: string }) => (
       d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
   </svg>
 )
+export const SearchIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+  </svg>
+
+)
+export const PlusIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  ><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"
+  ></path><path d="M5 12l14 0"></path>
+  </svg>
+)
+export const RefreshIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  ><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path
+    d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path><path
+      d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+  </svg>
+)
+
+export const ArrowShortIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M15 19l-7-7 7-7"></path>
+  </svg>
+
+)

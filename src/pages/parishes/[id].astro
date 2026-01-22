@@ -4,13 +4,18 @@ import SectionContainer from "@/components/SectionContainer.astro";
 import NavbarComm from "@/components/NavbarComm.astro";
 
 import { ViewCommunities } from "@/components/ViewCommunities";
+import { getParishById } from "@/services/parishes";
 
 const { id } = Astro.params;
+const nameParish = await getParishById(Number(id));
+const titlePage = nameParish
+  ? `Parroquia "${nameParish[0].name}"`
+  : "Parroquia no encontrada";
 ---
 
 <Layout>
   <SectionContainer
-    title=""
+    title={titlePage}
     description={`Comunidades pertenecientes a esta parroquia.`}
     transition:name="parishes-section"
   >

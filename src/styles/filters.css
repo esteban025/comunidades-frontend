@@ -1,0 +1,27 @@
+.search-input {
+  padding: 0.75rem 3rem 0.75rem 3rem;
+  border: 2px solid var(--color-border-light);
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  color: #374151;
+  background: white;
+  transition: all 0.2s ease;
+  outline: none;
+
+  &:focus {
+    border-color: var(--color-border-dark);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--color-text-light);
+  }
+}
+
+.clear-search-btn {
+  display: none;
+}
+.content-input:has(.search-input:not(:placeholder-shown))
+~ .clear-search-btn {
+  display: flex;
+}
