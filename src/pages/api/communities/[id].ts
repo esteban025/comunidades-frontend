@@ -259,61 +259,20 @@ export const DELETE: APIRoute = async ({ params }) => {
       );
     }
 
-    // Verificar que la comunidad existe
-    const [existingCommunity]: any = await db.query(
-      "SELECT id FROM communities WHERE id = ?",
-      [id],
-    );
+    // Elimaremos a la comunidad
+    await db.query('DELETE FROM communities WHERE id = ?', [id]);
 
-    if (!existingCommunity || existingCommunity.length === 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Comunidad no encontrada",
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Comunidad eliminada exitosamente'
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
 
-    // Verificar que no tenga hermanos
-    const [brothersCount]: any = await db.query(
-      "SELECT COUNT(*) as count FROM brothers WHERE community_id = ?",
-      [id],
-    );
 
-    if (brothersCount[0].count > 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `No se puede eliminar la comunidad porque tiene ${brothersCount[0].count} hermano(s) registrado(s). Primero fusiona o reasigna los hermanos.`,
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // Eliminar roles asociados (por si acaso)
-    await db.query("DELETE FROM brother_roles WHERE community_id = ?", [id]);
-
-    // Eliminar la comunidad
-    await db.query("DELETE FROM communities WHERE id = ?", [id]);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Comunidad eliminada exitosamente",
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
   } catch (error) {
+
     console.error("Error en DELETE /api/communities/[id]:", error);
     return new Response(
       JSON.stringify({
@@ -325,5 +284,6 @@ export const DELETE: APIRoute = async ({ params }) => {
         headers: { "Content-Type": "application/json" },
       },
     );
+
   }
 };
