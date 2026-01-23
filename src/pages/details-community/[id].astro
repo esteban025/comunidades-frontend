@@ -1,446 +1,116 @@
 ---
-// COMPONENTS
 import Layout from "@/layouts/Layout.astro";
 import SectionContainer from "@/components/SectionContainer.astro";
-import FilterTable from "@/components/FilterTable.astro";
-import ModalAddBrotherc from "@/components/ModalAddBrotherc.astro";
-
-// ICONS
-import PLusIcon from "@/assets/PLusIcon.astro";
-// import ConfigIcon from "@/assets/ConfigIcon.astro";
-import EyesIcon from "@/assets/EyesIcon.astro";
-import PencilIcon from "@/assets/PencilIcon.astro";
-import TrashIcon from "@/assets/TrashIcon.astro";
-
-// SERVICES
-import { groupMarriagesById } from "@/utils/marriageGrouping";
-import { getCommunityById } from "@/services/communities";
-import { getBrothersByCommunityId } from "@/services/brothers";
+import GroupLeadersComm from "@/components/GroupLeadersComm.astro";
+import MessageVisual from "@/components/MessageVisual.astro";
+import type { AllBrothers } from "@/types/brothers";
+import NavbarPage from "@/components/NavbarPage.astro";
+import PlusIcon from "@/assets/PlusIcon.astro";
 
 const { id } = Astro.params;
 
-let error = false;
-let title = "";
-let description = "";
-let message = "";
+const config = {
+  error: false,
+  message: "",
+  title: "Detalles de la comunidad",
+  description: "Información de los líderes de la comunidad.",
+  brothers: [] as AllBrothers[],
+};
 
 if (!id) {
-  error = true;
-  return Astro.redirect("/");
-}
-
-let community: any[] = [];
-let parishCommunity: any = null;
-let brothers: any[] = [];
-let groupedBrothers: any[] = [];
-
-try {
-  community = (await getCommunityById(id)) ?? [];
-  parishCommunity = community.length > 0 ? community[0] : null;
-  brothers = (await getBrothersByCommunityId(id)) ?? [];
-  groupedBrothers = groupMarriagesById(brothers);
-} catch (e) {
-  error = true;
-}
-
-if (error || !parishCommunity) {
-  title = "No existe comunidad con esa id";
-  description = "No podemos mostrar informacion de esta comunidad";
-  message = "No puede interactuar con esta comunidad desconocida";
+  config.error = true;
+  config.message = "ID de comunidad no proporcionado.";
 } else {
-  title = `${parishCommunity.parish_name} - Comunidad ${parishCommunity.number_community}`;
-  description = `Comunidad ${parishCommunity.number_community} • ${brothers?.[0]?.names ?? "Sin hermanos"} • ${parishCommunity.parish_aka}`;
+  // obtener hermanos líderes por id de la comunidad
+  try {
+    const apiUrl = new URL(
+      `/api/brothers-by-community/${id}`,
+      Astro.request.url,
+    );
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+      throw new Error(
+        `Error al obtener los líderes de la comunidad: ${res.status} ${res.statusText}`,
+      );
+    }
+    const json = (await res.json()) as
+      | { success: true; data: AllBrothers[] }
+      | { success?: false; error?: string }
+      | { error?: string };
+
+    if ("success" in json && json.success && "data" in json) {
+      config.brothers = json.data;
+    } else {
+      // La API puede devolver { error: "No leaders found for this community" }
+      // con status 200; en ese caso mostramos el mensaje de "sin líderes".
+      config.brothers = [];
+    }
+  } catch (error) {
+    console.error(error);
+    config.error = true;
+    config.message = "No se pudieron cargar los líderes de la comunidad.";
+  }
 }
 ---
 
 <Layout>
-  <SectionContainer
-    title={title}
-    transition:name="parish-section"
-    description={description}
-  >
-    <div class="flex items-center gap-2" slot="nav-links">
-      <button
-        id="btn-add-brotherc"
-        disabled={error || !parishCommunity}
-        data-community-id={id}
-        class="btn btn-primary flex items-center gap-2"
-      >
-        <PLusIcon class="size-4 block" />
-        <span>Agregar hermano</span>
-      </button>
-    </div>
-
-    {
-      brothers.length === 0 && (
-        <div class="" slot="body">
-          <section class="w-full min-h-30 border border-border-medium rounded-xl bg-white flex justify-center items-center">
-            <span class="text-text-muted text-sm">{message}</span>
-          </section>
+  {
+    config.error && (
+      <SectionContainer title={config.title} description={config.description}>
+        <div class="ss" slot="body">
+          <MessageVisual
+            title={config.message}
+            description={config.message}
+            isError
+          />
         </div>
-      )
-    }
-    {
-      brothers.length > 0 && (
-        <div class="flex flex-col gap-5" slot="body">
-          <FilterTable />
-          <section class="container-table">
-            <table transition:name={`table-parish-${parishCommunity.id}`}>
-              <thead>
-                <tr>
-                  <th>Nombres</th>
-                  <th>Estado</th>
-                  <th>Roles</th>
-                  <th class="min">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {groupedBrothers.map((bro) => {
-                  const spouse =
-                    bro.civil_status === "matrimonio" && bro.spouse_id
-                      ? brothers.find((b) => b.id === bro.spouse_id)
-                      : null;
-
-                  const isMarriage = !!spouse;
-                  const combinedRoles = Array.from(
-                    new Set([
-                      ...(bro.roles || []),
-                      ...((spouse?.roles as string[]) || []),
-                    ]),
-                  );
-
-                  return (
-                    <tr
-                      data-brother-row
-                      data-name={bro.names}
-                      data-roles={combinedRoles.join(",")}
-                      data-brother-id={bro.id}
-                      data-spouse-id={spouse?.id || ""}
-                      data-is-marriage={isMarriage ? "true" : "false"}
-                    >
-                      <td>{bro.names}</td>
-                      <td class="capitalize">{bro.civil_status}</td>
-                      <td>
-                        {combinedRoles.map((role) => (
-                          <span class="role-tag" data-rol={role}>
-                            {role}
-                          </span>
-                        ))}
-                      </td>
-                      <td>
-                        <div class="content-action-btns">
-                          {isMarriage && spouse ? (
-                            <>
-                              <div class="dropdown-wrapper wrapper-view">
-                                <input
-                                  type="checkbox"
-                                  id={`dropdown-view-${bro.id}`}
-                                  class="dropdown-toggle dropdown-view"
-                                />
-                                <label
-                                  for={`dropdown-view-${bro.id}`}
-                                  class="dropdown-bt atn-btn"
-                                  title="Ver detalles"
-                                >
-                                  <span class="icon-dots">
-                                    <EyesIcon class="size-4 block" />
-                                  </span>
-                                </label>
-                                <div class="dropdown-menu dropdown-menu-view">
-                                  <button
-                                    type="button"
-                                    class="brother-menu-item dropdown-item"
-                                    data-action="view"
-                                    data-role="esposo"
-                                    data-target-id={bro.id}
-                                  >
-                                    Esposo
-                                  </button>
-                                  <button
-                                    type="button"
-                                    class="brother-menu-item dropdown-item"
-                                    data-action="view"
-                                    data-role="esposa"
-                                    data-target-id={spouse.id}
-                                  >
-                                    Esposa
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div class="dropdown-wrapper wrapper-edit">
-                                <input
-                                  type="checkbox"
-                                  id={`dropdown-edit-${bro.id}`}
-                                  class="dropdown-toggle dropdown-edit"
-                                />
-                                <label
-                                  for={`dropdown-edit-${bro.id}`}
-                                  class="atn-btn"
-                                  title="Editar"
-                                >
-                                  <PencilIcon class="size-4 block" />
-                                </label>
-                                <div class="dropdown-menu dropdown-menu-edit">
-                                  <button
-                                    type="button"
-                                    class="brother-menu-item dropdown-item"
-                                    data-action="edit"
-                                    data-role="esposo"
-                                    data-target-id={bro.id}
-                                  >
-                                    Esposo
-                                  </button>
-                                  <button
-                                    type="button"
-                                    class="brother-menu-item dropdown-item"
-                                    data-action="edit"
-                                    data-role="esposa"
-                                    data-target-id={spouse.id}
-                                  >
-                                    Esposa
-                                  </button>
-                                </div>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                type="button"
-                                class="atn-btn brother-view-btn"
-                                title="Ver detalles"
-                                data-brother-id={bro.id}
-                              >
-                                <EyesIcon class="size-4 block" />
-                              </button>
-                              <button
-                                type="button"
-                                class="atn-btn brother-edit-btn"
-                                title="Editar"
-                                data-brother-id={bro.id}
-                              >
-                                <PencilIcon class="size-4 block" />
-                              </button>
-                            </>
-                          )}
-
-                          <button
-                            type="button"
-                            class="atn-btn brother-delete-btn"
-                            title="Eliminar"
-                            data-brother-id={bro.id}
-                          >
-                            <TrashIcon class="size-4 block" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </section>
+      </SectionContainer>
+    )
+  }
+  <!-- si no hay error pero la lista es vacia -->
+  {
+    !config.error && (
+      <NavbarPage title="Gestión de Hermanos" description="Agrega y designa roles a hermanos para esta comunidad">
+        <div class="ss" slot="actions">
+          <button class="btn btn-primary flex gap-2" id="btn-add-bro" data-comm-id={id}>
+            <PlusIcon class="size-5 block" />
+            <span>Agregar Hermano</span>
+          </button>
         </div>
-      )
-    }
-
-    <button
-      slot="footer-link"
-      class="hover:underline cursor-pointer"
-      onclick="history.back()">← Atras</button
-    >
-  </SectionContainer>
-
-  <ModalAddBrotherc />
+      </NavbarPage> 
+      <br/>
+      <SectionContainer title={config.title} description={config.description}>
+        {config.brothers.length === 0 && (
+          <div class="ss" slot="body">
+            <MessageVisual
+              title="No hay líderes en esta comunidad."
+              description="Parece que no hay líderes asignados a esta comunidad."
+            />
+          </div>
+        )}
+        {config.brothers.length > 0 && (
+          <div class="ss" slot="body">
+            <GroupLeadersComm list={config.brothers} />
+          </div>
+        )}
+      </SectionContainer>
+    )
+  }
 </Layout>
 
 <script>
-  import { showNotification } from "@/scripts/notification";
-  import { $id, $$ } from "@/utils/selectElementsDom";
+  import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const $openMdl = $id("btn-add-brotherc") as HTMLButtonElement;
-    const $modal = $id("modal-add-brotherc") as HTMLElement;
+    const btnAddBro = $id("btn-add-bro")
 
-    if (!$openMdl || !$modal) return;
+    if (!btnAddBro) return
+    btnAddBro.addEventListener("click", () => {
+      const commId = btnAddBro.dataset.commId
+      if (!commId) return;
+      (window as any).openBrotherchModal(commId)
+    })
 
-    $openMdl.addEventListener("click", () => {
-      if (typeof (window as any).openBrotherchModal === "function") {
-        const communityId = $openMdl.getAttribute("data-community-id");
-        (window as any).openBrotherchModal(communityId);
-      } else {
-        console.log("openBrotherchModal no está disponible");
-      }
-    });
+  })
 
-    const $searchInput = $id("search-input") as HTMLInputElement;
-    const $selectInput = $id("roles-select") as HTMLSelectElement;
-    const $cleanBtn = $id("clean-filters") as HTMLButtonElement;
-    const $clearSearchBtn = $id("clear-search-btn") as HTMLButtonElement;
-
-    if (!$searchInput || !$selectInput) return;
-    if (!$cleanBtn || !$clearSearchBtn) return;
-
-    const $rows = Array.from(
-      $$("[data-brother-row]") as NodeListOf<HTMLElement>,
-    );
-
-    const applyFilters = () => {
-      const search = ($searchInput.value ?? "").trim().toLowerCase();
-      const role = ($selectInput.value ?? "").trim().toLowerCase();
-
-      for (const $row of $rows) {
-        const name = ($row.dataset.name ?? "").toLowerCase();
-        const roles = ($row.dataset.roles ?? "")
-          .split(",")
-          .map((r) => r.trim().toLowerCase())
-          .filter(Boolean);
-
-        const matchesSearch = !search || name.includes(search);
-        const matchesRole = !role || roles.includes(role);
-
-        $row.style.display = matchesSearch && matchesRole ? "" : "none";
-      }
-    };
-
-    $cleanBtn.addEventListener("click", () => {
-      $searchInput.value = "";
-      $selectInput.value = "";
-      applyFilters();
-    });
-
-    $clearSearchBtn?.addEventListener("click", () => {
-      $searchInput.value = "";
-      applyFilters();
-    });
-
-    // habilitar filtros
-    $searchInput.addEventListener("input", applyFilters);
-    $selectInput.addEventListener("change", applyFilters);
-    applyFilters();
-
-    // acciones: ver detalles (solteros)
-    const viewButtons = $$(
-      ".brother-view-btn",
-    ) as NodeListOf<HTMLButtonElement>;
-
-    viewButtons.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const id = btn.getAttribute("data-brother-id");
-        if (!id) return;
-
-        if (typeof (window as any).openViewBrotherModal === "function") {
-          (window as any).openViewBrotherModal(id);
-        }
-      });
-    });
-
-    // acciones: editar (solteros)
-    const editButtons = $$(
-      ".brother-edit-btn",
-    ) as NodeListOf<HTMLButtonElement>;
-
-    editButtons.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const id = btn.getAttribute("data-brother-id");
-        if (!id) return;
-
-        if (typeof (window as any).openEditBrotherModal === "function") {
-          (window as any).openEditBrotherModal(id);
-        } else {
-          console.log("openEditBrotherModal no está disponible");
-        }
-      });
-    });
-
-    // dropdown de matrimonios (ver/editar esposo/esposa)
-    const dropdownItems = $$(
-      ".brother-menu-item",
-    ) as NodeListOf<HTMLButtonElement>;
-
-    dropdownItems.forEach((item) => {
-      item.addEventListener("click", (e) => {
-        e.preventDefault();
-
-        const targetId = item.getAttribute("data-target-id");
-        if (!targetId) return;
-
-        const action = item.getAttribute("data-action") || "view";
-        const role = item.getAttribute("data-role") || undefined;
-
-        if (action === "edit") {
-          if (typeof (window as any).openEditBrotherModal === "function") {
-            (window as any).openEditBrotherModal(targetId, role);
-          } else {
-            console.log("openEditBrotherModal no está disponible");
-          }
-        } else {
-          if (typeof (window as any).openViewBrotherModal === "function") {
-            (window as any).openViewBrotherModal(targetId);
-          }
-        }
-
-        const wrapper = item.closest(".dropdown-wrapper") as HTMLElement | null;
-        const toggle = wrapper?.querySelector(
-          ".dropdown-toggle",
-        ) as HTMLInputElement | null;
-        if (toggle) {
-          toggle.checked = false;
-        }
-      });
-    });
-
-    // eliminar (soltero o matrimonio)
-    const deleteButtons = $$(
-      ".brother-delete-btn",
-    ) as NodeListOf<HTMLButtonElement>;
-
-    deleteButtons.forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-
-        const id = btn.getAttribute("data-brother-id");
-        if (!id) return;
-
-        const row = btn.closest("tr") as HTMLTableRowElement | null;
-        const isMarriage = row?.dataset.isMarriage === "true";
-
-        const message = isMarriage
-          ? "Vas a eliminar este MATRIMONIO. Se eliminarán ambos (esposo y esposa), sus roles y todas sus conexiones. ¿Deseas continuar?"
-          : "Vas a eliminar este hermano. Se eliminarán sus roles y todas sus conexiones. ¿Deseas continuar?";
-
-        const confirmed = window.confirm(message);
-        if (!confirmed) return;
-
-        try {
-          const response = await fetch(`/api/brothers/${id}`, {
-            method: "DELETE",
-          });
-          const result = await response.json();
-
-          if (response.ok && result.success) {
-            showNotification(
-              result.message || "Eliminado exitosamente",
-              "success",
-              3000,
-            );
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
-          } else {
-            showNotification(
-              result.error || "Error al eliminar",
-              "error",
-              1500,
-            );
-          }
-        } catch (error) {
-          console.error("Error eliminando hermano:", error);
-          showNotification("Error de conexión al eliminar", "error", 1500);
-        }
-      });
-    });
-  });
 </script>

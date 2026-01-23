@@ -1,0 +1,36 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+  isInformative?: boolean;
+  isError?: boolean;
+}
+const { title, description, isInformative, isError } = Astro.props;
+let Colors = "bg-white border-neutral-300";
+
+if (isInformative) {
+  Colors = "bg-blue-50 border-blue-300";
+}
+
+if (isError) {
+  Colors = "bg-red-50 border-red-300 text-red-700";
+}
+---
+
+<article>
+  <div
+    class:list={[
+      "p-6 rounded-lg text-center shadow-lg border-2 border-dotted ",
+      Colors,
+    ]}
+  >
+    {
+      title && (
+        <h2 class="text-xl font-medium mb-2 text-balance leading-tight">
+          {title}
+        </h2>
+      )
+    }
+    {description && <p class="text-gray-600 text-sm">{description}</p>}
+  </div>
+</article>

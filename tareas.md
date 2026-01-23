@@ -14,3 +14,7 @@
   - Filtrar comunidades pares e impares de cierta parroquia.
   - Filtrar comunidades pertenecientes a ciertos catequistas.
   - Filtrar comunidades por pasos.
+
+
+## TAREAS EN RAMA IMPLEMENT-ACTIONS
+- Actualmente se puede editar el numero de comunidad, pero no se esta controlando que no se repita el numero, ya que el numero de comunidad es unico po parroquia. Implementar esa validacion.

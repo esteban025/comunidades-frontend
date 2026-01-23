@@ -1,0 +1,107 @@
+---
+import type { AllBrothers } from "@/types/brothers";
+import MessageVisual from "./MessageVisual.astro";
+import { getInitialsNames } from "@/utils/getInitialsNames";
+
+interface Props {
+  list: AllBrothers[];
+}
+const { list } = Astro.props;
+
+const results = [
+  {
+    title: "Responsables",
+    rolesString: "responsable",
+    brothers: [] as AllBrothers[],
+    gridArea: "res",
+  },
+  {
+    title: "Corresponsables",
+    rolesString: "corresponsable",
+    brothers: [] as AllBrothers[],
+    gridArea: "cor",
+  },
+  {
+    title: "Ostiarios",
+    rolesString: "ostiario",
+    brothers: [] as AllBrothers[],
+    gridArea: "ost",
+  },
+  {
+    title: "Didascalas",
+    rolesString: "didascala",
+    brothers: [] as AllBrothers[],
+    gridArea: "did",
+  },
+  {
+    title: "Catequistas",
+    rolesString: "catequista",
+    brothers: [] as AllBrothers[],
+    gridArea: "cat",
+  },
+];
+
+function extractRoles(rolesString: string) {
+  list.filter((bro) => {
+    const roles =
+      bro.roles?.split(",").map((role) => role.trim().toLowerCase()) || [];
+    if (roles.includes(rolesString)) {
+      return results
+        .find((r) => r.rolesString === rolesString)
+        ?.brothers.push(bro);
+    }
+  });
+}
+
+results.forEach((role) => {
+  extractRoles(role.rolesString);
+});
+---
+
+<section class="relative rounded-2xl shadow-lg overflow-hidden">
+  <article class="w-full p-3 grid grid-cards bg-neutral-200 gap-3">
+    {
+      results.map((rol) => (
+        <div
+          class="bg-white p-3 rounded-xl"
+          style={`grid-area: ${rol.gridArea}`}
+        >
+          <h2 class="text-xl font-semibold mb-2">{rol.title}</h2>
+          <div class="render-bro flex flex-col gap-2">
+            {rol.brothers.length === 0 && (
+              <MessageVisual
+                description={`No se han encontrado "${rol.title}" para esta comunidad`}
+              />
+            )}
+            {rol.brothers.map((bro) => (
+              <div class="ss bg-neutral-100 p-2 rounded-full border-2 border-neutral-200">
+                <header class="flex gap-2 items-center">
+                  <span class="size-12 flex justify-center items-center bg-neutral-200 rounded-full border-3 border-neutral-300 font-bold">
+                    {getInitialsNames(bro.names)}
+                  </span>
+                  <span>{bro.names}</span>
+                </header>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </article>
+</section>
+
+<style>
+  .background::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, #ffffffe0 30%, transparent 90%);
+  }
+  .grid-cards {
+    grid-template-areas:
+      "cor res did"
+      "cor ost cat";
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+  }
+</style>

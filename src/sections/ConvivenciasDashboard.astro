@@ -7,7 +7,7 @@ import {
   getConvivenciasForDashboard,
   getInvitedBrothersByConvivencia,
 } from "@/services/convivencias";
-import PLusIcon from "@/assets/PLusIcon.astro";
+import PlusIcon from "@/assets/PlusIcon.astro";
 import { groupMarriagesForAttendance } from "@/utils/marriageGrouping";
 import TrashIcon from "@/assets/TrashIcon.astro";
 
@@ -123,7 +123,7 @@ const groupedInvited = groupMarriagesForAttendance(invitedBrothers as any[]);
       class="btn btn-primary flex item gap-2"
       data-modal="invited-brother-btn"
     >
-      <PLusIcon class="size-5 block" />
+      <PlusIcon class="size-5 block" />
       <span>Invitar Hermanos</span>
     </button>
   </div>

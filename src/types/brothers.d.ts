@@ -17,20 +17,25 @@ export interface BrotherCommunity {
   level_paso?: string;
 }
 
-export interface Brothers {
-  id: number;
-  names: string;
-  civil_status: string;
-  spouse_id?: number | null;
-  phone?: string;
-  community: BrotherCommunity;
-  parish: Parish;
-  roles_in_own_community: string[];
-  catechist_of_communities: number[];
-}
+
 export interface BrothersResponse {
   success: boolean;
   data: Brother[];
   // error?: string;
   pagination: PaginationPage;
+}
+
+
+// === TIPOS ACTUALIZADOS ===
+export interface Brothers {
+  id: number;
+  names: string;
+  civil_status: 'matrimonio' | 'soltero' | 'soltera';
+  phone: string | null;
+  spouse_id: number | null;
+  community_id: number;
+}
+
+export interface AllBrothers extends Brothers {
+  roles: string | null;
 }

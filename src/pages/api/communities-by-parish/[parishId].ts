@@ -13,7 +13,7 @@ export const GET: APIRoute = async ({ params }) => {
 
   try {
     const communities = await getCommunityByIdParis(Number(parishId));
-    console.log(communities);
+    // console.log(communities);
     return new Response(
       JSON.stringify({ success: true, data: communities }),
       { status: 200, headers: { "Content-Type": "application/json" } }

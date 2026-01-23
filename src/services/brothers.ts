@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import type { Brothers } from "@/types/brothers";
 
 interface Params {
   limit: number;
@@ -213,4 +214,21 @@ export const getBrothersByCommunityId = async (id: string) => {
   }))
 
   return data
+}
+
+// === Nuevas Funcionalidades ===
+export const createBrother = async (data: Omit<Brothers, "id">) => {
+  const { names, civil_status, phone, spouse_id, community_id } = data
+  const query = `
+    INSERT INTO brothers (names, civil_status, phone, spouse_id, community_id)
+    VALUES (?, ?, ?, ?, ?)
+  `
+  const [result]: any = await db.query(query, [
+    names,
+    civil_status,
+    phone,
+    spouse_id,
+    community_id,
+  ])
+  return result.insertId
 }
