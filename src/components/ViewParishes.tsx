@@ -1,37 +1,29 @@
-import type { Parish, ParishesResponse } from "@/types/parishes"
+import type { Parish } from "@/types/parishes"
 import { RefreshIcon } from "./iconsForReact"
 import { useEffect, useState } from "react"
 import { showNotification } from "@/scripts/notification"
 import { CardParishList } from "./CardParishList"
+import { actions } from "astro:actions"
 
 export const ViewParishes = () => {
   const [parishes, setParishes] = useState<Parish[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     const fetchParishes = async () => {
       try {
-        const response = await fetch("/api/parishes")
-        if (!response.ok) {
-          setError("Hubo un fallo al obtener las parroquias.")
+        const response = await actions.getParishesAct({})
+
+        if (!response.data?.success) {
+          setError(response.data?.message)
           setLoading(false)
           return
         }
-
-        const data = (await response.json()) as ParishesResponse
-
-        if (!data.success) {
-          setError("Hubo un fallo al obtener las parroquias.")
-          setLoading(false)
-          return
-        }
-
-        setParishes(data.data)
-        if (data.data.length === 0) {
-          setError("No hay parroquias registradas aún.")
-        }
+        const data = response.data.parishes
+        setParishes(data as Parish[])
         setLoading(false)
+
       } catch (error) {
         console.error("Error fetching parishes", error)
         setError("Hubo un error al obtener las parroquias.")
@@ -69,22 +61,19 @@ export const ViewParishes = () => {
     if (!confirmDelete) return
 
     try {
-      const response = await fetch(`/api/parishes/${id}`, {
-        method: "DELETE",
-      })
+      const res = await actions.deleteParishAct({ id })
 
-      const result = await response.json()
-
-      if (!response.ok || !result.success) {
-        window.alert(result.error ?? "Hubo un error al eliminar la parroquia.")
-        return
+      if (res.data?.success) {
+        showNotification(res.data.message, "success")
+        // Refrescar la lista de parroquias
+        const updatedParishes = parishes.filter((parish) => parish.id !== id)
+        setParishes(updatedParishes)
+      } else {
+        showNotification(
+          res.data?.message || "Hubo un error al eliminar la parroquia.",
+          "error"
+        )
       }
-
-      setParishes((prev) => prev.filter((p) => p.id !== id))
-      showNotification(
-        "Parroquia eliminada exitosamente.",
-        "success"
-      )
     } catch (error) {
       console.error("Error deleting parish", error)
       window.alert("Hubo un error al eliminar la parroquia.")

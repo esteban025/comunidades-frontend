@@ -8,7 +8,7 @@ const { parishId } = Astro.props;
 
 const nameParish = await getParishById(Number(parishId));
 const titlePage = nameParish
-  ? `Parroquia "${nameParish[0].name}"`
+  ? `Parroquia "${nameParish.name}"`
   : "Parroquia no encontrada";
 ---
 

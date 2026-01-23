@@ -1,9 +1,11 @@
 import { communitiesAction } from "./communities";
 import { brothersAction } from "./brothers";
-import { parishesAction } from "./parishes";
+import { getParishesAct, deleteParishAct, putParishAct } from "./parishes";
 
 export const server = {
-  parishesAction,
+  getParishesAct,
+  deleteParishAct,
+  putParishAct,
   communitiesAction,
   brothersAction,
 }

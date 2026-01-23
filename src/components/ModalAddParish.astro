@@ -2,7 +2,7 @@
 import ModalDesign from "./ModalDesign.astro";
 import { actions } from "astro:actions";
 
-const parishAct = actions.parishesAction;
+const parishAct = actions.putParishAct;
 const formData = {
   idForm: "modal-parish-form",
   method: "POST" as const,
@@ -62,12 +62,6 @@ const formData = {
       <!-- id para edit -->
       <input type="hidden" name="parish-id" id="parish-id" />
     </fieldset>
-    <p
-      id="message-error-parish"
-      class="mt-4 hidden text-center w-full text-red-400"
-    >
-      Ya existe una parroquia con ese...
-    </p>
   </div>
   <button
     type="button"
@@ -104,8 +98,6 @@ const formData = {
     const inpParishTag = $id("parish-tag") as HTMLInputElement;
     const inpParishAka = $id("parish-aka") as HTMLInputElement;
     const inpParishId = $id("parish-id") as HTMLInputElement;
-
-    const msgErrr = $id("message-error-parish") as HTMLParagraphElement;
 
     function textModal(title: string, submitBtnText: string) {
       if (mdlTitle) mdlTitle.textContent = title;
@@ -145,21 +137,20 @@ const formData = {
       const tag = formData.get("parish-tag") as string;
       const aka = formData.get("parish-aka") as string;
       const info = id ? { id: Number(id), name, tag, aka } : { name, tag, aka };
-      const { data, error } = await actions.parishesAction(info);
-      const isEdit = Boolean(id);
-      if (error) {
-        msgErrr.textContent = error.message;
-        msgErrr.classList.remove("hidden");
-      } else {
+      const { data, error } = await actions.putParishAct(info);
+
+      if (data?.success) {
+        showNotification(data.message, "success");
         closeParishModal();
-        showNotification(
-          isEdit
-            ? "Parroquia actualizada con éxito."
-            : "Parroquia registrada con éxito.",
-          "success",
-        );
         form.reset();
         window.dispatchEvent(new CustomEvent("parish:created"));
+      } else {
+        const errorMessage =
+          data?.message ||
+          error?.message ||
+          "Ocurrió un error al procesar la solicitud.";
+
+        showNotification(errorMessage, "error");
       }
     });
 
