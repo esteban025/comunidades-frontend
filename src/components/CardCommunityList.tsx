@@ -1,8 +1,8 @@
-import type { CommunityByIdParish } from "@/types/community";
+import type { CommunityByIdParishWithoutParishId } from "@/types/community";
 import { EditIcon, TrashIcon } from "./iconsForReact"
 
 interface Props {
-  filteredCommunities: CommunityByIdParish[];
+  filteredCommunities: CommunityByIdParishWithoutParishId[];
   filters: {
     numberCommunity: string;
     nameResponsible: string;

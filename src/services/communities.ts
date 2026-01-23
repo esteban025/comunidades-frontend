@@ -1,64 +1,33 @@
 import { db } from "@/lib/db";
-import type { Community, CommunityById, CommunityByIdParish, ResponsablesByCommunity } from "@/types/community"
+import type { Community, CommunityById, CommunityByIdParish, ResponsablesByCommunity, CommunityByIdParishWithoutParishId } from "@/types/community"
 import type { Brothers } from "@/types/brothers";
 
-export const getCommunityByIdParis = async (id: number) => {
-  const query = `
-    SELECT 
-      c.id,
-      c.number_community,
-      c.level_paso,
-      COUNT(DISTINCT b.id) as brothers_count,
-      GROUP_CONCAT(
-        DISTINCT CASE 
-          WHEN br_roles.role = 'responsable' THEN b_resp.names 
-        END 
-        ORDER BY b_resp.id 
-        SEPARATOR ', '
-      ) as responsables
-    FROM communities c
-    LEFT JOIN brothers b ON b.community_id = c.id
-    LEFT JOIN brother_roles br_roles ON br_roles.community_id = c.id AND br_roles.role = 'responsable'
-    LEFT JOIN brothers b_resp ON b_resp.id = br_roles.brother_id
-    WHERE c.parish_id = ?
-    GROUP BY c.id, c.number_community, c.level_paso
-    ORDER BY c.number_community;
-  `
-  const [rows] = await db.query(query, [id])
-  const data: Omit<CommunityByIdParish, "parish_id">[] = rows as Omit<CommunityByIdParish, "parish_id">[]
-  const formattedData = data.map((comm) => {
-    return {
-      ...comm,
-      responsables: comm.responsables ? comm.responsables.split(", ")[0] : null,
-    }
-  })
-  return formattedData
-}
 
-export interface CommunityWithResponsable extends CommunityByIdParish {
+
+export interface CommunityWithResponsable extends CommunityByIdParishWithoutParishId {
   responsable: string | null;
 }
 
-export const getCommunitiesWithPrimaryResponsableByParishId = async (
-  parishId: number,
-): Promise<CommunityWithResponsable[]> => {
-  const commRows = await getCommunityByIdParis(parishId)
+// export const getCommunitiesWithPrimaryResponsableByParishId = async (
+//   parishId: number,
+// ): Promise<CommunityWithResponsable[]> => {
+//   const commRows = await getCommunityByIdParish(parishId)
 
-  if (!commRows || commRows.length === 0) return []
+//   if (!commRows || commRows.length === 0) return []
 
-  const communityIds = commRows.map((c) => c.id)
-  const responsablesRows = await getPrimaryResponsableByCommunity(communityIds)
+//   const communityIds = commRows.map((c) => c.id)
+//   const responsablesRows = await getPrimaryResponsableByCommunity(communityIds)
 
-  const responsablesMap = new Map<number, string>()
-  responsablesRows?.forEach((r) => {
-    responsablesMap.set(r.community_id, r.responsable_name)
-  })
+//   const responsablesMap = new Map<number, string>()
+//   responsablesRows?.forEach((r) => {
+//     responsablesMap.set(r.community_id, r.responsable_name)
+//   })
 
-  return commRows.map((comm) => ({
-    ...comm,
-    responsable: responsablesMap.get(comm.id) ?? null,
-  }))
-}
+//   return commRows.map((comm) => ({
+//     ...comm,
+//     responsable: responsablesMap.get(comm.id) ?? null,
+//   }))
+// }
 
 // internas de la comunidad
 
@@ -246,8 +215,83 @@ export const getCommByIdPlusResponsables = async (communityId: string) => {
 
 
 // === NUEVAS FUNCIONALIDADES PARA COMUNIDADES ===
+
+interface ManageCommunityResponse {
+  success: boolean;
+  message: string;
+  community?: CommunityByIdParishWithoutParishId | CommunityByIdParishWithoutParishId[];
+}
+
+
+// obtener comunidades por id de parroquia
+export const getCommunityByIdParish = async (
+  id: number,
+): Promise<ManageCommunityResponse> => {
+
+  // si hay una id que  no existe
+  const existingParishQuery = `
+    SELECT id FROM parishes WHERE id = ?
+  `
+  const [existingParishRows] = await db.query(existingParishQuery, [id])
+  const existingParishData = existingParishRows as Array<{ id: number }>
+  if (existingParishData.length === 0) {
+    return {
+      success: false,
+      message: "La parroquia con esta id no existe, por favor verifique y vuelve a intentarlo.",
+    }
+  }
+  const query = `
+    SELECT 
+      c.id,
+      c.number_community,
+      c.level_paso,
+      COUNT(DISTINCT b.id) as brothers_count,
+      GROUP_CONCAT(
+        DISTINCT CASE 
+          WHEN br_roles.role = 'responsable' THEN b_resp.names 
+        END 
+        ORDER BY b_resp.id 
+        SEPARATOR ', '
+      ) as responsables
+    FROM communities c
+    LEFT JOIN brothers b ON b.community_id = c.id
+    LEFT JOIN brother_roles br_roles ON br_roles.community_id = c.id AND br_roles.role = 'responsable'
+    LEFT JOIN brothers b_resp ON b_resp.id = br_roles.brother_id
+    WHERE c.parish_id = ?
+    GROUP BY c.id, c.number_community, c.level_paso
+    ORDER BY c.number_community;
+  `
+  const [rows] = await db.query(query, [id])
+  const data = rows as CommunityByIdParishWithoutParishId[]
+
+  const formattedData = data.map((comm) => ({
+    ...comm,
+    responsables: comm.responsables ? comm.responsables.split(", ")[0] : null,
+  }))
+
+  return {
+    success: true,
+    message: "Comunidades obtenidas exitosamente",
+    community: formattedData,
+  }
+}
+
+// crear comunidad
 export const createCommunity = async (data: Omit<Community, "id">) => {
   const { number_community, level_paso, parish_id } = data;
+
+  // verficamos que el numero de comunidad no se repita en esa parroquia
+  const existingCommQuery = `
+    SELECT id FROM communities WHERE number_community = ? AND parish_id = ?
+  `;
+  const [existingCommRows] = await db.query(existingCommQuery, [number_community, parish_id]);
+  const existingCommData = existingCommRows as Array<{ id: number }>;
+  if (existingCommData.length > 0) {
+    return {
+      success: false,
+      message: "Ya existe una comunidad con este número en la parroquia seleccionada.",
+    };
+  }
 
   const query = `
     INSERT INTO communities (number_community, level_paso, parish_id)
@@ -260,11 +304,28 @@ export const createCommunity = async (data: Omit<Community, "id">) => {
     parish_id,
   ]);
 
-  return results;
+  return {
+    success: true,
+    message: "Comunidad creada exitosamente",
+  };
 };
 
+// actualizar comunidad
 export const updateCommunity = async (id: number, data: Omit<Community, "id">) => {
   const { number_community, level_paso, parish_id } = data;
+
+  // antes de actualizar, verificamos que el numero de comunidad no se repita en esa parroquia
+  const existingCommQuery = `
+    SELECT id FROM communities WHERE number_community = ? AND parish_id = ? AND id != ?
+  `;
+  const [existingCommRows] = await db.query(existingCommQuery, [number_community, parish_id, id]);
+  const existingCommData = existingCommRows as Array<{ id: number }>;
+  if (existingCommData.length > 0) {
+    return {
+      success: false,
+      message: "Ya existe una comunidad con este número en la parroquia seleccionada.",
+    };
+  }
 
   const query = `
     UPDATE communities SET number_community = ?, level_paso = ?, parish_id = ? WHERE id = ?
@@ -277,5 +338,19 @@ export const updateCommunity = async (id: number, data: Omit<Community, "id">) =
     id,
   ]);
 
-  return results;
+  return {
+    success: true,
+    message: "Comunidad actualizada exitosamente",
+  };
 };
+
+export const deleteCommunity = async (id: number) => {
+  const query = `
+    DELETE FROM communities WHERE id = ?
+  `;
+  const [results] = await db.query(query, [id]);
+  return {
+    success: true,
+    message: "Comunidad eliminada exitosamente",
+  };
+}

@@ -3,7 +3,7 @@ import { actions } from "astro:actions";
 import ModalDesign from "./ModalDesign.astro";
 import { pasosListaPlana } from "@/datos/pasos-list";
 
-const action = actions.communitiesAction;
+const action = actions.putCommunityAct;
 const formData = {
   idForm: "form-add-community",
   method: "POST" as const,
@@ -52,12 +52,6 @@ const formData = {
         </div>
       </div>
     </fieldset>
-    <p
-      id="message-error-parish"
-      class="mt-4 hidden text-center w-full text-red-400"
-    >
-      Ya existe una comunidad con ese número...
-    </p>
   </div>
 
   <!-- <div class="flex w-full"> -->
@@ -92,7 +86,6 @@ const formData = {
     const mdl = $id("modal-add-community") as HTMLDivElement;
     const mdlTitle = mdl?.querySelector("h2");
     const sbtBtn = $id("modal-add-community-submit") as HTMLButtonElement;
-    const msgErrr = $id("message-error-parish") as HTMLParagraphElement;
 
     const inpCommId = $id("community-id") as HTMLInputElement;
     const inpNumberComm = $id("number-comm") as HTMLInputElement;
@@ -111,14 +104,12 @@ const formData = {
     }
 
     function openModalAddComm(parishId: string) {
-      console.log(parishId);
       textModal("Agregar Comunidad", "Agregar");
       mdl?.classList.remove("hidden");
       if (inpParishId) inpParishId.value = parishId;
     }
 
     function openEditModalComm(parishId: string, comm: CommunityByIdParish) {
-      console.log(comm);
       textModal("Editar Comunidad", "Guardar");
       if (!inpCommId || !inpNumberComm || !inpParishId || !inpLevelComm) return;
       inpCommId.value = String(comm.id);
@@ -138,18 +129,20 @@ const formData = {
       const info = id
         ? { id: Number(id), number_community, level_paso, parish_id }
         : { number_community, level_paso, parish_id };
-
-      console.log("Submitting community:", info);
-
-      const { data, error } = await actions.communitiesAction(info);
-      if (error) {
-        msgErrr.textContent = error.message;
-        msgErrr.classList.remove("hidden");
-      } else {
+      console.log(info);
+      const { data, error } = await actions.putCommunityAct(info);
+      if (data?.success) {
+        showNotification(data.message, "success");
         closedModalCommunity();
-        showNotification("Comunidad agregada exitosamente", "success");
         form.reset();
         window.dispatchEvent(new CustomEvent("community:created"));
+      } else {
+        const errorMessage =
+          data?.message ||
+          error?.message ||
+          "Ocurrió un error al procesar la solicitud.";
+
+        showNotification(errorMessage, "error");
       }
     });
 

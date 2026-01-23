@@ -9,6 +9,10 @@ export interface CommunityByIdParish extends Community {
   responsables: string | null;
 }
 
+// omitimos parish_id a CommunityByIdParish
+export type CommunityByIdParishWithoutParishId = Omit<CommunityByIdParish, "parish_id">;
+
+
 export interface ResponsablesByCommunity {
   community_id: number;
   responsable_name: string;
