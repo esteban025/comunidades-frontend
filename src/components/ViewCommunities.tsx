@@ -1,47 +1,37 @@
 import { useEffect, useState } from "react";
 import { FilterList } from "./FilterList";
 import { RefreshIcon } from "./iconsForReact";
-import type { CommunityByIdParish } from "@/types/community";
+import type { CommunityByIdParishWithoutParishId } from "@/types/community";
 import { CardCommunityList } from "./CardCommunityList";
 import { showNotification } from "@/scripts/notification";
-
+import { actions } from "astro:actions";
 
 export const ViewCommunities = ({ parishId }: { parishId: string }) => {
-  const [communities, setCommunities] = useState<CommunityByIdParish[]>([]);
+  const [communities, setCommunities] = useState<CommunityByIdParishWithoutParishId[]>([]);
   const [filters, setFilters] = useState({
     numberCommunity: "",
     nameResponsible: "",
     pairsOrImpares: ""
   });
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // Lógica para obtener y mostrar las comunidades
     const fetchCommunities = async () => {
       try {
-        const response = await fetch(`/api/communities-by-parish/${parishId}`);
-        if (!response.ok) {
-          setError("Hubo un fallo al obtener las comunidades.");
+        const { data, error } = await actions.getCommunitiesAct({ parishId: Number(parishId) });
+        if (error || !data.success) {
+          setError(data?.message || error?.message);
           setLoading(false);
           return;
         }
-        const data = await response.json();
-        if (!data.success) {
-          setError("Hubo un fallo al obtener las comunidades.");
-          setLoading(false);
-          return;
-        }
-        setCommunities(data.data as CommunityByIdParish[]);
-        if (!data.data || data.data.length === 0) {
-          setError("No hay comunidades registradas aún.");
-        } else {
-          setError(null);
-        }
+        const communitiesData = data.communities;
+        setCommunities(communitiesData as CommunityByIdParishWithoutParishId[]);
         setLoading(false);
+
       } catch (error) {
-        console.error("Error fetching communities", error);
-        setError("Hubo un error al obtener las comunidades.");
+        setError("Error al cargar las comunidades.");
         setLoading(false);
       }
     };
@@ -95,28 +85,23 @@ export const ViewCommunities = ({ parishId }: { parishId: string }) => {
     if (!confirmDelete) return
 
     try {
-      const res = await fetch(`/api/communities/${id}`, {
-        method: "DELETE",
-      });
-      const result = await res.json()
-      if (!res.ok || !result.success) {
-        window.alert(result.error ?? "Hubo un error al eliminar la comunidad")
+      const { data, error } = await actions.deleteCommunityAct({ id });
+      if (error || !data.success) {
+        showNotification(data?.message || error?.message || "Error al eliminar la comunidad.", "error");
         return
       }
-      setCommunities((prev) => prev.filter((p) => p.id !== id))
-      showNotification(
-        "Comunidad eliminada exitosamente.",
-        "success"
-      )
+
+      showNotification(data.message, "success");
+      const updatedCommunities = communities.filter((comm) => comm.id !== id);
+      setCommunities(updatedCommunities);
+
     } catch (error) {
-      const msg = `error: ${error}`;
-      window.alert(msg);
+      console.error("Error deleting community", error)
+      window.alert("Hubo un error al eliminar la comunidad.")
     }
-
-
   }
 
-  const handleEditComm = (e: React.MouseEvent<HTMLButtonElement>, comm: CommunityByIdParish) => {
+  const handleEditComm = (e: React.MouseEvent<HTMLButtonElement>, comm: CommunityByIdParishWithoutParishId) => {
     e.preventDefault()
     const anyWindow = window as any
     if (typeof anyWindow.openEditModalComm === "function") {
@@ -134,10 +119,17 @@ export const ViewCommunities = ({ parishId }: { parishId: string }) => {
           <RefreshIcon className="inline-block size-5 ml-2 animate-spin" />
         </p>
       )}
-      {error && <p className="bg-red-50/50 text-red-500 p-3 py-6 w-full rounded-xl border text-center border-dashed">{error}</p>}
+      {error && (
+        <p className="bg-red-50 border-red-300 text-red-700 p-6 rounded-lg text-center shadow-lg border-2 border-dotted">{error}</p>
+      )}
       {!loading && !error && (
 
         <div className="flex flex-col gap-4">
+          {
+            filteredCommunities.length === 0 && (
+              <p className="text-center text-description py-8 bg-white rounded-2xl shadow-md">No se encuentras comunidades registradas en esta parroquia actualmente</p>
+            )
+          }
           {
             filteredCommunities.map((comm) => (
               <CardCommunityList

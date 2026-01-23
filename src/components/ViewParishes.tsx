@@ -13,15 +13,15 @@ export const ViewParishes = () => {
   useEffect(() => {
     const fetchParishes = async () => {
       try {
-        const response = await actions.getParishesAct({})
+        const { data, error } = await actions.getParishesAct({})
 
-        if (!response.data?.success) {
-          setError(response.data?.message)
+        if (!data?.success || error) {
+          setError(data?.message || error?.message)
           setLoading(false)
           return
         }
-        const data = response.data.parishes
-        setParishes(data as Parish[])
+        const parishesData = data.parishes
+        setParishes(parishesData as Parish[])
         setLoading(false)
 
       } catch (error) {

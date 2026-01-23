@@ -1,13 +1,13 @@
 import { db } from "@/lib/db";
 import type { Parish } from "@/types/parishes";
-interface CreateParishResult {
+interface ManageParishResponse {
   success: boolean;
   message: string;
   parish?: Parish | Parish[];
 }
 
 // Obtener todas las parroquias
-export const getParishes = async (): Promise<CreateParishResult> => {
+export const getParishes = async (): Promise<ManageParishResponse> => {
   const query = "SELECT * FROM parishes ORDER BY id ASC";
   const [rows] = await db.query(query)
   const data = rows as Parish[];
@@ -19,7 +19,7 @@ export const getParishes = async (): Promise<CreateParishResult> => {
 }
 
 // Crear una nueva parroquia
-export const createParish = async (params: Omit<Parish, "id">): Promise<CreateParishResult> => {
+export const createParish = async (params: Omit<Parish, "id">): Promise<ManageParishResponse> => {
   const { name, tag, aka } = params;
   // verificamos que no exista una parroquia con los mismos datos
   const checkQuery = `
