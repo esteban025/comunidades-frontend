@@ -1,5 +1,6 @@
+import RolesIcon from "@/assets/RolesIcon.astro";
 import { db } from "@/lib/db";
-import type { Brothers } from "@/types/brothers";
+import type { Brothers, RolesBrothers } from "@/types/brothers";
 
 interface Params {
   limit: number;
@@ -176,7 +177,33 @@ export const getPersonalBrother = async (id: string) => {
   // podemos hacer la siguiente query de obtencion de info
 }
 
-export const getBrothersByCommunityId = async (id: string) => {
+// === Nuevas Funcionalidades ===
+
+interface BrothersByCommunityResponse {
+  success: boolean;
+  message: string;
+  data?: RolesBrothers[] | RolesBrothers;
+}
+export const createBrother = async (data: Omit<Brothers, "id">): Promise<BrothersByCommunityResponse> => {
+  const { names, civil_status, phone, spouse_id, community_id } = data
+  const query = `
+    INSERT INTO brothers (names, civil_status, phone, spouse_id, community_id)
+    VALUES (?, ?, ?, ?, ?)
+  `
+  const [result]: any = await db.query(query, [
+    names,
+    civil_status,
+    phone,
+    spouse_id,
+    community_id,
+  ])
+  return {
+    success: true,
+    message: "Hermano creado exitosamente",
+  }
+}
+
+export const getBrothersByCommunityId = async (id: number): Promise<BrothersByCommunityResponse> => {
   const query = `
     SELECT
       b.id,
@@ -199,36 +226,11 @@ export const getBrothersByCommunityId = async (id: string) => {
       b.spouse_id
   `
   const [rows] = await db.query(query, [id])
+  const data = rows as RolesBrothers[]
 
-  const data = (rows as Array<{
-    id: number;
-    names: string;
-    civil_status: string;
-    community_id: number;
-    phone: string | null;
-    spouse_id: number | null;
-    roles: string;
-  }>).map((r) => ({
-    ...r,
-    roles: r.roles ? r.roles.split(",").filter(Boolean) : [],
-  }))
-
-  return data
-}
-
-// === Nuevas Funcionalidades ===
-export const createBrother = async (data: Omit<Brothers, "id">) => {
-  const { names, civil_status, phone, spouse_id, community_id } = data
-  const query = `
-    INSERT INTO brothers (names, civil_status, phone, spouse_id, community_id)
-    VALUES (?, ?, ?, ?, ?)
-  `
-  const [result]: any = await db.query(query, [
-    names,
-    civil_status,
-    phone,
-    spouse_id,
-    community_id,
-  ])
-  return result.insertId
+  return {
+    success: true,
+    message: "Hermanos obtenidos exitosamente",
+    data
+  }
 }

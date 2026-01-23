@@ -1,5 +1,5 @@
 import { deleteCommunityAct, getCommunitiesAct, putCommunityAct } from "./communities";
-import { brothersAction } from "./brothers";
+import { brothersAction, getBrothersByCommunity } from "./brothers";
 import { getParishesAct, deleteParishAct, putParishAct } from "./parishes";
 
 export const server = {
@@ -9,5 +9,6 @@ export const server = {
   getCommunitiesAct,
   putCommunityAct,
   deleteCommunityAct,
+  getBrothersByCommunity,
   brothersAction,
 }

@@ -36,6 +36,6 @@ export interface Brothers {
   community_id: number;
 }
 
-export interface AllBrothers extends Brothers {
+export interface RolesBrothers extends Brothers {
   roles: string | null;
 }

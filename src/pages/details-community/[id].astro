@@ -1,116 +1,60 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import SectionContainer from "@/components/SectionContainer.astro";
-import GroupLeadersComm from "@/components/GroupLeadersComm.astro";
-import MessageVisual from "@/components/MessageVisual.astro";
-import type { AllBrothers } from "@/types/brothers";
 import NavbarPage from "@/components/NavbarPage.astro";
 import PlusIcon from "@/assets/PlusIcon.astro";
+import { BrothersWithRolesCard } from "@/components/BrothersWithRolesCard";
 
 const { id } = Astro.params;
-
-const config = {
-  error: false,
-  message: "",
-  title: "Detalles de la comunidad",
-  description: "Información de los líderes de la comunidad.",
-  brothers: [] as AllBrothers[],
-};
-
 if (!id) {
-  config.error = true;
-  config.message = "ID de comunidad no proporcionado.";
-} else {
-  // obtener hermanos líderes por id de la comunidad
-  try {
-    const apiUrl = new URL(
-      `/api/brothers-by-community/${id}`,
-      Astro.request.url,
-    );
-    const res = await fetch(apiUrl);
-    if (!res.ok) {
-      throw new Error(
-        `Error al obtener los líderes de la comunidad: ${res.status} ${res.statusText}`,
-      );
-    }
-    const json = (await res.json()) as
-      | { success: true; data: AllBrothers[] }
-      | { success?: false; error?: string }
-      | { error?: string };
-
-    if ("success" in json && json.success && "data" in json) {
-      config.brothers = json.data;
-    } else {
-      // La API puede devolver { error: "No leaders found for this community" }
-      // con status 200; en ese caso mostramos el mensaje de "sin líderes".
-      config.brothers = [];
-    }
-  } catch (error) {
-    console.error(error);
-    config.error = true;
-    config.message = "No se pudieron cargar los líderes de la comunidad.";
-  }
+  throw new Error("ID de comunidad no proporcionado");
 }
 ---
 
 <Layout>
-  {
-    config.error && (
-      <SectionContainer title={config.title} description={config.description}>
-        <div class="ss" slot="body">
-          <MessageVisual
-            title={config.message}
-            description={config.message}
-            isError
-          />
-        </div>
-      </SectionContainer>
-    )
-  }
-  <!-- si no hay error pero la lista es vacia -->
-  {
-    !config.error && (
-      <NavbarPage title="Gestión de Hermanos" description="Agrega y designa roles a hermanos para esta comunidad">
-        <div class="ss" slot="actions">
-          <button class="btn btn-primary flex gap-2" id="btn-add-bro" data-comm-id={id}>
-            <PlusIcon class="size-5 block" />
-            <span>Agregar Hermano</span>
-          </button>
-        </div>
-      </NavbarPage> 
-      <br/>
-      <SectionContainer title={config.title} description={config.description}>
-        {config.brothers.length === 0 && (
-          <div class="ss" slot="body">
-            <MessageVisual
-              title="No hay líderes en esta comunidad."
-              description="Parece que no hay líderes asignados a esta comunidad."
-            />
-          </div>
-        )}
-        {config.brothers.length > 0 && (
-          <div class="ss" slot="body">
-            <GroupLeadersComm list={config.brothers} />
-          </div>
-        )}
-      </SectionContainer>
-    )
-  }
+  <div class="flex flex-col gap-6">
+    <NavbarPage
+      title="Gestion de Hermanos"
+      description="Agrega y designa roles a hermanos dentro de esta comunidad"
+    >
+      <button
+        id="btn-add-bro"
+        data-comm-id={id}
+        class="btn btn-primary flex items-center gap-2"
+        slot="actions"
+      >
+        <PlusIcon class="size-5 block" />
+        <span>Agregar Hermano</span>
+      </button>
+    </NavbarPage>
+    <SectionContainer
+      title="Grupo de responsables"
+      description="Aquí puedes ver los hermanos que tienen roles asignados en esta comunidad."
+    >
+      <div class="ss" slot="body">
+        <BrothersWithRolesCard commId={Number(id)} client:load />
+      </div>
+    </SectionContainer>
+
+    <SectionContainer>
+      <div class="ss" slot="body">
+        <p>Todos</p>
+      </div>
+    </SectionContainer>
+  </div>
 </Layout>
 
 <script>
   import { $id } from "@/utils/selectElementsDom";
 
   document.addEventListener("astro:page-load", () => {
-    const btnAddBro = $id("btn-add-bro")
+    const btnAddBro = $id("btn-add-bro");
 
-    if (!btnAddBro) return
+    if (!btnAddBro) return;
     btnAddBro.addEventListener("click", () => {
-      const commId = btnAddBro.dataset.commId
+      const commId = btnAddBro.dataset.commId;
       if (!commId) return;
-      (window as any).openBrotherchModal(commId)
-    })
-
-  })
-
+      (window as any).openBrotherchModal(commId);
+    });
+  });
 </script>
